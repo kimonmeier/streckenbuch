@@ -3,7 +3,7 @@
 	"short_name": "Streckenbuch",
 	"id": "./",
 	"start_url": "./",
-	"display": "standalone",
+	"display": "fullscreen",
 	"background_color": "#ffffff",
 	"theme_color": "#03173d",
 	"prefer_related_applications": false,
@@ -18,5 +18,16 @@
 			"type": "image/png",
 			"sizes": "192x192"
 		}
+	],
+	"description": "Diese App soll für Lokführer eine Hilfe sein um die Abschnitte zu lernen und diese gut aufzuzeigen",
+	"dir": "ltr",
+	"lang": "de",
+	"orientation": "landscape",
+	"display_override": [
+		"standalone",
+		"fullscreen",
+		"minimal-ui",
+		"browser",
+		"window-controls-overlay"
 	]
 }
