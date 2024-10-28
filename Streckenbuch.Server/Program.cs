@@ -16,6 +16,9 @@ var builder = WebApplication.CreateBuilder(args);
 builder.AddMail();
 
 builder.Configuration.AddCommandLine(args);
+builder.Configuration.AddEnvironmentVariables();
+builder.Configuration.AddJsonFile("./data/appsettings.json", true);
+builder.Configuration.AddJsonFile("./data/appsettings.Development.json", true);
 builder.Configuration.AddJsonFile("appsettings.json", true);
 builder.Configuration.AddJsonFile("appsettings.Development.json", true);
 
