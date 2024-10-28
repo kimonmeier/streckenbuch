@@ -1,0 +1,16 @@
+﻿<MudTimelineItem Color="Color.Secondary" Size="Size.Large" onclick="@(() => OnClickAction(Entry))">
+    <ItemDot>
+        <MudIcon Icon="@Icons.Material.Filled.Train"></MudIcon>
+    </ItemDot>
+    <ItemOpposite>
+        <div>@Entry.Name</div>
+    </ItemOpposite>
+</MudTimelineItem>
+
+@code {
+    [Parameter]
+    public DienstbahnhofEntry Entry { get; set; } = null!;
+
+    [Parameter]
+    public Action<DienstbahnhofEntry> OnClickAction { get; set; } = null!;
+}

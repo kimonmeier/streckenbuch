@@ -1,0 +1,34 @@
+﻿@switch (Entry.BetriebspunktTyp)
+{
+    case BetriebspunktTyp.Dienstbahnhof:
+        <TimeLineDienstbahnhofEntry OnClickAction="OnClickAction" Entry="Entry as DienstbahnhofEntry" />
+
+        break;
+    case BetriebspunktTyp.Bahnhof:
+        <TimeLineBahnhofEntry OnClickAction="OnClickAction" Entry="Entry as BahnhofEntry" />
+
+        break;
+    case BetriebspunktTyp.Haltestelle:
+        <TimeLineHaltstelleEntry OnClickAction="OnClickAction" Entry="Entry as HaltestelleEntry"/>
+
+        break;
+}
+
+@code {
+
+    [Parameter]
+    public MudTimelineItem TimelineItem { get; set; } = null!;
+
+    [Parameter]
+    public IBetriebspunktEntry Entry { get; set; } = null!;
+
+    [Parameter]
+    public Action<IBetriebspunktEntry> OnClickAction { get; set; } = null!;
+
+    protected override void OnInitialized()
+    {
+
+        base.OnInitialized();
+    }
+
+}

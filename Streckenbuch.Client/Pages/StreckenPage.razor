@@ -1,0 +1,97 @@
+﻿@page "/strecken"
+@attribute [Authorize(Roles = Permissions.Admin)]
+@inject StreckenService.StreckenServiceClient streckenService
+@inject IDialogService dialogService
+@inject IMapper mapper
+
+<PageTitle>Strecken</PageTitle>
+
+<MudTable Items="strecken" Loading="isLoading" Class="w-full">
+    <HeaderContent>
+        <MudTh>Nummer</MudTh>
+        <MudTh></MudTh>
+    </HeaderContent>
+    <RowTemplate>
+        <MudTd>@context.Nummer</MudTd>
+        <MudTd>
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="@(() => createKonfiguration(context.Id))">
+                Konfiguration erstellen
+            </MudButton>
+        </MudTd>
+    </RowTemplate>
+    <ChildRowContent>
+        <MudTr />
+        <MudTable Items="context.Konfigurationen" Context="konfiguration" Class="w-full">
+            <HeaderContent>
+                <MudTh>Name</MudTh>
+                <MudTh>Von</MudTh>
+                <MudTh>Bis</MudTh>
+                <MudTh>Zuordnungen</MudTh>
+            </HeaderContent>
+            <RowTemplate>
+                <MudTd>
+                    @context.Nummer@konfiguration.Name
+                </MudTd>
+                <MudTd>
+                    @konfiguration.VonBetriebspunkt
+                </MudTd>
+                <MudTd>
+                    @konfiguration.BisBetriebspunkt
+                </MudTd>
+                <MudTd>
+                    <MudButton OnClick="@(() => openZuordnungen(konfiguration.Id))" Variant="Variant.Filled" Color="Color.Secondary">Schliessen</MudButton>
+                </MudTd>
+            </RowTemplate>
+        </MudTable>
+    </ChildRowContent>
+</MudTable>
+
+<MudButtonGroup>
+    <MudButton Color="@Color.Primary" OnClick="createStrecke">Strecke erstellen</MudButton>
+</MudButtonGroup>
+
+@code {
+    private List<StreckenModel>? strecken;
+    private bool isLoading;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await loadData();
+    }
+
+    private async Task loadData()
+    {
+        isLoading = true;
+
+        strecken = mapper.Map<List<StreckenModel>>((await streckenService.ListAllStreckenAsync(new Empty())).Strecken);
+
+        isLoading = false;
+    }
+
+    private Task createKonfiguration(Guid streckenId)
+    {
+        var parameters = new DialogParameters<CreateStreckenKonfiguration>
+        {
+            { x => x.StreckeId, streckenId },
+        };
+
+        return dialogService.ShowAsync<CreateStreckenKonfiguration>("Streckenkonfiguration erstellen", parameters);
+    }
+
+    private async Task createStrecke()
+    {
+        await dialogService.Show<CreateStrecke>("Strecke erstellen").Result;
+
+        await loadData();
+    }
+
+    private async Task openZuordnungen(Guid konfigurationId)
+    {
+        var parameters = new DialogParameters<EditStreckenZurodnungen>
+        {
+            { x => x.StreckenKonfigurationId, konfigurationId },
+        };
+
+        await dialogService.Show<EditStreckenZurodnungen>("Zuordnungen", parameters).Result;
+    }
+}

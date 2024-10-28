@@ -1,0 +1,39 @@
+﻿@if (!string.IsNullOrEmpty(DisplayMessage))
+{
+    var isError = DisplayMessage.StartsWith("Error");
+
+    @if (isError)
+    {
+        <MudAlert title="Es ist ein Fehler aufgetreten" Severity="Severity.Error">
+            @Message
+        </MudAlert>
+    }
+    else
+    {
+        <MudAlert title="Information" Severity="Severity.Info">
+            @Message
+        </MudAlert>
+    }
+}
+
+@code {
+    private string? messageFromCookie;
+
+    [Parameter]
+    public string? Message { get; set; }
+
+    [CascadingParameter]
+    private HttpContext HttpContext { get; set; } = default!;
+
+    private string? DisplayMessage => Message ?? messageFromCookie;
+
+    protected override void OnInitialized()
+    {
+        messageFromCookie = HttpContext.Request.Cookies[IdentityRedirectManager.StatusCookieName];
+
+        if (messageFromCookie is not null)
+        {
+            HttpContext.Response.Cookies.Delete(IdentityRedirectManager.StatusCookieName);
+        }
+    }
+}

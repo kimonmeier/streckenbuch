@@ -1,0 +1,44 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+    <PropertyGroup>
+        <TargetFramework>net8.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+    </PropertyGroup>
+    <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+      <Optimize>False</Optimize>
+    </PropertyGroup>
+    <ItemGroup>
+      <None Remove="Services\betriebspunkte.proto" />
+      <None Remove="Services\fahren.proto" />
+      <None Remove="Services\signale.proto" />
+      <None Remove="Services\strecken.proto" />
+      <None Remove="Types\dateOnly.proto" />
+      <None Remove="Types\guid.proto" />
+      <None Remove="Types\location.proto" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <PackageReference Include="AutoMapper" Version="13.0.1" />
+      <PackageReference Include="Google.Protobuf" Version="3.28.1" />
+      <PackageReference Include="Grpc.Net.Client" Version="2.65.0" />
+      <PackageReference Include="Grpc.Tools" Version="2.66.0">
+        <PrivateAssets>all</PrivateAssets>
+        <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      </PackageReference>
+      <PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.8" />
+      <PackageReference Include="NetTopologySuite" Version="2.5.0" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Protobuf Include="Services\betriebspunkte.proto" />
+      <Protobuf Include="Services\fahren.proto" />
+      <Protobuf Include="Services\signale.proto" />
+      <Protobuf Include="Types\dateOnly.proto" />
+      <Protobuf Include="Types\guid.proto" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Protobuf Include="Services\strecken.proto" />
+      <Protobuf Include="Types\location.proto" />
+    </ItemGroup>
+</Project>

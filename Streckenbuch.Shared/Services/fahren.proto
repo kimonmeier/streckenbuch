@@ -1,0 +1,42 @@
+syntax = "proto3";
+option csharp_namespace = "Streckenbuch.Shared.Services";
+package Fahren;
+
+import "google/protobuf/empty.proto";
+import "Types/guid.proto";
+import "Types/location.proto";
+
+service FahrenService {
+	rpc FahrenByStrecken (FahrenRequestByStrecken) returns (FahrenResponse);
+	rpc FahrenByLinie (FahrenRequestByLinie) returns (FahrenResponse);
+}
+
+message FahrenRequestByStrecken {
+	Types.GuidProto vonBetriebspunkt = 1;
+	Types.GuidProto bisBetriebspunktId = 2;
+	repeated FahrenRequestStrecke strecken = 3;
+}
+
+message FahrenRequestStrecke {
+	Types.GuidProto streckenKonfigurationId = 1;
+	Types.GuidProto vonBetriebspunktId = 2;
+	Types.GuidProto bisBetriebspunktId = 3;
+}
+
+message FahrenRequestByLinie {
+	Types.GuidProto linieId = 1;
+}
+
+message FahrenResponse {
+	repeated FahrenEntry entries = 1;
+}
+
+message FahrenEntry {
+	int32 entryTyp = 1;
+	Types.LocationProto location = 2;
+	optional int32 betriebspunktTyp = 3;
+	optional string name = 4;
+	optional string kommentar = 5;
+	optional int32 signalTyp = 6;
+	optional int32 signalSeite = 7;
+}

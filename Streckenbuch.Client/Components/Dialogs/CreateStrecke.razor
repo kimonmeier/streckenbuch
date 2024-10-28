@@ -1,0 +1,48 @@
+﻿@using Streckenbuch.Shared.Models
+@inject StreckenService.StreckenServiceClient streckenService
+
+<EditForm Model="@model" OnValidSubmit="Submit">
+    <DataAnnotationsValidator />
+    <MudGrid>
+        <MudItem>
+            <MudCard>
+                <MudCardContent>
+                    <MudTextField Label="Nummer" HelperText="Die Streckennummer"
+                                  @bind-Value="model.Nummer" For="@(() => model.Nummer)" />
+                </MudCardContent>
+                <MudCardActions>
+                    <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary">Create</MudButton>
+                    <MudButton ButtonType="ButtonType.Button" Variant="Variant.Filled" Color="Color.Secondary" OnClick="Cancel">Cancel</MudButton>
+                </MudCardActions>
+            </MudCard>
+        </MudItem>
+    </MudGrid>
+</EditForm>
+
+@code {
+    [CascadingParameter]
+    private MudDialogInstance MudDialog { get; set; } = null!;
+
+    private CreateStreckeForm model = new CreateStreckeForm();
+
+    public class CreateStreckeForm
+    {
+        [Required]
+        public int Nummer { get; set; }
+    }
+
+    private async Task Submit()
+    {
+        await streckenService.CreateStreckeAsync(new CreateStreckeRequest()
+        {
+            Nummer = model.Nummer
+        });
+
+        MudDialog.Close();
+    }
+
+    private void Cancel()
+    {
+        MudDialog.Cancel();
+    }
+}

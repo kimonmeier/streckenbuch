@@ -1,0 +1,45 @@
+﻿@using Streckenbuch.Shared.Models
+
+<MudNavMenu>
+    <MudNavLink Href="/" Match="NavLinkMatch.All">
+        <MudIcon Icon="@Icons.Material.Filled.Dashboard" Title="Dashboard" /> Dashboard
+    </MudNavLink>
+    <MudNavLink Href="/fahren" Match="NavLinkMatch.All">
+        <MudIcon Icon="@Icons.Material.Filled.DirectionsRailway" Title="Fahren" /> Fahren
+    </MudNavLink>
+    <AuthorizeView Roles="@(Permissions.Admin)">
+        <Authorized>
+            <MudNavLink Href="/strecken" Match="NavLinkMatch.All">
+                <MudIcon Icon="@Icons.Material.Filled.DensityLarge" Title="Strecken" /> Strecken
+            </MudNavLink>
+            <MudNavLink Href="/betriebspunkte" Match="NavLinkMatch.All">
+                <MudIcon Icon="@Icons.Material.Filled.LocationOn" Title="Betriebspunkte" /> Betriebspunkte
+            </MudNavLink>
+            <MudNavLink Href="/signale" Match="NavLinkMatch.All">
+                <MudIcon Icon="@Icons.Material.Filled.Lightbulb" Title="Signale" /> Signale
+            </MudNavLink>
+            <MudNavLink Href="/linien" Match="NavLinkMatch.All">
+                <MudIcon Icon="@Icons.Material.Filled.LinearScale" Title="Linien" /> Linien
+            </MudNavLink>
+        </Authorized>
+    </AuthorizeView>
+    <AuthorizeView>
+        <Authorized>
+            <MudNavLink Href="/account/login" Match="NavLinkMatch.All">
+                <MudIcon Icon="@Icons.Material.Filled.Logout" Title="Logout" /> Logout
+            </MudNavLink>
+            <MudNavLink Href="/account/manage" Match="NavLinkMatch.All">
+                <MudIcon Icon="@Icons.Material.Filled.VerifiedUser" Title="Profil" /> Profil
+            </MudNavLink>
+        </Authorized>
+        <NotAuthorized>
+            <MudNavLink Href="/account/login" Match="NavLinkMatch.All">
+                <MudIcon Icon="@Icons.Material.Filled.Login" Title="Login" /> Login
+            </MudNavLink>
+        </NotAuthorized>
+    </AuthorizeView>
+</MudNavMenu>
+
+@code {
+
+}

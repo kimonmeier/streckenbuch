@@ -1,0 +1,49 @@
+﻿@page "/fahren"
+@using NetTopologySuite.Geometries
+@using Streckenbuch.Client.Components.Fahren
+@using Streckenbuch.Client.Models.Fahren
+@inject FahrenService.FahrenServiceClient fahrenService
+@inject IDialogService dialogService
+@layout FahrenLayout
+@implements IDisposable
+
+<PageTitle>Fahren</PageTitle>
+
+<FahrenTimeLine FahrplanEntries="List"></FahrenTimeLine>
+
+@code {
+    [CascadingParameter]
+    public FahrenLayout Layout { get; set; } = null!;
+
+    private List<IBaseEntry> List = new List<IBaseEntry>();
+
+    protected override void OnInitialized()
+    {
+        Layout.SelectRoute += SelectRoute;
+
+        base.OnInitialized();
+    }
+
+    private void SelectRoute(object? source, EventArgs eventArgs)
+    {
+        Task.Run(async () =>
+        {
+            var dialog = dialogService.Show<LoadFahrordnung>();
+            var result = await dialog.Result;
+
+            if (result?.Data is not List<IBaseEntry> list)
+            {
+                throw new ArgumentException("Something is wrong");
+            }
+
+            List = list;
+            await InvokeAsync(StateHasChanged);
+        });
+    }
+
+
+    public void Dispose()
+    {
+        Layout.SelectRoute -= SelectRoute;
+    }
+}

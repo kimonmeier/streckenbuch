@@ -1,0 +1,15 @@
+﻿<MudTimelineItem Color="Color.Tertiary">
+    <ItemDot>
+        <MudAvatar>
+            <MudImage Src="images/vorsignal.png"></MudImage>
+        </MudAvatar>
+    </ItemDot>
+    <ItemContent>
+        <MudText>Vorsignal</MudText>
+    </ItemContent>
+</MudTimelineItem>
+
+@code {
+    [Parameter]
+    public VorsignalEntry Entry { get; set; } = null!;
+}

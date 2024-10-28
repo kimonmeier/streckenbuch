@@ -1,0 +1,7 @@
+syntax = "proto3";
+option csharp_namespace = "Streckenbuch.Shared.Types";
+package Types;
+
+message DateOnlyProto {
+	int32 daySinceUnix = 1;
+}

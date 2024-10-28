@@ -1,0 +1,158 @@
+﻿@inject SignaleService.SignaleServiceClient signalService
+@inject StreckenService.StreckenServiceClient streckenService
+@inject IDialogService dialogService
+
+@if (isLoading)
+{
+    <MudOverlay Visible="true" DarkBackground="true" ZIndex="9999">
+        <MudProgressCircular Color="Color.Secondary" Indeterminate="true" />
+    </MudOverlay>
+}
+else
+{
+    <MudCard>
+        <MudCardHeader>
+            <MudText Typo="Typo.h6">Zuordnungen</MudText>
+            <MudSpacer />
+            <MudTextField T="int?" @bind-Value="searchNumber" TextChanged="AssignFreieStreckeWithSearch" Placeholder="Suche" Adornment="Adornment.Start"
+                          AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
+        </MudCardHeader>
+        <MudCardContent>
+            <div class="flex flex-row h-full">
+                <div class="w-1/2 border p-2 rounded-lg h-full">
+                    <SortableList Class="w-full h-full" Id="sortable1" ForceFallback="false" Items="zugeordneteStrecke" Group="List" Context="item" OnRemove="RemoveZuordnung">
+                        <SortableItemTemplate>
+                            <div class="has-border has-background-white has-cursor-pointer">
+                                <p class="is-size-4 p-2 ml-4">@item.StreckeNummer@item.StreckenZusatz</p>
+                            </div>
+                        </SortableItemTemplate>
+                    </SortableList>
+                </div>
+
+                <div class="w-1/2 border p-2 rounded-lg h-full">
+                    <SortableList Class="w-full h-full" Id="sortable2" ForceFallback="false" Items="freieStrecken" Group="List" Context="item" OnRemove="RemoveStrecke">
+                        <SortableItemTemplate>
+                            <div class="has-border has-background-white has-cursor-pointer">
+                                <p class="is-size-4 p-2 ml-4">@item.StreckeNummer@item.StreckenZusatz</p>
+                            </div>
+                        </SortableItemTemplate>
+                    </SortableList>
+                </div>
+            </div>
+        </MudCardContent>
+        <MudCardActions>
+            <MudButton OnClick="Close" Variant="Variant.Filled" Color="Color.Primary">Schliessen</MudButton>
+        </MudCardActions>
+    </MudCard>
+}
+
+@code {
+    [CascadingParameter]
+    private MudDialogInstance MudDialog { get; set; } = null!;
+
+    [Parameter]
+    public Guid SignalId { get; set; }
+    [Parameter]
+    public Guid BetriebspunktId { get; set; }
+
+    private bool isLoading = true;
+    private int? searchNumber = null;
+    private List<StreckeZuordnungSignal> alleStrecken = new List<StreckeZuordnungSignal>();
+    private List<StreckeZuordnungSignal> freieStrecken = new List<StreckeZuordnungSignal>();
+    private List<StreckeZuordnungSignal> zugeordneteStrecke = new List<StreckeZuordnungSignal>();
+    private List<SignalZuordnung> zuordnungen = new List<SignalZuordnung>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        alleStrecken = (await streckenService.ListStreckenZuordnungByBetriebspunktAsync(new ListZuordnungByBetriebspunktRequest()
+            {
+                BetriebspunktId = BetriebspunktId
+            })).Zuordnungen.ToList();
+
+        await LoadData();
+    }
+
+    private async Task LoadData()
+    {
+        isLoading = true;
+
+        zuordnungen = (await signalService.ListZuordnungBySignalAsync(new ListZuordnungBySignalRequest() { SignalId = SignalId })).Zuordnungen.ToList();
+
+        zugeordneteStrecke = alleStrecken.Where(streckeZuordnung => zuordnungen.Any(zuordnung => ((Guid)zuordnung.StreckeBetriebspunktZuordnungId).Equals(streckeZuordnung.StreckenZuordnungId))).OrderBy(x => x.StreckeNummer).OrderBy(x => x.StreckenZusatz).ToList();
+        AssignFreieStreckeWithSearch();
+
+        isLoading = false;
+    }
+
+    private void Close()
+    {
+        MudDialog.Close();
+    }
+
+    private async Task RemoveZuordnung((int oldIndex, int newIndex) indices)
+    {
+        if (this.isLoading)
+        {
+            return;
+        }
+        var strecke = zugeordneteStrecke[indices.oldIndex];
+
+        await signalService.DeleteSignalZuordnungAsync(new DeleteSignalZuordnungRequest()
+            {
+                SignalId = SignalId,
+                StreckeBetriebspunktZuordnungId = strecke.StreckenZuordnungId,
+            });
+
+        await LoadData();
+    }
+
+    private async Task RemoveStrecke((int oldIndex, int newIndex) indices)
+    {
+        if (this.isLoading)
+        {
+            return;
+        }
+
+        var result = await dialogService.Show<AddSignalZuordnungDetails>().Result;
+
+        if (result is null || result.Canceled)
+        {
+            return;
+        }
+
+        AddSignalZuordnungDetails.AddSignalZuordnungDetailsForm zuordnungDetails = (AddSignalZuordnungDetails.AddSignalZuordnungDetailsForm)result.Data!;
+
+        var strecke = freieStrecken[indices.oldIndex];
+
+        var request = new CreateSignalZuordnungRequest()
+            {
+                SignalId = SignalId,
+                StreckeBetriebspunktZuordnungId = strecke.StreckenZuordnungId,
+                AbDatum = zuordnungDetails.AbDatum,
+                BisDatum = zuordnungDetails.BisDatum,
+                IsSpecialCase = zuordnungDetails.IsSpecialCase ?? false,
+            };
+        if (!string.IsNullOrEmpty(zuordnungDetails.SpecialCase))
+        {
+            request.SpecialCase = zuordnungDetails.SpecialCase;
+        }
+        var empty = await signalService.CreateSignalZuordnungAsync(request);
+
+
+        searchNumber = null;
+
+        await LoadData();
+    }
+
+    private void AssignFreieStreckeWithSearch()
+    {
+        var orderedList = alleStrecken.Where(x => !zugeordneteStrecke.Any(z => z.StreckenZuordnungId == x.StreckenZuordnungId)).OrderBy(x => x.StreckeNummer).OrderBy(x => x.StreckenZusatz);
+        if (!searchNumber.HasValue)
+        {
+            freieStrecken = orderedList.ToList();
+            return;
+        }
+
+        freieStrecken = orderedList.Where(x => x.StreckeNummer == searchNumber || x.StreckeNummer.ToString().StartsWith(searchNumber.Value.ToString())).ToList();
+    }
+}

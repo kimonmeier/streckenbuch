@@ -1,0 +1,94 @@
+﻿@page "/betriebspunkte"
+@attribute [Authorize(Roles = Permissions.Admin)]
+@inject BetriebspunkteService.BetriebspunkteServiceClient betriebspunkteService
+@inject IDialogService dialogService
+@inject NavigationManager navigationManager
+@inject IJSRuntime JSRuntime;
+
+<MudTable Items="betriebspunkte" Loading="isLoading" Virtualize="true" FixedHeader="true" Filter="new Func<BetriebspunktProto,bool>(filterFunc)">
+    <ToolBarContent>
+        <MudText Typo="Typo.h6">Betriebspunkte</MudText>
+        <MudSpacer />
+        <MudTextField T="string" @bind-Value="searchString" Placeholder="Suche" Adornment="Adornment.Start"
+                      AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
+    </ToolBarContent>
+    <HeaderContent>
+        <MudTh>
+            Name
+        </MudTh>
+        <MudTh>
+            Kommentar
+        </MudTh>
+        <MudTh>
+            Ort
+        </MudTh>
+    </HeaderContent>
+    <RowTemplate>
+        <MudTd>
+            @context.Name
+        </MudTd>
+        <MudTd>
+            @context.Kommentar
+        </MudTd>
+        <MudTd>
+            <MudButton Color="Color.Secondary" OnClick="@(() => openLocationOnMaps(context))">Zeige Ort</MudButton>
+        </MudTd>
+    </RowTemplate>
+</MudTable>
+
+<MudButtonGroup>
+    <MudButton Color="@Color.Primary" OnClick="createBetriebspunkt">Betriebspunkt erstellen</MudButton>
+</MudButtonGroup>
+
+@code {
+    private List<BetriebspunktProto> betriebspunkte = new List<BetriebspunktProto>();
+    private bool isLoading;
+    private string? searchString;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await loadData();
+    }
+
+    private async Task loadData()
+    {
+        isLoading = true;
+
+        betriebspunkte = (await betriebspunkteService.ListAllBetriebspunkteAsync(new Empty())).Betriebspunkte.ToList();
+
+        isLoading = false;
+    }
+
+    private bool filterFunc(BetriebspunktProto betriebspunkt)
+    {
+        if (string.IsNullOrWhiteSpace(searchString))
+        {
+            return true;
+        }
+        if (betriebspunkt.Name.Contains(searchString, StringComparison.OrdinalIgnoreCase))
+        {
+            return true;
+        }
+        return false;
+    }
+
+    private async Task openLocationOnMaps(BetriebspunktProto betriebspunkt)
+    {
+        string url = $"https://www.google.com/maps/search/?api=1&query={betriebspunkt.Location.Latitude.ToString(CultureInfo.InvariantCulture)},{betriebspunkt.Location.Longitude.ToString(CultureInfo.InvariantCulture)}";
+        await JSRuntime.InvokeVoidAsync("open", new object[2] { url, "_blank" });
+
+    }
+
+
+    private void onSearch(string text)
+    {
+        searchString = text;
+    }
+
+    private async Task createBetriebspunkt()
+    {
+        await dialogService.Show<CreateBetriebpunkt>("Betriebspunkt erstellen").Result;
+
+        await loadData();
+    }
+}

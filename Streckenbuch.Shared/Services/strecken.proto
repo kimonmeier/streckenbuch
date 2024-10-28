@@ -1,0 +1,91 @@
+syntax = "proto3";
+option csharp_namespace = "Streckenbuch.Shared.Services";
+package Strecken;
+
+import "google/protobuf/empty.proto";
+import "Types/guid.proto";
+
+service StreckenService {
+	rpc ListAllStrecken (google.protobuf.Empty) returns (ListStreckenAnswer);
+	rpc CreateStrecke (CreateStreckeRequest) returns (google.protobuf.Empty);
+	rpc CreateKonfiguration (CreateKonfigurationRequest) returns (google.protobuf.Empty);
+	rpc ListStreckenZuordnungByStrecke (ListZuordnungByStreckeRequest) returns (ListZuordnungByStreckeAnswer);
+	rpc ListStreckenZuordnungByBetriebspunkt (ListZuordnungByBetriebspunktRequest) returns (ListZuordnungByBetriebspunktAnswer);
+	rpc CreateStreckenZuordnung (CreateStreckenZuordnungRequest) returns (google.protobuf.Empty);
+	rpc ChangeStreckenZuordnung (ChangeStreckenZuordnungRequest) returns (google.protobuf.Empty);
+	rpc DeleteStreckenZuordnung (DeleteStreckenZuordnungRequest) returns (google.protobuf.Empty);
+}
+
+message ListZuordnungByStreckeRequest {
+	Types.GuidProto streckenKonfigurationId = 1;
+}
+
+message ListZuordnungByStreckeAnswer {
+	repeated StreckeZuordnung zuordnungen = 1;
+}
+
+message ListZuordnungByBetriebspunktRequest {
+	Types.GuidProto betriebspunktId = 1;
+}
+
+message ListZuordnungByBetriebspunktAnswer {
+	repeated StreckeZuordnungSignal zuordnungen = 1;
+}
+
+message StreckeZuordnungSignal {
+	Types.GuidProto streckenZuordnungId = 1;
+	int32 streckeNummer = 2;
+	string streckenZusatz = 3;
+}
+
+message StreckeZuordnung {
+	Types.GuidProto streckenZuordnungId = 1;
+	Types.GuidProto betriebspunktId = 2;
+	int32 sortNummer = 3;
+}
+
+message CreateStreckenZuordnungRequest {
+	Types.GuidProto streckenKonfiguration = 1;
+	Types.GuidProto betriebspunkt = 2;
+	int32 sortNummer = 3;
+}
+
+message ChangeStreckenZuordnungRequest {
+	Types.GuidProto streckenKonfigurationId = 1;
+	Types.GuidProto betriebspunktId = 2;
+	int32 oldSortNummer = 3;
+	int32 newSortNummer = 4;
+}
+
+message DeleteStreckenZuordnungRequest {
+	Types.GuidProto streckenKonfigurationId = 1;
+	Types.GuidProto betriebspunktId = 2;
+}
+
+message CreateKonfigurationRequest {
+	Types.GuidProto streckeId = 1;
+	optional string name = 2;
+	Types.GuidProto vonBetriebspunktId = 3;
+	Types.GuidProto bisBetriebspunktId = 4;
+}
+
+message CreateStreckeRequest {
+	int32 nummer = 1;
+}
+
+message ListStreckenAnswer {
+	repeated StreckenProto strecken = 1;
+}
+
+message StreckenProto {
+	Types.GuidProto id = 1;
+	int32 nummer = 2;
+	repeated StreckenKonfigurationProto konfigurationen = 3;
+}
+
+message StreckenKonfigurationProto {
+	Types.GuidProto id = 1;
+	string name = 2;
+	string vonBetriebspunktName = 3;
+	string bisBetriebspunktName = 4;
+}

@@ -1,0 +1,74 @@
+syntax = "proto3";
+option csharp_namespace = "Streckenbuch.Shared.Services";
+package Signale;
+
+import "google/protobuf/empty.proto";
+import "Types/guid.proto";
+import "Types/dateOnly.proto";
+import "Types/location.proto";
+
+service SignaleService {
+	rpc ListAllSignale (google.protobuf.Empty) returns  (ListSignaleAnswer);
+	rpc ListSignaleByBetriebspunkt (ListByBetriebspunktRequest) returns (ListSignaleAnswer);
+	rpc CreateSignal (CreateSignalRequest) returns (google.protobuf.Empty);
+	rpc DeleteSignal (DeleteSignalRequest) returns (google.protobuf.Empty);
+	rpc ListZuordnungBySignal (ListZuordnungBySignalRequest) returns (ListZuordnungBySignalAnswer);
+	rpc CreateSignalZuordnung (CreateSignalZuordnungRequest) returns (google.protobuf.Empty);
+	rpc DeleteSignalZuordnung (DeleteSignalZuordnungRequest) returns (google.protobuf.Empty);
+}
+
+message CreateSignalRequest {
+	Types.GuidProto betriebspunktId = 1;
+	int32 signalTyp = 2;
+	int32 signalSeite = 3;
+	optional string name = 4;
+	Types.LocationProto location = 5;
+}
+
+message DeleteSignalRequest {
+	Types.GuidProto signalId = 1;
+}
+
+message ListSignaleAnswer {
+	repeated SignalProto signale = 1;
+}
+
+message ListByBetriebspunktRequest {
+	Types.GuidProto betriebspunktId = 1;
+}
+
+message SignalProto {
+	Types.GuidProto signalId = 1;
+	Types.GuidProto betriebspunktId = 2;
+	int32 signalTyp = 3;
+	int32 signalSeite = 4;
+	optional string name = 5;
+	Types.LocationProto location = 6;
+}
+
+message ListZuordnungBySignalRequest {
+	Types.GuidProto signalId = 1;
+}
+
+message ListZuordnungBySignalAnswer {
+	repeated SignalZuordnung zuordnungen = 1;
+}
+
+message SignalZuordnung {
+	Types.GuidProto signalZuordnungId = 1;
+	Types.GuidProto streckeBetriebspunktZuordnungId = 2;
+}
+
+message CreateSignalZuordnungRequest {
+	Types.GuidProto signalId = 1;
+	Types.GuidProto streckeBetriebspunktZuordnungId = 2;
+    Types.DateOnlyProto abDatum = 3;
+	optional Types.DateOnlyProto bisDatum = 4;
+	optional bool isSpecialCase = 5;
+	optional string specialCase = 6;
+}
+
+message DeleteSignalZuordnungRequest {
+	Types.GuidProto signalId = 1;
+	Types.GuidProto streckeBetriebspunktZuordnungId = 2;
+}

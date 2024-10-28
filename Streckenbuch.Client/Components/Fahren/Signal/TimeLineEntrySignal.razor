@@ -1,0 +1,22 @@
+﻿@switch (Entry.SignalTyp)
+{
+    case SignalTyp.Hauptsignal:
+        <TimeLineHauptsignalEntry Entry="Entry as HauptSignalEntry" />
+        break;
+    case SignalTyp.Kombiniert:
+        <TimeLineKombiniertEntry Entry="Entry as KombiniertSignalEntry" />
+        break;
+    case SignalTyp.Vorsignal:
+        <TimeLineVorsignalEntry Entry="Entry as VorsignalEntry" />
+        break;
+    case SignalTyp.Streckengeschwindigkeit:
+        break;
+}
+
+@code {
+    [Parameter]
+    public ISignalEntry Entry { get; set; } = null!;
+
+    [Parameter]
+    public Action<ISignalEntry> OnClickAction { get; set; } = null!;
+}

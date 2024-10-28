@@ -1,0 +1,115 @@
+﻿@using Streckenbuch.Client.Models.Fahren
+@using Streckenbuch.Client.Services
+
+@implements IDisposable
+@inject IGeolocationService geolocationService
+@inject FahrenPositionService fahrenPositionService
+
+
+@if (_displayedEntries is null)
+{
+    <MudAlert Severity="Severity.Info">Bitte einen Fahrplan laden</MudAlert>
+}
+else if (!_displayedEntries.Any())
+{
+    <MudAlert Severity="Severity.Warning">No Entries remaining!</MudAlert>
+}
+else
+{
+    <div class="w-full h-full flex justify-end items-end overflow-hidden">
+        <MudButton OnClick="() => _hasToMoveDown = !_hasToMoveDown">Update</MudButton>
+        <MudTimeline Class="w-full" TimelineOrientation="TimelineOrientation.Vertical" TimelinePosition="TimelinePosition.Alternate">
+            @foreach (var entry in _displayedEntries)
+            {
+                <div class="w-full h-[100px] @(_hasToMoveDown ? "slide-bottom" : string.Empty)">
+                    <FahrenTimeLineEntry OnClickAction="onEntryClick" Entry="entry" />
+                </div>
+            }
+        </MudTimeline>
+    </div>
+}
+
+@code {
+
+    [Parameter]
+    public List<IBaseEntry>? FahrplanEntries { get; set; }
+
+    private List<IBaseEntry> _displayedEntries = new();
+    private bool _hasToMoveDown = false;
+    private bool _isUpdating = false;
+    private double? _watchTaskId;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _watchTaskId = await geolocationService.WatchPositionAsync((position) =>
+        {
+            updatePosition(position);
+        },
+        (error) =>
+        {
+            Console.WriteLine("Error occured during watch position {0}", error.Message);
+        },
+        new PositionOptions()
+            {
+                EnableHighAccuracy = true,
+                MaximumAge = TimeSpan.FromSeconds(5).TotalMilliseconds
+            });
+    }
+
+    protected override void OnParametersSet()
+    {
+        if (FahrplanEntries is null || !FahrplanEntries.Any())
+        {
+            return;
+        }
+        _displayedEntries = fahrenPositionService.Initialize(FahrplanEntries);
+    }
+
+    protected override bool ShouldRender()
+    {
+        if (_isUpdating)
+        {
+            return false;
+        }
+
+        return base.ShouldRender();
+    }
+
+    private void onEntryClick(IBaseEntry entry)
+    {
+        Console.WriteLine("TODO!");
+    }
+
+    private void updatePosition(GeolocationPosition position)
+    {
+        if (FahrplanEntries is null || !FahrplanEntries.Any())
+        {
+            return;
+        }
+        bool moveEntries = fahrenPositionService.UpdatePosition(position, () =>
+        {
+            // Add Transition before
+            this._hasToMoveDown = true;
+            StateHasChanged();
+
+            this._isUpdating = true;
+            Task.Run(async () =>
+            {
+                await Task.Delay(1000);                
+
+                this._hasToMoveDown = false;
+                this._isUpdating = false;
+                await InvokeAsync(StateHasChanged);
+            });
+        });
+    }
+
+    public void Dispose()
+    {
+        if (_watchTaskId is not null)
+        {
+            geolocationService.ClearWatchAsync(_watchTaskId.Value).ConfigureAwait(true).GetAwaiter().GetResult();
+        }
+    }
+}
+

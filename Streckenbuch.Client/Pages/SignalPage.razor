@@ -1,0 +1,122 @@
+﻿@page "/signale"
+@attribute [Authorize(Roles = Permissions.Admin)]
+@inject BetriebspunkteService.BetriebspunkteServiceClient betriebspunkteService
+@inject SignaleService.SignaleServiceClient signalService
+@inject IJSRuntime JSRuntime;
+@inject IDialogService dialogService
+@inject IMapper mapper
+
+<PageTitle>Signale</PageTitle>
+
+<MudTable Items="signale" Loading="isLoading" Virtualize="true" FixedHeader="true">
+    <ToolBarContent>
+        <MudText Typo="Typo.h6">Signale</MudText>
+        <MudSpacer />
+        <MudAutocomplete T="BetriebspunktProto" Value="selectedBetriebspunkt" Clearable="true" OnClearButtonClick="@(() => changedBetriebspunkt(null))" SearchFunc="Search" ToStringFunc="@(e=> e.Name)" ValueChanged="changedBetriebspunkt" />
+    </ToolBarContent>
+    <HeaderContent>
+        <MudTh>
+            Name
+        </MudTh>
+        <MudTh>
+            Betriebspunkt
+        </MudTh>
+        <MudTh>
+            Ort
+        </MudTh>
+        <MudTh>
+            Strecken
+        </MudTh>
+    </HeaderContent>
+    <RowTemplate>
+        <MudTd>
+            @context.Name
+        </MudTd>
+        <MudTd>
+            @betriebspunkte.Single(x => ((Guid)x.Id).Equals(context.BetriebspunktId)).Name
+        </MudTd>
+        <MudTd>
+            <MudButton Color="Color.Secondary" OnClick="@(() => openLocationOnMaps(context))">Zeige Ort</MudButton>
+        </MudTd>
+        <MudTd>
+            <MudButton Color="Color.Tertiary" OnClick="@(() => editStrecken(context))">Strecken anpassen</MudButton>
+        </MudTd>
+    </RowTemplate>
+</MudTable>
+
+<MudButtonGroup>
+    <MudButton Color="@Color.Primary" OnClick="createSignal">Signal erstellen</MudButton>
+</MudButtonGroup>
+@code {
+    private List<SignalProto> signale = new List<SignalProto>();
+    private List<BetriebspunktProto> betriebspunkte = new List<BetriebspunktProto>();
+    private bool isLoading = true;
+    private BetriebspunktProto? selectedBetriebspunkt = null;
+
+    protected override async Task OnInitializedAsync()
+    {
+        betriebspunkte = (await betriebspunkteService.ListAllBetriebspunkteAsync(new Empty())).Betriebspunkte.ToList();
+
+        await LoadData();
+    }
+
+    private async Task LoadData()
+    {
+        isLoading = true;
+
+        if (selectedBetriebspunkt is null)
+        {
+            signale = (await signalService.ListAllSignaleAsync(new Empty())).Signale.ToList();
+        } else
+        {
+            signale = (await signalService.ListSignaleByBetriebspunktAsync(new ListByBetriebspunktRequest() { BetriebspunktId = selectedBetriebspunkt.Id })).Signale.ToList();
+        }
+
+        isLoading = false;
+    }
+
+    private async Task changedBetriebspunkt(BetriebspunktProto? betriebspunkt)
+    {
+        selectedBetriebspunkt = betriebspunkt;
+
+        await LoadData();
+    }
+
+    private async Task openLocationOnMaps(SignalProto signal)
+    {
+        string url = $"https://www.google.com/maps/search/?api=1&query={signal.Location.Latitude.ToString(CultureInfo.InvariantCulture)},{signal.Location.Longitude.ToString(CultureInfo.InvariantCulture)}";
+        await JSRuntime.InvokeVoidAsync("open", new object[2] { url, "_blank" });
+    }
+
+    private async Task editStrecken(SignalProto signal)
+    {
+        var param = new DialogParameters<EditSignalZuordnung>()
+        {
+            { x => x.SignalId, (Guid)signal.SignalId },
+            { x => x.BetriebspunktId, (Guid)signal.BetriebspunktId }
+        };
+        await dialogService.Show<EditSignalZuordnung>("Strecken zuordnen", param).Result;
+    }
+
+    private async Task<IEnumerable<BetriebspunktProto>> Search(string value, CancellationToken token)
+    {
+        await Task.CompletedTask;
+        if (string.IsNullOrEmpty(value)) {
+            return betriebspunkte;
+        }
+
+        return betriebspunkte.Where(x => x.Name.ToLowerInvariant().Contains(value.ToLowerInvariant(), StringComparison.InvariantCultureIgnoreCase));
+    }
+
+    private async Task createSignal()
+    {
+        DialogParameters<CreateSignal> parameters = new DialogParameters<CreateSignal>()
+        {
+            { x => x.Vorschlag, selectedBetriebspunkt }
+        };
+
+        await dialogService.Show<CreateSignal>("Signal erstellen", parameters).Result;
+
+        await LoadData();
+    }
+}

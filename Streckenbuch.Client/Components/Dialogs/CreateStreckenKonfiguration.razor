@@ -1,0 +1,94 @@
+﻿@using System.ComponentModel.DataAnnotations
+@inject StreckenService.StreckenServiceClient streckenService
+@inject BetriebspunkteService.BetriebspunkteServiceClient betriebspunkteService
+
+<EditForm Model="@model" OnValidSubmit="Submit">
+    <DataAnnotationsValidator />
+    <MudGrid>
+        <MudItem>
+            <MudCard>
+                <MudCardHeader>
+                    <CardHeaderContent>
+                        <MudText Typo="@Typo.h3">Streckenkonfiguration erstellen</MudText>
+                    </CardHeaderContent>
+                </MudCardHeader>
+                <MudCardContent>
+                    <MudTextField Label="Name" HelperText="Min. 4 characters"
+                                  @bind-Value="model.Name" For="@(() => model.Name)" />
+                    <MudSelect @bind-Value="model.VonBetriebspunkt" Label="Von" For="@(() => model.VonBetriebspunkt)">
+                        @foreach (BetriebspunktProto betriebspunkt in betriebspunkte)
+                        {
+                            <MudSelectItem Value="@((Guid)betriebspunkt.Id)">
+                                @betriebspunkt.Name
+                            </MudSelectItem>
+                        }
+                    </MudSelect>
+                    <MudSelect @bind-Value="model.BisBetriebspunkt" Label="Vis" For="@(() => model.BisBetriebspunkt)">
+                        @foreach (BetriebspunktProto betriebspunkt in betriebspunkte)
+                        {
+                            <MudSelectItem Value="@((Guid)betriebspunkt.Id)">
+                                @betriebspunkt.Name
+                            </MudSelectItem>
+                        }
+                    </MudSelect>
+                </MudCardContent>
+                <MudCardActions>
+                    <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary">Erstellen</MudButton>
+                    <MudButton ButtonType="ButtonType.Button" Variant="Variant.Filled" Color="Color.Secondary" OnClick="Cancel">Cancel</MudButton>
+                </MudCardActions>
+            </MudCard>
+        </MudItem>
+    </MudGrid>
+</EditForm>
+
+@code {
+    [CascadingParameter]
+    private MudDialogInstance MudDialog { get; set; } = null!;
+
+    [Parameter]
+    public Guid StreckeId { get; set; }
+
+    private List<BetriebspunktProto> betriebspunkte = new List<BetriebspunktProto>();
+
+    private CreateStreckenKonfigurationForm model = new CreateStreckenKonfigurationForm();
+
+    public class CreateStreckenKonfigurationForm
+    {
+        [MaxLength(128)]
+        public string? Name { get; set; }
+
+        [Required]
+        public Guid VonBetriebspunkt { get; set; }
+
+        [Required]
+        public Guid BisBetriebspunkt { get; set; }
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        betriebspunkte = (await betriebspunkteService.ListAllBetriebspunkteAsync(new Empty())).Betriebspunkte.ToList();
+    }
+
+    private async Task Submit()
+    {
+        var request = new CreateKonfigurationRequest()
+            {
+                StreckeId = StreckeId,
+                VonBetriebspunktId = model.VonBetriebspunkt,
+                BisBetriebspunktId = model.BisBetriebspunkt
+            };
+
+        if (!string.IsNullOrEmpty(model.Name))
+        {
+            request.Name = model.Name;
+        }
+        await streckenService.CreateKonfigurationAsync(request);
+
+        MudDialog.Close();
+    }
+
+    private void Cancel()
+    {
+        MudDialog.Cancel();
+    }
+}

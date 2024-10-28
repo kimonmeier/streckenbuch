@@ -1,0 +1,86 @@
+﻿@using GoogleMapsComponents
+@using GoogleMapsComponents.Maps
+@using GoogleMapsComponents.Maps.Places
+@inject IJSRuntime JS
+
+<GoogleMap @ref="@_map" OnAfterInit="OnAfterMapInit" Options="@_mapOptions" Id="map"></GoogleMap>
+@code {
+    private GoogleMap _map = default!;
+    private MapOptions _mapOptions = default!;
+    private JsObjectRef placeJsObject = default!;
+
+    public event EventHandler? OnAfterInit;
+
+    [Parameter]
+    public int ZoomLevel { get; set; } = 13;
+
+    private async Task OnAfterMapInit()
+    {
+        var module = await JS.InvokeAsync<IJSObjectReference>("import", "./Components/Maps/LocationPicker.razor.js");
+        await module.InvokeVoidAsync("addCenterMaker");
+
+        this.placeJsObject = await JsObjectRef.CreateAsync(this._map.JsRuntime, "google.maps.places.PlacesService", _map.InteropObject);
+
+        OnAfterInit?.Invoke(this, EventArgs.Empty);
+    }
+
+    protected override void OnInitialized()
+    {
+        _mapOptions = new MapOptions()
+            {
+                Zoom = ZoomLevel,
+                Center = new LatLngLiteral()
+                {
+                    Lat = 47.3525145,
+                    Lng = 7.9067247
+                },
+                MapTypeId = MapTypeId.Roadmap
+            };
+    }
+
+    public async Task SearchPlace(string search)
+    {
+        PlaceRequest obj = new()
+            {
+                Fields = ["name", "geometry"],
+                Query = search,
+            };
+        var response = await this.placeJsObject.InvokeAsync<PlaceResponse>("findPlaceFromQuery", obj);
+
+        if (response?.Results?.FirstOrDefault()?.Geometry?.Location is null)
+        {
+            return;
+        }
+
+        await _map.InteropObject.SetCenter(response.Results!.First()!.Geometry!.Location!);
+
+        this.StateHasChanged();
+    }
+
+    public async Task SetCenter(double latitude, double longitude)
+    {
+        await _map.InteropObject.SetCenter(new LatLngLiteral(latitude, longitude));
+    }
+
+    public Task<LatLngLiteral> GetCenter()
+    {
+        return _map.InteropObject.GetCenter();
+    }
+
+    private class PlaceRequest
+    {
+        public string[] Fields { get; set; } = null!;
+
+        public string Query { get; set; } = null!;
+    }
+
+    private class PlaceResponse
+    {
+        public PlaceResult[]? Results { get; set; }
+    }
+
+    private class PlaceResult
+    {
+        public PlaceGeometry Geometry { get; set; } = null!;
+    }
+}

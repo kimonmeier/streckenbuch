@@ -1,0 +1,157 @@
+﻿@inject BetriebspunkteService.BetriebspunkteServiceClient betriebspunkteService
+@inject StreckenService.StreckenServiceClient streckenService
+
+@if (isLoading)
+{
+    <MudOverlay Visible="true" DarkBackground="true" ZIndex="9999">
+        <MudProgressCircular Color="Color.Secondary" Indeterminate="true" />
+    </MudOverlay>
+}
+else
+{
+    <MudCard>
+        <MudCardHeader>
+            <MudText Typo="Typo.h6">Zuordnungen</MudText>
+            <MudSpacer />
+            <MudTextField T="string" @bind-Value="searchString" TextChanged="AssignFreieBetriebspunkteWithSearch" Placeholder="Suche" Adornment="Adornment.Start"
+                          AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
+        </MudCardHeader>
+        <MudCardContent>
+            <div class="flex flex-row h-full">
+                <div class="w-1/2 border p-2 rounded-lg h-full">
+                    <SortableList Class="w-full h-full" Id="sortable1" ForceFallback="false" Items="zugeordneteBetriebspunkte" Group="List" Context="item" OnRemove="RemoveZuordnung" OnUpdate="UpdateZuordnung">
+                        <SortableItemTemplate>
+                            <div class="has-border has-background-white has-cursor-pointer">
+                                <p class="is-size-4 p-2 ml-4">@item.Name</p>
+                            </div>
+                        </SortableItemTemplate>
+                    </SortableList>
+                </div>
+
+                <div class="w-1/2 border p-2 rounded-lg h-full">
+                    <SortableList Class="w-full h-full" Id="sortable2" ForceFallback="false" Items="freieBetriebspunkte" Group="List" Context="item" OnRemove="RemoveBetriebspunkt">
+                        <SortableItemTemplate>
+                            <div class="has-border has-background-white has-cursor-pointer">
+                                <p class="is-size-4 p-2 ml-4">@item.Name</p>
+                            </div>
+                        </SortableItemTemplate>
+                    </SortableList>
+                </div>
+            </div>
+        </MudCardContent>
+        <MudCardActions>
+            <MudButton OnClick="Close" Variant="Variant.Filled" Color="Color.Primary">Schliessen</MudButton>
+        </MudCardActions>
+    </MudCard>
+}
+
+@code {
+    [CascadingParameter]
+    private MudDialogInstance MudDialog { get; set; } = null!;
+
+    [Parameter]
+    public Guid StreckenKonfigurationId { get; set; }
+
+    private bool isLoading = true;
+    private string searchString = string.Empty;
+    private List<BetriebspunktProto> alleBetriebspunkte = new List<BetriebspunktProto>();
+    private List<BetriebspunktProto> freieBetriebspunkte = new List<BetriebspunktProto>();
+    private List<BetriebspunktProto> zugeordneteBetriebspunkte = new List<BetriebspunktProto>();
+    private List<StreckeZuordnung> zuordnungen = new List<StreckeZuordnung>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        alleBetriebspunkte = (await betriebspunkteService.ListAllBetriebspunkteAsync(new Empty())).Betriebspunkte.ToList();
+
+        await LoadData();
+    }
+
+    private async Task LoadData()
+    {
+        isLoading = true;
+
+        zuordnungen = (await streckenService.ListStreckenZuordnungByStreckeAsync(new ListZuordnungByStreckeRequest() { StreckenKonfigurationId = StreckenKonfigurationId })).Zuordnungen.ToList();
+
+        zugeordneteBetriebspunkte = alleBetriebspunkte.Select(x => new
+        {
+            BetriebspunktInfos = x,
+            SortNummer = zuordnungen.SingleOrDefault(z => ((Guid)z.BetriebspunktId).Equals(x.Id))?.SortNummer
+        }).Where(x => x.SortNummer is not null).OrderBy(x => x.SortNummer).Select(x => x.BetriebspunktInfos).ToList();
+        AssignFreieBetriebspunkteWithSearch();
+
+        isLoading = false;
+    }
+
+    private void Close()
+    {
+        MudDialog.Close();
+    }
+
+    private async Task RemoveZuordnung((int oldIndex, int newIndex) indices)
+    {
+        if (this.isLoading)
+        {
+            return;
+        }
+        var betriebsPunkt = zugeordneteBetriebspunkte[indices.oldIndex];
+
+        await streckenService.DeleteStreckenZuordnungAsync(new DeleteStreckenZuordnungRequest()
+            {
+                StreckenKonfigurationId = StreckenKonfigurationId,
+                BetriebspunktId = betriebsPunkt.Id
+            });
+
+        await LoadData();
+    }
+
+    private async Task UpdateZuordnung((int oldIndex, int newIndex) indices)
+    {
+        if (this.isLoading)
+        {
+            return;
+        }
+        var betriebspunkt = this.zugeordneteBetriebspunkte[indices.oldIndex];
+
+        await streckenService.ChangeStreckenZuordnungAsync(new ChangeStreckenZuordnungRequest()
+            {
+                StreckenKonfigurationId = StreckenKonfigurationId,
+                BetriebspunktId = betriebspunkt.Id,
+                OldSortNummer = indices.oldIndex,
+                NewSortNummer = indices.newIndex
+            });
+
+        await LoadData();
+    }
+
+    private async Task RemoveBetriebspunkt((int oldIndex, int newIndex) indices)
+    {
+        if (this.isLoading)
+        {
+            return;
+        }
+        var betriebsPunkt = freieBetriebspunkte[indices.oldIndex];
+
+        await streckenService.CreateStreckenZuordnungAsync(new CreateStreckenZuordnungRequest()
+            {
+                StreckenKonfiguration = StreckenKonfigurationId,
+                Betriebspunkt = betriebsPunkt.Id,
+                SortNummer = indices.newIndex
+            });
+
+        searchString = string.Empty;
+
+        await LoadData();
+    }
+
+    private void AssignFreieBetriebspunkteWithSearch()
+    {
+        var orderedList = alleBetriebspunkte.Where(x => !zugeordneteBetriebspunkte.Any(z => z.Id == x.Id)).OrderBy(x => x.Name);
+        if (string.IsNullOrWhiteSpace(searchString))
+        {
+            freieBetriebspunkte = orderedList.ToList();
+            return;
+        }
+
+        freieBetriebspunkte = orderedList.Where(x => x.Name.ToLowerInvariant().StartsWith(searchString.ToLowerInvariant())).ToList();
+    }
+}

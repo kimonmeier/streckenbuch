@@ -1,0 +1,65 @@
+﻿@using Streckenbuch.Client.Components.NavBar
+@inherits LayoutComponentBase
+
+<MudThemeProvider @ref="@_mudThemeProvider"
+                  Theme="@_baseTheme"
+                  @bind-IsDarkMode="@_isDarkMode" />
+<MudPopoverProvider />
+<MudDialogProvider />
+<MudSnackbarProvider />
+
+<MudLayout>
+    <MudAppBar>
+        <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@((e) => DrawerToggle())" />
+        Streckenbuch - Abschnitt sind keine Hürden mehr!
+    </MudAppBar>
+    <MudDrawer @bind-Open="@_drawerOpen">
+        <NavBar />
+    </MudDrawer>
+    <MudMainContent>
+        @Body
+    </MudMainContent>
+</MudLayout>
+
+<div id="blazor-error-ui">
+    An unhandled error has occurred.
+    <a href="" class="reload">Reload</a>
+    <a class="dismiss">🗙</a>
+</div>
+
+@code {
+    bool _drawerOpen = true;
+    private bool _isDarkMode;
+    private MudThemeProvider _mudThemeProvider = null!;
+
+    private MudTheme _baseTheme = new MudTheme()
+        {
+            LayoutProperties = new LayoutProperties()
+            {
+                DefaultBorderRadius = ".4rem"
+            }
+        };
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await _mudThemeProvider.WatchSystemPreference(OnSystemPreferenceChanged);
+            StateHasChanged();
+        }
+    }
+
+    void DrawerToggle()
+    {
+        _drawerOpen = !_drawerOpen;
+    }
+
+    private Task OnSystemPreferenceChanged(bool isDarkMode)
+    {
+        _isDarkMode = isDarkMode;
+        StateHasChanged();
+
+        return Task.CompletedTask;
+    }
+
+}

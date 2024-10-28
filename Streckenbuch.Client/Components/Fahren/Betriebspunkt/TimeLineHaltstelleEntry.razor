@@ -1,0 +1,21 @@
+﻿<MudTimelineItem Color="Color.Transparent" Size="Size.Small" onclick="@(() => OnClickAction(Entry))">
+    <ItemDot>
+        <MudIcon Icon="@Icons.Material.Filled.Train"></MudIcon>
+    </ItemDot>
+    <ItemOpposite>
+        <div class="italic">@Entry.Name</div>
+        @if (!string.IsNullOrEmpty(Entry.Kommentar))
+        {
+            <MudText Typo="Typo.subtitle1">@Entry.Kommentar</MudText>
+        }
+    </ItemOpposite>
+</MudTimelineItem>
+
+
+@code {
+    [Parameter]
+    public HaltestelleEntry Entry { get; set; } = null!;
+
+    [Parameter]
+    public Action<HaltestelleEntry> OnClickAction { get; set; } = null!;
+}

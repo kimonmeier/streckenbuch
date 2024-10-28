@@ -1,0 +1,78 @@
+﻿<EditForm Model="@model" OnValidSubmit="Submit">
+    <DataAnnotationsValidator />
+    <MudItem>
+        <MudCard>
+            <MudCardContent>
+                <MudDatePicker Label="Gültig ab" @bind-Date="model.AbDatum" For="@(() => model.AbDatum)"></MudDatePicker>
+                <MudDatePicker Label="Gültig bis" @bind-Date="model.BisDatum" For="@(() => model.BisDatum)"></MudDatePicker>
+                <MudCheckBox Label="Spezielles Signal" @bind-Value="model.IsSpecialCase" For="@(() => model.IsSpecialCase)"></MudCheckBox>
+                @if (model.IsSpecialCase.HasValue && model.IsSpecialCase.Value)
+                {
+                    <MudTextField Label="Spezialität" @bind-Value="model.SpecialCase" For="@(() => model.SpecialCase)"></MudTextField>
+                }
+            </MudCardContent>
+            <MudCardActions>
+                <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary">Erstellen</MudButton>
+                <MudButton ButtonType="ButtonType.Button" Variant="Variant.Filled" Color="Color.Secondary" OnClick="Cancel">Cancel</MudButton>
+            </MudCardActions>
+        </MudCard>
+    </MudItem>
+</EditForm>
+
+@code {
+    [CascadingParameter]
+    private MudDialogInstance MudDialog { get; set; } = null!;
+
+    private AddSignalZuordnungDetailsForm model = new AddSignalZuordnungDetailsForm();
+
+    private void Submit()
+    {
+        MudDialog.Close(model);
+    }
+
+    private void Cancel()
+    {
+        MudDialog.Cancel();
+    }
+
+    public class AddSignalZuordnungDetailsForm : IValidatableObject
+    {
+        [Required]
+        [DataType(DataType.Date)]
+        public DateTime? AbDatum { get; set; } = DateTime.Today;
+
+        [DataType(DataType.Date)]
+        public DateTime? BisDatum { get; set; } = null;
+
+        public bool? IsSpecialCase { get; set; }
+
+        public string? SpecialCase { get; set; }
+
+        public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
+        {
+            if (AbDatum < DateTime.Today)
+            {
+                yield return new ValidationResult(
+                    "Das Signal kann frühstens heute gültig sein!",
+                    [nameof(AbDatum)]
+                );
+            }
+
+            if (BisDatum is not null && BisDatum > AbDatum)
+            {
+                yield return new ValidationResult(
+                    "Das Signal hat keinen gültigen Zeitraum",
+                    [nameof(BisDatum)]
+                );
+            }
+
+            if (IsSpecialCase.HasValue && IsSpecialCase.Value && string.IsNullOrEmpty(SpecialCase))
+            {
+                yield return new ValidationResult(
+                    "Du musst einen Kommentar hinterlassen, weshalb es ein Sonderfall ist",
+                    [nameof(SpecialCase)]
+                );
+            } 
+        }
+    }
+}

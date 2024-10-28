@@ -1,0 +1,71 @@
+﻿<MudTimelineItem Color="@Color">
+    <ItemDot>
+        <MudAvatar>
+            <MudImage Src="images/hauptsignal.png"></MudImage>
+        </MudAvatar>
+    </ItemDot>
+    <ItemContent>
+        @switch (Entry.SignalSeite)
+        {
+            case SignalSeite.Einfahrt:
+                <MudText Color="Color">
+                    Einfahrt
+                </MudText>
+                break;
+            case SignalSeite.Abschnitt_Einfahrt:
+
+                <MudText Color="Color">
+                    Abschnitt Einfahrt
+                </MudText>
+                break;
+            case SignalSeite.Abschnitt_Ausfahrt:
+
+                <MudText Color="Color">
+                    Abschnitt Ausfahrt
+                </MudText>
+                break;
+            case SignalSeite.Ausfahrt:
+
+                <MudText Color="Color">
+                    Ausfahrtsignal
+                </MudText>
+                break;
+        }
+    </ItemContent>
+    <ItemOpposite>
+        @if (!string.IsNullOrEmpty(Entry.Kommentar))
+        {
+            <MudText Typo="Typo.subtitle1">
+                @Entry.Kommentar
+            </MudText>
+        }
+    </ItemOpposite>
+</MudTimelineItem>
+
+@code {
+    [Parameter]
+    public HauptSignalEntry Entry { get; set; } = null!;
+
+    public MudBlazor.Color Color
+    {
+        get
+        {
+            if (Entry is null)
+            {
+                return Color.Default;
+            }
+
+            switch (Entry.SignalSeite)
+            {
+                case SignalSeite.Einfahrt:
+                case SignalSeite.Abschnitt_Einfahrt:
+                    return Color.Success;
+                case SignalSeite.Abschnitt_Ausfahrt:
+                case SignalSeite.Ausfahrt:
+                    return Color.Error;
+            }
+
+            return Color.Transparent;
+        }
+    }
+}

@@ -1,0 +1,70 @@
+﻿@using Streckenbuch.Client.Components.NavBar
+@inherits LayoutComponentBase
+@inject NavigationManager navManager
+
+<MudThemeProvider @ref="@_mudThemeProvider"
+                  Theme="@_baseTheme"
+                  @bind-IsDarkMode="@_isDarkMode" />
+<MudPopoverProvider />
+<MudDialogProvider />
+<MudSnackbarProvider />
+
+<HeadContent>
+    <style>
+        .slide-bottom {
+            -webkit-animation: slide-bottom 2s cubic-bezier(0.190, 1.000, 0.220, 1.000) forwards;
+            animation: slide-bottom 2s cubic-bezier(0.190, 1.000, 0.220, 1.000) forwards;
+        }
+
+        @@keyframes slide-bottom {
+          0% {
+            -webkit-transform: translateY(0);
+                    transform: translateY(0);
+          }
+          100% {
+            -webkit-transform: translateY(100px);
+                    transform: translateY(100px);
+          }
+        }
+
+    </style>
+</HeadContent>
+
+<MudLayout>
+    <MudAppBar>
+        <MudGrid Justify="Justify.SpaceEvenly">
+            <MudItem>
+                <MudButton OnClick="() => _isDarkMode = !_isDarkMode">
+                    <MudIcon Icon="@Icons.Material.Outlined.DarkMode"></MudIcon>
+                </MudButton>
+                <MudButton OnClick="@(() => navManager.NavigateTo("/"))">
+                    <MudIcon Icon="@Icons.Material.Outlined.Backpack"></MudIcon>
+                </MudButton>
+                <MudButton OnClick="@(() => SelectRoute?.Invoke(this, EventArgs.Empty))">
+                    <MudIcon Icon="@Icons.Material.Outlined.Download"></MudIcon>
+                </MudButton>
+            </MudItem>
+        </MudGrid>
+    </MudAppBar>
+    <MudMainContent Class="w-full h-full">
+        <CascadingValue Value="this">
+            @Body
+        </CascadingValue>
+    </MudMainContent>
+</MudLayout>
+
+@code {
+    private bool _isDarkMode;
+    private MudThemeProvider _mudThemeProvider = null!;
+
+    public event EventHandler? StopScrolling;
+    public event EventHandler? SelectRoute;
+
+    private MudTheme _baseTheme = new MudTheme()
+        {
+            LayoutProperties = new LayoutProperties()
+            {
+                DefaultBorderRadius = ".4rem"
+            },
+        };
+}
