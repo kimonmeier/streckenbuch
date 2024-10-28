@@ -16,6 +16,7 @@
 <body>
     <Routes @rendermode="RenderModeForPage" />
     <script src="_framework/blazor.web.js"></script>
+    <script>navigator.serviceWorker.register('service-worker.js');</script>
     <script src="_content/MudBlazor/MudBlazor.min.js"></script>
 	<script src="_content/BlazorGoogleMaps/js/objectManager.js"></script>
     <script src="_content/Blazor.Geolocation.WebAssembly/blazorators.geolocation.g.js"></script>
