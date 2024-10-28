@@ -16,7 +16,7 @@ public static class GeoLocationExtensions
             return double.MaxValue;
         }
 
-        return GetDistanceBetweenTwoPointsInMeters(geolocationPosition.Coords.Latitude, geolocationPosition.Coords.Longitude, geolocationPosition2.Coords.Latitude, geolocationPosition2.Coords.Longitude);
+        return GetDistanceBetweenTwoPointsInMeters(geolocationPosition.Coords.Longitude, geolocationPosition.Coords.Latitude, geolocationPosition2.Coords.Latitude, geolocationPosition2.Coords.Longitude);
     }
 
     public static double GetDistanzInMeters(this GeolocationPosition geolocationPosition, NetTopologySuite.Geometries.Coordinate coordinate)
