@@ -56,7 +56,7 @@ builder.Services.AddAuthentication(options =>
 
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseSqlite(connectionString).EnableSensitiveDataLogging().EnableDetailedErrors());
+    options.UseSqlite(connectionString).EnableDetailedErrors());
 builder.Services.AddScoped<DbContext>(provider => provider.GetRequiredService<ApplicationDbContext>());
 builder.Services.AddScoped<DbTransactionFactory>();
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();

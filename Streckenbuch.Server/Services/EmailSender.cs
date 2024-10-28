@@ -8,7 +8,7 @@ namespace Streckenbuch.Server.Services
 {
     public class EmailSender : IEmailSender<ApplicationUser>
     {
-        private readonly ILogger _logger;
+        private readonly ILogger<EmailSender> _logger;
         private readonly IServiceProvider _provider;
         private readonly MailConfiguration _configuration;
         private readonly WebsiteConfiguration _siteConfiguration;
@@ -19,6 +19,8 @@ namespace Streckenbuch.Server.Services
             _configuration = configuration;
             _siteConfiguration = siteConfiguration;
             _provider = serviceProvider;
+
+            logger.LogError("Init");
         }
 
         public async Task SendConfirmationLinkAsync(ApplicationUser user, string email, string confirmationLink)
