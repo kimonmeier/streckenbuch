@@ -19,6 +19,13 @@
 			"sizes": "192x192"
 		}
 	],
+	"screenshots": [
+		{
+			"src": "screenshot1.png",
+			"sizes": "421x905",
+			"type": "images/png"
+		}
+	],
 	"description": "Diese App soll für Lokführer eine Hilfe sein um die Abschnitte zu lernen und diese gut aufzuzeigen",
 	"dir": "ltr",
 	"lang": "de",
