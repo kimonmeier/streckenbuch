@@ -29,7 +29,7 @@
 	"description": "Diese App soll für Lokführer eine Hilfe sein um die Abschnitte zu lernen und diese gut aufzuzeigen",
 	"dir": "ltr",
 	"lang": "de",
-	"orientation": "landscape",
+	"orientation": "portrait",
 	"display_override": [
 		"standalone",
 		"fullscreen",
