@@ -75,6 +75,12 @@ namespace Streckenbuch.Server.Services
                 throw new Exception("Mail Settings not configured!");
             }
 
+            _logger.LogInformation("Mail Server: {0}", _configuration.Server);
+            _logger.LogInformation("Mail Port: {0}", _configuration.Port);
+            _logger.LogInformation("SSL: {0}", _configuration.SSL);
+            _logger.LogInformation("Username: {0}", _configuration.Username);
+            _logger.LogInformation("Password: {0}", _configuration.Password);
+
             using IServiceScope scope = _provider.CreateScope();
 
             var response = await scope.ServiceProvider.GetRequiredService<IFluentEmail>()
