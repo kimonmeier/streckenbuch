@@ -53,7 +53,7 @@ public class SignaleService : Streckenbuch.Shared.Services.SignaleService.Signal
             await _signalRepository.AddAsync(new Data.Entities.Signale.Signal()
             {
                 BetriebspunktId = request.BetriebspunktId,
-                Location = request.Location,
+                Location = new NetTopologySuite.Geometries.Coordinate(request.Location.Longitude, request.Location.Latitude),
                 Name = request.Name,
                 Seite = (SignalSeite)request.SignalSeite,
                 Typ = (SignalTyp)request.SignalTyp,

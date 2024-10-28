@@ -6,15 +6,15 @@ public partial class LocationProto
 {
     public static implicit operator Coordinate(LocationProto proto)
     {
-        return new Coordinate(proto.Longitude, proto.Latitude);
+        return new Coordinate(proto.Latitude, proto.Longitude);
     }
 
     public static implicit operator LocationProto(Coordinate coordinate)
     {
         return new LocationProto()
         {
-            Latitude = coordinate.Y,
-            Longitude = coordinate.X,
+            Latitude = coordinate.X,
+            Longitude = coordinate.Y,
         };
     }
 }

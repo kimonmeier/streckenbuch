@@ -16,7 +16,7 @@ public static class GeoLocationExtensions
             return double.MaxValue;
         }
 
-        return GetDistanceBetweenTwoPointsInMeters(geolocationPosition.Coords.Longitude, geolocationPosition.Coords.Latitude, geolocationPosition2.Coords.Latitude, geolocationPosition2.Coords.Longitude);
+        return GetDistanceBetweenTwoPointsInMeters(geolocationPosition.Coords.Latitude, geolocationPosition.Coords.Longitude, geolocationPosition2.Coords.Latitude, geolocationPosition2.Coords.Longitude);
     }
 
     public static double GetDistanzInMeters(this GeolocationPosition geolocationPosition, NetTopologySuite.Geometries.Coordinate coordinate)
@@ -31,7 +31,7 @@ public static class GeoLocationExtensions
             return double.MaxValue;
         }
 
-        return GetDistanceBetweenTwoPointsInMeters(geolocationPosition.Coords.Longitude, geolocationPosition.Coords.Latitude, coordinate.X, coordinate.Y);
+        return GetDistanceBetweenTwoPointsInMeters(geolocationPosition.Coords.Latitude, geolocationPosition.Coords.Longitude, coordinate.X, coordinate.Y);
     }
 
     public static double GetDistanzInMeters(this NetTopologySuite.Geometries.Coordinate coordinate, GeolocationPosition geolocationPosition)
@@ -39,25 +39,22 @@ public static class GeoLocationExtensions
         return geolocationPosition.GetDistanzInMeters(coordinate);
     }
 
-    private static double GetDistanceBetweenTwoPointsInMeters(double latitude1, double longitude1, double latitude2, double longitude2)
+    private static double GetDistanceBetweenTwoPointsInMeters(double lat1, double lon1, double lat2, double lon2)
     {
-        double theta = longitude1 - longitude2;
-        double distance = Math.Sin(ConvertDecimalDegreesToRadians(latitude1)) * Math.Sin(ConvertDecimalDegreesToRadians(latitude2)) +
-                          Math.Cos(ConvertDecimalDegreesToRadians(latitude1)) * Math.Cos(ConvertDecimalDegreesToRadians(latitude2)) * Math.Cos(ConvertDecimalDegreesToRadians(theta));
+        // Convert latitude and longitude to radians
+        double rlat1 = Math.PI * lat1 / 180;
+        double rlon1 = Math.PI * lon1 / 180;
+        double rlat2 = Math.PI * lat2 / 180;
+        double rlon2 = Math.PI * lon2 / 180;
 
-        distance = Math.Acos(distance);
-        distance = ConvertRadiansToDecimalDegrees(distance);
-        distance = distance * 60 * 1.1515; // Convert to miles
-        return distance * 1.609344 * 1000; // Convert to kilometer and then to meter
-    }
+        // Calculate the distance using the Haversine formula
+        double dlon = rlon2 - rlon1;
+        double dlat = rlat2 - rlat1;
+        double a = Math.Pow(Math.Sin(dlat / 2), 2) + Math.Cos(rlat1) * Math.Cos(rlat2) * Math.Pow(Math.Sin(dlon / 2), 2);
+        double c = 2 * Math.Atan2(Math.Sqrt(a), Math.Sqrt(1 - a));
+        double distance = 6371 * c; // Earth's radius in kilometers
+        distance *= 1000; // Convert kilometers to meters
 
-    private static double ConvertDecimalDegreesToRadians(double degree)
-    {
-        return (degree * Math.PI / 180.0);
-    }
-
-    private static double ConvertRadiansToDecimalDegrees(double radian)
-    {
-        return (radian / Math.PI * 180.0);
+        return distance;
     }
 }
