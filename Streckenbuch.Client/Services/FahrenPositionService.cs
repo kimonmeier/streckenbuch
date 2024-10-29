@@ -79,9 +79,6 @@ public class FahrenPositionService
         var distanceFromOldPositionTwo = lastEntry.Location.GetDistanzInMeters(oldPositionTwo);
         var distanceFromOldPositionThree = lastEntry.Location.GetDistanzInMeters(oldPositionThree);
 
-        // Add the new position to the history
-        lastPositions.Add(newPosition);
-
         // Check if the distance to the last entry is increasing or decreasing
         if (distanceFromOldPositionOne < distanceFromOldPositionTwo &&
             distanceFromOldPositionTwo < distanceFromOldPositionThree)
