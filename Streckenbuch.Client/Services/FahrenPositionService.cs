@@ -65,24 +65,26 @@ public class FahrenPositionService
         var distanceToEntryFromNewPosition = lastEntry.Location.GetDistanzInMeters(newPosition);
 
         // If we have less than two positions, we can't determine the direction yet
-        if (lastPositions.Count < 2)
+        if (lastPositions.Count < 3)
         {
             return false;
         }
 
+        var oldPositionThree = lastPositions[lastPositions.Count - 3];
         var oldPositionTwo = lastPositions[lastPositions.Count - 2];
         var oldPositionOne = lastPositions[lastPositions.Count - 1];
 
         // Calculate the distance from previous positions to the last entry
         var distanceFromOldPositionOne = lastEntry.Location.GetDistanzInMeters(oldPositionOne);
         var distanceFromOldPositionTwo = lastEntry.Location.GetDistanzInMeters(oldPositionTwo);
+        var distanceFromOldPositionThree = lastEntry.Location.GetDistanzInMeters(oldPositionThree);
 
         // Add the new position to the history
         lastPositions.Add(newPosition);
 
         // Check if the distance to the last entry is increasing or decreasing
-        if (distanceToEntryFromNewPosition < distanceFromOldPositionOne &&
-            distanceFromOldPositionOne < distanceFromOldPositionTwo)
+        if (distanceFromOldPositionOne < distanceFromOldPositionTwo &&
+            distanceFromOldPositionTwo < distanceFromOldPositionThree)
         {
             // If the distances are decreasing, we are moving towards the entry
             return false;
