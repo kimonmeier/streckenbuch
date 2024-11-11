@@ -17,7 +17,7 @@ else if (!_displayedEntries.Any())
 else
 {
     <div class="w-full h-full flex justify-end items-end overflow-hidden">
-        <MudButton OnClick="() => _hasToMoveDown = !_hasToMoveDown">Update</MudButton>
+        <MudButton OnClick="() => fahrenPositionService.SkipPosition()">Skip</MudButton>
         <MudTimeline Class="w-full" TimelineOrientation="TimelineOrientation.Vertical" TimelinePosition="TimelinePosition.Alternate">
             @foreach (var entry in _displayedEntries)
             {
@@ -62,22 +62,28 @@ else
         {
             return;
         }
-        _displayedEntries = fahrenPositionService.Initialize(FahrplanEntries);
-    }
-
-    protected override bool ShouldRender()
-    {
-        if (_isUpdating)
-        {
-            return false;
-        }
-
-        return base.ShouldRender();
+        _displayedEntries = fahrenPositionService.Initialize(FahrplanEntries, moveDown);
     }
 
     private void onEntryClick(IBaseEntry entry)
     {
         Console.WriteLine("TODO!");
+    }
+
+    private void moveDown(Action executeAfterUpdate)
+    {
+        // Add Transition before
+        this._hasToMoveDown = true;
+
+        Task.Run(async () =>
+        {
+            await Task.Delay(1100);
+
+            this._hasToMoveDown = false;
+            executeAfterUpdate();
+
+            StateHasChanged();
+        });
     }
 
     private void updatePosition(GeolocationPosition position)
@@ -86,22 +92,7 @@ else
         {
             return;
         }
-        bool moveEntries = fahrenPositionService.UpdatePosition(position, () =>
-        {
-            // Add Transition before
-            this._hasToMoveDown = true;
-            StateHasChanged();
-
-            this._isUpdating = true;
-            Task.Run(async () =>
-            {
-                await Task.Delay(1000);
-
-                this._hasToMoveDown = false;
-                this._isUpdating = false;
-                await InvokeAsync(StateHasChanged);
-            });
-        });
+        bool moveEntries = fahrenPositionService.UpdatePosition(position);
     }
 
     public void Dispose()

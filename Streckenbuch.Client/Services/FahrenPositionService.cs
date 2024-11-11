@@ -10,11 +10,13 @@ public class FahrenPositionService
     private List<IBaseEntry> allEntries = default!;
     private List<IBaseEntry> currenEntries = default!;
     private List<GeolocationPosition> lastPositions = default!;
+    private Action<Action> beforeUpdateAction = default!;
 
 
-    public List<IBaseEntry> Initialize(List<IBaseEntry> fahrplanEntries)
+    public List<IBaseEntry> Initialize(List<IBaseEntry> fahrplanEntries, Action<Action> beforeUpdateAction)
     {
         allEntries = fahrplanEntries;
+        this.beforeUpdateAction = beforeUpdateAction;
         // Copy to get new Entries
         currenEntries = fahrplanEntries.ToList();
         lastPositions = new List<GeolocationPosition>();
@@ -22,7 +24,15 @@ public class FahrenPositionService
         return currenEntries;
     }
 
-    public bool UpdatePosition(GeolocationPosition newPosition, Action beforeUpdateAction)
+    public void SkipPosition()
+    {
+        beforeUpdateAction(() =>
+        {
+            currenEntries.RemoveAt(currenEntries.Count - 1);
+        });;
+    }
+
+    public bool UpdatePosition(GeolocationPosition newPosition)
     {
         if (lastPositions.Count == 0)
         {
@@ -52,9 +62,10 @@ public class FahrenPositionService
             return false;
         }
 
-        beforeUpdateAction();
-
-        currenEntries.RemoveAt(currenEntries.Count - 1);
+        beforeUpdateAction(() =>
+        {
+            currenEntries.RemoveAt(currenEntries.Count - 1);
+        });
         return true;
     }
 
