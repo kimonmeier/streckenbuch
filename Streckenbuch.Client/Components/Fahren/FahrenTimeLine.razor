@@ -52,7 +52,7 @@ else
         new PositionOptions()
             {
                 EnableHighAccuracy = true,
-                MaximumAge = TimeSpan.FromSeconds(5).TotalMilliseconds
+                MaximumAge = TimeSpan.FromSeconds(5).TotalMilliseconds,
             });
     }
 
@@ -95,7 +95,7 @@ else
             this._isUpdating = true;
             Task.Run(async () =>
             {
-                await Task.Delay(1000);                
+                await Task.Delay(1000);
 
                 this._hasToMoveDown = false;
                 this._isUpdating = false;

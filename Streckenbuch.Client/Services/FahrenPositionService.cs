@@ -41,9 +41,8 @@ public class FahrenPositionService
             return true;
         }
 
-        if (lastPositions.Last().GetDistanzInMeters(newPosition) <= 50)
+        if (lastPositions.Last().GetDistanzInMeters(newPosition) <= 75)
         {
-            lastPositions.Add(newPosition);
             return false;
         }
 
