@@ -29,7 +29,7 @@ public class FahrenPositionService
         beforeUpdateAction(() =>
         {
             currenEntries.RemoveAt(currenEntries.Count - 1);
-        });;
+        }); ;
     }
 
     public bool UpdatePosition(GeolocationPosition newPosition)
@@ -51,7 +51,29 @@ public class FahrenPositionService
             return true;
         }
 
-        if (lastPositions.Last().GetDistanzInMeters(newPosition) <= 75)
+
+        if (newPosition.Coords.Accuracy <= 5)
+        {
+            if (lastPositions.Last().GetDistanzInMeters(newPosition) <= 5)
+            {
+                return false;
+            }
+        }
+        else if (newPosition.Coords.Accuracy <= 10)
+        {
+            if (lastPositions.Last().GetDistanzInMeters(newPosition) <= 10)
+            {
+                return false;
+            }
+        }
+        else if (newPosition.Coords.Accuracy <= 300)
+        {
+            if (lastPositions.Last().GetDistanzInMeters(newPosition) <= 300)
+            {
+                return false;
+            }
+        }
+        else
         {
             return false;
         }
