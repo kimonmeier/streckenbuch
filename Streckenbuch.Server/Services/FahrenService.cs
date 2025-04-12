@@ -1,8 +1,12 @@
 ﻿using AutoMapper;
+using Blazor.Serialization.Extensions;
 using Grpc.Core;
+using MediatR;
+using Streckenbuch.Server.Background;
 using Streckenbuch.Server.Data.Repositories;
 using Streckenbuch.Server.Models;
 using Streckenbuch.Shared.Services;
+using System.Text;
 
 namespace Streckenbuch.Server.Services;
 
@@ -10,11 +14,13 @@ public class FahrenService : Streckenbuch.Shared.Services.FahrenService.FahrenSe
 {
     private readonly FahrenRepository _fahrenRepository;
     private readonly IMapper _mapper;
+    private readonly UpdateBackgroundInformation _updateBackgroundInformation;
 
-    public FahrenService(FahrenRepository fahrenRepository, IMapper mapper)
+    public FahrenService(FahrenRepository fahrenRepository, IMapper mapper, UpdateBackgroundInformation updateBackgroundInformation)
     {
         _fahrenRepository = fahrenRepository;
         _mapper = mapper;
+        _updateBackgroundInformation = updateBackgroundInformation;
     }
 
     public override Task<FahrenResponse> FahrenByLinie(FahrenRequestByLinie request, ServerCallContext context)
@@ -63,6 +69,19 @@ public class FahrenService : Streckenbuch.Shared.Services.FahrenService.FahrenSe
                 currentIndex++;
             }
         }
+    }
+
+    public override async Task FahrenStream(StartStreamRequest request, IServerStreamWriter<StartStreamRepsonse> responseStream, ServerCallContext context)
+    {
+        _updateBackgroundInformation.RegisterClient(request.TrainNumber, responseStream);
+
+        using PeriodicTimer timer = new PeriodicTimer(TimeSpan.FromSeconds(15));
+        while(!context.CancellationToken.IsCancellationRequested)
+        {
+            await timer.WaitForNextTickAsync(context.CancellationToken);
+        }
+
+        _updateBackgroundInformation.UnregisterClient(request.TrainNumber, responseStream);
     }
 
     private List<FahrenTransferEntry> GetTrimmedEntries(FahrenRequestStrecke strecke)

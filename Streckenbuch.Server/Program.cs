@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using MudBlazor.Services;
 using Streckenbuch.Components.Account;
 using Streckenbuch.Server;
+using Streckenbuch.Server.Background;
 using Streckenbuch.Server.Components;
 using Streckenbuch.Server.Components.Account;
 using Streckenbuch.Server.Configuration;
@@ -45,6 +46,9 @@ builder.Services.AddCustomServices();
 
 builder.Services.AddSingleton((services) => services.GetRequiredService<IConfiguration>().GetSection("Mail")?.Get<MailConfiguration>() ?? new MailConfiguration());
 builder.Services.AddSingleton((services) => services.GetRequiredService<IConfiguration>().GetSection("Website")?.Get<WebsiteConfiguration>() ?? new WebsiteConfiguration());
+
+builder.Services.AddSingleton<UpdateBackgroundInformation>();
+builder.Services.AddHostedService<UpdateBackgroundInformation>();
 
 builder.Services.AddAuthorization();
 builder.Services.AddAuthentication(options =>

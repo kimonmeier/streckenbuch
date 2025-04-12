@@ -2,13 +2,22 @@ syntax = "proto3";
 option csharp_namespace = "Streckenbuch.Shared.Services";
 package Fahren;
 
-import "google/protobuf/empty.proto";
 import "Types/guid.proto";
 import "Types/location.proto";
 
 service FahrenService {
 	rpc FahrenByStrecken (FahrenRequestByStrecken) returns (FahrenResponse);
 	rpc FahrenByLinie (FahrenRequestByLinie) returns (FahrenResponse);
+	rpc FahrenStream (StartStreamRequest) returns (stream StartStreamRepsonse);
+}
+
+message StartStreamRequest {
+	int32 trainNumber = 1;
+}
+
+message StartStreamRepsonse {
+	string dataType = 1;
+	bytes jsonData = 2;
 }
 
 message FahrenRequestByStrecken {
