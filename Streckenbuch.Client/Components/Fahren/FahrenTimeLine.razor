@@ -16,12 +16,12 @@ else if (!_displayedEntries.Any())
 }
 else
 {
-    <div class="w-full h-full flex justify-end items-end overflow-hidden">
+    <div class="flex h-full w-full items-end justify-end overflow-hidden">
         <MudButton OnClick="() => fahrenPositionService.SkipPosition()">Skip</MudButton>
         <MudTimeline Class="w-full" TimelineOrientation="TimelineOrientation.Vertical" TimelinePosition="TimelinePosition.Alternate">
             @foreach (var entry in _displayedEntries)
             {
-                <div class="w-full h-[100px] @(_hasToMoveDown ? "slide-bottom" : string.Empty)">
+                <div class="h-[100px] w-full @(_hasToMoveDown ? "slide-bottom" : string.Empty)">
                     <FahrenTimeLineEntry OnClickAction="onEntryClick" Entry="entry" />
                 </div>
             }
@@ -52,7 +52,8 @@ else
         new PositionOptions()
             {
                 EnableHighAccuracy = true,
-                MaximumAge = TimeSpan.FromSeconds(5).TotalMilliseconds,
+                MaximumAge = TimeSpan.Zero.TotalMilliseconds,
+                Timeout = TimeSpan.FromSeconds(10).TotalMicroseconds
             });
     }
 
