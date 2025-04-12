@@ -39,11 +39,11 @@ public class FahrenPositionService
             lastPositions.Add(newPosition);
             var closestBetriebspunkt = currenEntries.Where(x => x.Type == EntryType.Betriebspunkt).Select(x => new { Entry = x, Difference = x.Location.GetDistanzInMeters(newPosition) }).OrderBy(x => x.Difference).First().Entry;
 
-            if (currenEntries.Last() == closestBetriebspunkt)
+            if (currenEntries.First() == closestBetriebspunkt)
             {
                 return false;
             }
-            var currentEntry = currenEntries.Last();
+            var currentEntry = currenEntries.First();
             while (currentEntry != closestBetriebspunkt)
             {
                 currenEntries.Remove(currentEntry);
@@ -56,7 +56,7 @@ public class FahrenPositionService
             return false;
         }
 
-        if (!HasPassedLastEntry(newPosition, currenEntries.Last(), lastPositions))
+        if (!HasPassedLastEntry(newPosition, currenEntries.First(), lastPositions))
         {
             lastPositions.Add(newPosition);
             return false;
@@ -64,7 +64,7 @@ public class FahrenPositionService
 
         beforeUpdateAction(() =>
         {
-            currenEntries.RemoveAt(currenEntries.Count - 1);
+            currenEntries.RemoveAt(0);
         });
         return true;
     }
