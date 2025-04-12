@@ -6,6 +6,8 @@ public enum LinienTyp
     RegioExpress,
     InterRegio,
     InterCity,
+    EuroCity,
+    NightJet,
     ICE,
     TGV
 }

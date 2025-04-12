@@ -13,7 +13,11 @@ public class Linie : IEntity
 
     public LinienTyp Typ { get; set; }
 
-    public Guid DepotId { get; set; }
+    public Guid VonBetriebspunktId { get; set; }
 
-    public Betriebspunkt Depot { get; set; }
+    public Betriebspunkt VonBetriebspunkt { get; set; }
+
+    public Guid BisBetriebspunktId { get; set; }
+
+    public Betriebspunkt BisBetriebspunkt { get; set; }
 }
