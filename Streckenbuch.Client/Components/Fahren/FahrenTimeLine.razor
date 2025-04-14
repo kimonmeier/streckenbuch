@@ -18,11 +18,12 @@ else
 {
     <div class="flex h-full w-full items-end justify-end overflow-hidden">
         <MudButton OnClick="() => fahrenPositionService.SkipPosition()">Skip</MudButton>
-        <MudTimeline Class="w-full" TimelineOrientation="TimelineOrientation.Vertical" TimelinePosition="TimelinePosition.Alternate">
+        <MudTimeline Class="w-full" TimelineOrientation="TimelineOrientation.Vertical"
+                     TimelinePosition="TimelinePosition.Alternate">
             @foreach (var entry in _displayedEntries)
             {
                 <div class="h-[100px] w-full @(_hasToMoveDown ? "slide-bottom" : string.Empty)">
-                    <FahrenTimeLineEntry OnClickAction="onEntryClick" Entry="entry" />
+                    <FahrenTimeLineEntry OnClickAction="onEntryClick" Entry="entry"/>
                 </div>
             }
         </MudTimeline>
@@ -42,18 +43,18 @@ else
     protected override async Task OnInitializedAsync()
     {
         _watchTaskId = await geolocationService.WatchPositionAsync((position) =>
-        {
-            updatePosition(position);
-        },
-        (error) =>
-        {
-            Console.WriteLine("Error occured during watch position {0}", error.Message);
-        },
-        new PositionOptions()
             {
-                EnableHighAccuracy = true,
-                MaximumAge = TimeSpan.Zero.TotalMilliseconds,
-                Timeout = TimeSpan.FromSeconds(10).TotalMilliseconds
+                updatePosition(position);
+            },
+            (error) =>
+            {
+                Console.WriteLine("Error occured during watch position {0}", error.Message);
+            },
+            new PositionOptions()
+            {
+                EnableHighAccuracy = true, MaximumAge = TimeSpan.Zero.TotalMilliseconds, Timeout = TimeSpan.FromSeconds(10).TotalMilliseconds
+            }
+        );
     }
 
     protected override void OnParametersSet()
@@ -62,6 +63,7 @@ else
         {
             return;
         }
+
         _displayedEntries = fahrenPositionService.Initialize(FahrplanEntries, moveDown);
     }
 
@@ -92,6 +94,7 @@ else
         {
             return;
         }
+
         bool moveEntries = fahrenPositionService.UpdatePosition(position);
     }
 
@@ -102,5 +105,6 @@ else
             geolocationService.ClearWatchAsync(_watchTaskId.Value).ConfigureAwait(true).GetAwaiter().GetResult();
         }
     }
+
 }
 
