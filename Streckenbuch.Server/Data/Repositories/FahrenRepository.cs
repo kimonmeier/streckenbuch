@@ -1,9 +1,12 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using MudBlazor;
 using Streckenbuch.Server.Data.Entities.Betriebspunkte;
+using Streckenbuch.Server.Data.Entities.Linien;
 using Streckenbuch.Server.Data.Entities.Signale;
 using Streckenbuch.Server.Data.Entities.Strecken;
 using Streckenbuch.Server.Models;
 using Streckenbuch.Shared.Models;
+using System.Runtime.CompilerServices;
 
 namespace Streckenbuch.Server.Data.Repositories;
 
@@ -16,6 +19,35 @@ public class FahrenRepository
         _dbContext = dbContext;
     }
 
+    public List<FahrenTransferEntry> ListEntriesByLinie(Guid linieId)
+    {        
+        List<FahrenTransferEntry> entries = new();
+
+        var streckenKonfigurationEntries = _dbContext
+            .Set<LinienStreckenKonfigurationen>().Where(x => x.LinieId.Equals(linieId))
+            .OrderBy(x => x.Order)
+            .Select(x => new { x.StreckenKonfigurationId, x.VonBetriebspunktId, x.BisBetriebspunktId });
+
+        foreach (var konfigurationEntry in streckenKonfigurationEntries)
+        {
+            List<FahrenTransferEntry> list = ListEntriesByStrecke(konfigurationEntry.StreckenKonfigurationId);
+            /* Maybe obsolete
+            while (list[0].Betriebspunkt == null || list[0].Betriebspunkt?.Id != konfigurationEntry.VonBetriebspunktId)
+            {
+                list.RemoveAt(0);
+            }
+
+            while (list[^1].Betriebspunkt == null || list[^1].Betriebspunkt?.Id != konfigurationEntry.VonBetriebspunktId)
+            {
+                list.RemoveAt(list.Count - 1);
+            }
+            */
+            entries.AddRange(list);
+        }
+
+        return entries;
+    }
+    
     public List<FahrenTransferEntry> ListEntriesByStrecke(Guid streckenKonfigurationId)
     {
         List<FahrenTransferEntry> entries = new List<FahrenTransferEntry>();

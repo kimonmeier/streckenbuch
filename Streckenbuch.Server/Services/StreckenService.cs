@@ -7,6 +7,7 @@ using Streckenbuch.Server.Data.Repositories;
 using Streckenbuch.Server.Helper;
 using Streckenbuch.Shared.Data;
 using Streckenbuch.Shared.Services;
+using Streckenbuch.Shared.Types;
 
 namespace Streckenbuch.Server.Services;
 
@@ -137,5 +138,27 @@ public class StreckenService : Streckenbuch.Shared.Services.StreckenService.Stre
         answer.Zuordnungen.Add(_mapper.Map<List<StreckeZuordnungSignal>>(list));
 
         return answer;
+    }
+
+    public override async Task<StreckenProto> GetStreckeById(GuidProto request, ServerCallContext context)
+    {
+        return _mapper.Map<StreckenProto>(await _streckenRepository.FindByEntityAsync(request));
+    }
+
+    public override async Task<StreckenKonfigurationProto> GetStreckenKonfigurationById(GuidProto request, ServerCallContext context)
+    {
+        return _mapper.Map<StreckenKonfigurationProto>(await _streckenKonfigurationRepository.FindByIdIncludeBetriebspunkte(request));
+    }
+
+    public override async Task<GuidProto> GetStreckeIdByKonfigurationId(GuidProto request, ServerCallContext context)
+    {
+        var result = await _streckenKonfigurationRepository.FindByEntityAsync(request);
+
+        if (result is null)
+        {
+            throw new Exception("Not found");
+        }
+
+        return result.StreckeId;
     }
 }

@@ -2,6 +2,7 @@
 
 using Streckenbuch.Server.Data.Entities.Betriebspunkte;
 using Streckenbuch.Shared.Data.Entities;
+using Streckenbuch.Shared.Models;
 
 namespace Streckenbuch.Server.Data.Entities.Linien;
 
@@ -13,7 +14,11 @@ public class Linie : IEntity
 
     public LinienTyp Typ { get; set; }
 
-    public Guid DepotId { get; set; }
+    public Guid VonBetriebspunktId { get; set; }
 
-    public Betriebspunkt Depot { get; set; }
+    public Betriebspunkt VonBetriebspunkt { get; set; }
+
+    public Guid BisBetriebspunktId { get; set; }
+
+    public Betriebspunkt BisBetriebspunkt { get; set; }
 }

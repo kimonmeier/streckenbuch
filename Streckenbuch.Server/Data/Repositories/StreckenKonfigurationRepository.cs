@@ -18,4 +18,13 @@ public class StreckenKonfigurationRepository : GenericRepository<StreckenKonfigu
             .Include(x => x.BisBetriebspunkt)
             .ToListAsync();
     }
+
+    public Task<StreckenKonfiguration> FindByIdIncludeBetriebspunkte(Guid id)
+    {
+        return Entities
+            .Where(x => x.Id == id)
+            .Include(x => x.VonBetriebspunkt)
+            .Include(x => x.BisBetriebspunkt)
+            .SingleAsync();
+    }
 }

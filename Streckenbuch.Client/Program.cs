@@ -22,5 +22,6 @@ builder.Services.AddGrpcService<StreckenService.StreckenServiceClient>();
 builder.Services.AddGrpcService<BetriebspunkteService.BetriebspunkteServiceClient>();
 builder.Services.AddGrpcService<SignaleService.SignaleServiceClient>();
 builder.Services.AddGrpcService<FahrenService.FahrenServiceClient>();
+builder.Services.AddGrpcService<LinienService.LinienServiceClient>();
 
 await builder.Build().RunAsync();

@@ -9,13 +9,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Remove="Data\Entities\Linien\**" />
-    <Content Remove="Data\Entities\Linien\**" />
-    <EmbeddedResource Remove="Data\Entities\Linien\**" />
-    <None Remove="Data\Entities\Linien\**" />
-  </ItemGroup>
-
-  <ItemGroup>
     <None Remove="data.db" />
     <None Remove="data.db-shm" />
     <None Remove="data.db-wal" />

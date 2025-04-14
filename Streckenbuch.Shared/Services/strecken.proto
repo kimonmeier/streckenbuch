@@ -14,6 +14,9 @@ service StreckenService {
 	rpc CreateStreckenZuordnung (CreateStreckenZuordnungRequest) returns (google.protobuf.Empty);
 	rpc ChangeStreckenZuordnung (ChangeStreckenZuordnungRequest) returns (google.protobuf.Empty);
 	rpc DeleteStreckenZuordnung (DeleteStreckenZuordnungRequest) returns (google.protobuf.Empty);
+	rpc GetStreckeById (Types.GuidProto) returns (StreckenProto);
+	rpc GetStreckenKonfigurationById (Types.GuidProto) returns (StreckenKonfigurationProto);
+	rpc GetStreckeIdByKonfigurationId (Types.GuidProto) returns (Types.GuidProto);
 }
 
 message ListZuordnungByStreckeRequest {
