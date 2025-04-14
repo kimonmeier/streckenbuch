@@ -17,6 +17,17 @@ public class FahrenService : Streckenbuch.Shared.Services.FahrenService.FahrenSe
         _mapper = mapper;
     }
 
+    public override Task<FahrenResponse> FahrenByLinie(FahrenRequestByLinie request, ServerCallContext context)
+    {
+        List<FahrenTransferEntry> entries = _fahrenRepository.ListEntriesByLinie(request.LinieId).ToList();
+        
+        RemoveDuplicates(entries);
+        
+        FahrenResponse response = new();
+        response.Entries.AddRange(_mapper.Map<List<FahrenEntry>>(entries));
+        return Task.FromResult(response);
+    }
+
     public override Task<FahrenResponse> FahrenByStrecken(FahrenRequestByStrecken request, ServerCallContext context)
     {
         List<FahrenTransferEntry> entries = request.Strecken.SelectMany(GetTrimmedEntries).ToList();

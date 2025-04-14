@@ -2,6 +2,7 @@
 @using Streckenbuch.Client.Components.Fahren
 @using System.Text
 @inject StreckenService.StreckenServiceClient streckenService
+@inject LinienService.LinienServiceClient linienService
 @inject FahrenService.FahrenServiceClient fahrenService
 @inject IMapper mapper
 
@@ -11,21 +12,35 @@
             <MudText Typo="Typo.caption">Fahrordnung laden</MudText>
         </MudCardHeader>
         <MudCardContent>
-            @foreach (var entry in fahrenStreckenEntries)
-            {
-                <FahrenStreckenEntry Strecken="strecken" Model="entry" />
-                @if (!string.IsNullOrEmpty(entry.ErrorMessage))
-                {
-                    <MudAlert Severity="Severity.Error">@entry.ErrorMessage</MudAlert>
-                }
-            }
+            <MudTabs @bind-ActivePanelIndex="currentActiveIndex">
+                <MudTabPanel Text="Linie">
+                    <MudSelect T="LinienProto" @bind-Value="selectedLinie" Label="Linie">
+                        @foreach (var item in linien)
+                        {
+                            <MudSelectItem Value="item">
+                                @item.Typ - @item.Nummer von @item.VonBetriebspunktId bis @item.BisBetriebspunktId
+                            </MudSelectItem>
+                        }
+                    </MudSelect>
+                </MudTabPanel>
+                <MudTabPanel Text="Strecken">
+                    @foreach (var entry in fahrenStreckenEntries)
+                    {
+                        <FahrenStreckenEntry Strecken="strecken" Model="entry"/>
+                        @if (!string.IsNullOrEmpty(entry.ErrorMessage))
+                        {
+                            <MudAlert Severity="Severity.Error">@entry.ErrorMessage</MudAlert>
+                        }
+                    }
+                    <MudButton OnClick="AddEntry">
+                        <MudText Typo="Typo.subtitle1" Color="Color.Primary">+ Eintrag hinzufügen</MudText>
+                    </MudButton>
+                </MudTabPanel>
+            </MudTabs>
             @if (!string.IsNullOrEmpty(errorMessage))
             {
                 <MudAlert Severity="Severity.Error">Folgende Fehler sind aufgetreten: @errorMessage</MudAlert>
             }
-            <MudButton OnClick="AddEntry">
-                <MudText Typo="Typo.subtitle1" Color="Color.Primary">+ Eintrag hinzufügen</MudText>
-            </MudButton>
         </MudCardContent>
         <MudCardActions>
             <MudButton OnClick="Submit" Color="Color.Primary">Laden</MudButton>
@@ -40,13 +55,17 @@
     private MudDialogInstance MudDialog { get; set; } = null!;
 
     private List<StreckenProto> strecken = new List<StreckenProto>();
+    private List<LinienProto> linien = new List<LinienProto>(); 
     private List<FahrenStreckenEntryModel> fahrenStreckenEntries = new List<FahrenStreckenEntryModel>();
-
+    private int currentActiveIndex = 0;
+    private LinienProto? selectedLinie;
+    
     private string? errorMessage;
 
     protected override async Task OnInitializedAsync()
     {
         strecken = (await streckenService.ListAllStreckenAsync(new Empty())).Strecken.ToList();
+        linien = (await linienService.GetAllLinienAsync(new Empty())).Linien.ToList();
     }
 
     private void AddEntry()
@@ -61,47 +80,88 @@
             return;
         }
 
+        List<IBaseEntry> entries;
+        if (currentActiveIndex == 0)
+        {
+            entries = await RequestEntriesByLinie();
+        }
+        else
+        {
+            entries = await RequestEntriesByStrecken();
+        }
+
+        entries.Reverse();
+
+        MudDialog.Close(entries);
+    }
+
+    private async Task<List<IBaseEntry>> RequestEntriesByLinie()
+    {
+        List<FahrenRequestStrecke> requestStrecken = new List<FahrenRequestStrecke>();
+
+        var response = await fahrenService.FahrenByLinieAsync(new FahrenRequestByLinie()
+        {
+            LinieId = selectedLinie!.Id
+        });
+        return mapper.Map<List<IBaseEntry>>(response.Entries);
+    }
+    
+    private async Task<List<IBaseEntry>> RequestEntriesByStrecken()
+    {
         List<FahrenRequestStrecke> requestStrecken = new List<FahrenRequestStrecke>();
 
         foreach (var entry in fahrenStreckenEntries)
         {
             requestStrecken.Add(new FahrenRequestStrecke()
-                {
-                    StreckenKonfigurationId = entry.SelectedKonfiguration!.Id,
-                    VonBetriebspunktId = entry.VonBetriebspunkt!.Id,
-                    BisBetriebspunktId = entry.BisBetriebspunkt!.Id,
-                });
+            {
+                StreckenKonfigurationId = entry.SelectedKonfiguration!.Id,
+                VonBetriebspunktId = entry.VonBetriebspunkt!.Id,
+                BisBetriebspunktId = entry.BisBetriebspunkt!.Id,
+            });
         }
 
 
         FahrenRequestByStrecken requestByStrecken = new FahrenRequestByStrecken()
-            {
-                VonBetriebspunkt = fahrenStreckenEntries.First().VonBetriebspunkt!.Id,
-                BisBetriebspunktId = fahrenStreckenEntries.Last().VonBetriebspunkt!.Id,
-            };
+        {
+            VonBetriebspunkt = fahrenStreckenEntries.First().VonBetriebspunkt!.Id,
+            BisBetriebspunktId = fahrenStreckenEntries.Last().VonBetriebspunkt!.Id,
+        };
         requestByStrecken.Strecken.Add(requestStrecken);
 
         var response = await fahrenService.FahrenByStreckenAsync(requestByStrecken);
-
-        var list = mapper.Map<List<IBaseEntry>>(response.Entries);
-        list.Reverse();
-
-        MudDialog.Close(list);
+        return mapper.Map<List<IBaseEntry>>(response.Entries);
     }
 
     private bool Validate()
     {
+        StringBuilder builder = new();
+        if (currentActiveIndex == 0)
+        {
+            validateLinie(builder);
+        }
+        else
+        {
+            validateStrecken(builder);
+        }
+
+        errorMessage = builder.ToString();
+
+        return string.IsNullOrEmpty(errorMessage);
+    }
+
+    private void validateStrecken(StringBuilder builder)
+    {
         if (!fahrenStreckenEntries.Any())
         {
-            return false;
+            builder.AppendLine("Es wurde keine Strecken hinzugefügt");
+            return;
         }
 
         if (fahrenStreckenEntries.Any(x => !string.IsNullOrEmpty(x.ErrorMessage)))
         {
-            return false;
+            builder.AppendLine("Es gibt Fehler!");
+            return;
         }
-
-        StringBuilder builder = new StringBuilder();
 
         int currentIndex = 0;
         while (currentIndex + 1 < fahrenStreckenEntries.Count)
@@ -116,10 +176,16 @@
 
             currentIndex++;
         }
+    }
 
-        errorMessage = builder.ToString();
+    private void validateLinie(StringBuilder builder)
+    {
+        if (selectedLinie is not null)
+        {
+            return;
+        }
 
-        return string.IsNullOrEmpty(errorMessage);
+        builder.AppendLine("Es wurde keine Linie ausgewählt!");
     }
 
     private void Cancel()
