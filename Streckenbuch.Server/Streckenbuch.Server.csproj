@@ -4,7 +4,6 @@
     <TargetFramework>net8.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <UserSecretsId>aspnet-Streckenbuch-88d99174-aa22-4041-928c-7922c9055a9d</UserSecretsId>
     <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
   </PropertyGroup>
 
@@ -50,8 +49,4 @@
     <Folder Include="Data\Migrations\" />
     <Folder Include="wwwroot\images\" />
   </ItemGroup>
-
-  <Target Name="Tailwind" BeforeTargets="Build">
-    <Exec Command="npm run css:build" />
-  </Target>
 </Project>
