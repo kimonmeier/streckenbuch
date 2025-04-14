@@ -24,6 +24,7 @@ jobs:
       with:
         node-version: ${{ matrix.node-version }}
         cache: 'npm'
+        cache-dependency-path: './Streckenbuch.Server'
     - name: Install Node Libarys and build css
       run: | 
         cd ./Streckenbuch.Server
