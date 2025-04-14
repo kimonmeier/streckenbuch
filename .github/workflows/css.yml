@@ -24,10 +24,11 @@ jobs:
       with:
         node-version: ${{ matrix.node-version }}
         cache: 'npm'
-    - run: npm ci
+    - name: Install Node Libarys and build css 
       working-directory: ./Streckenbuch.Server
-    - run: npm run css:build
-      working-directory: ./Streckenbuch.Server
+      run: | 
+        npm ci
+        npm run css:build
     - uses: stefanzweifel/git-auto-commit-action@v5
       with:
         commit_message: Build new Style-CSS
