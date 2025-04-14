@@ -12,10 +12,6 @@ on:
 jobs:
   build-css:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        shell: bash
-        working-directory: ./streckenbuch/Streckenbuch.Server
     strategy:
       matrix:
         node-version: [18.x, 20.x, 22.x]
@@ -30,6 +26,7 @@ jobs:
         cache: 'npm'
     - name: Install Node Libarys and build css
       run: | 
+        cd ./Streckenbuch.Server
         npm ci
         npm run css:build
     - uses: stefanzweifel/git-auto-commit-action@v5
