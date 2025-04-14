@@ -8,14 +8,14 @@ import "Types/location.proto";
 service FahrenService {
 	rpc FahrenByStrecken (FahrenRequestByStrecken) returns (FahrenResponse);
 	rpc FahrenByLinie (FahrenRequestByLinie) returns (FahrenResponse);
-	rpc FahrenStream (StartStreamRequest) returns (stream StartStreamRepsonse);
+	rpc FahrenStream (StartStreamRequest) returns (stream StartStreamResponse);
 }
 
 message StartStreamRequest {
 	int32 trainNumber = 1;
 }
 
-message StartStreamRepsonse {
+message StartStreamResponse {
 	string dataType = 1;
 	bytes jsonData = 2;
 }

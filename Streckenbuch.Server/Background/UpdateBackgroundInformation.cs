@@ -6,11 +6,11 @@ namespace Streckenbuch.Server.Background;
 
 public class UpdateBackgroundInformation : BackgroundService
 {
-    private Dictionary<int, List<IServerStreamWriter<StartStreamRepsonse>>> _connections;
+    private Dictionary<int, List<IServerStreamWriter<StartStreamResponse>>> _connections;
 
     public UpdateBackgroundInformation()
     {
-        _connections = new Dictionary<int, List<IServerStreamWriter<StartStreamRepsonse>>>();
+        _connections = new Dictionary<int, List<IServerStreamWriter<StartStreamResponse>>>();
     }
 
 
@@ -26,17 +26,17 @@ public class UpdateBackgroundInformation : BackgroundService
         }
     }
 
-    public void RegisterClient(int trainNumber, IServerStreamWriter<StartStreamRepsonse> client)
+    public void RegisterClient(int trainNumber, IServerStreamWriter<StartStreamResponse> client)
     {
         if (!_connections.ContainsKey(trainNumber))
         {
-            _connections[trainNumber] = new List<IServerStreamWriter<StartStreamRepsonse>>();
+            _connections[trainNumber] = new List<IServerStreamWriter<StartStreamResponse>>();
         }
 
         _connections[trainNumber].Add(client);
     }
 
-    public void UnregisterClient(int trainNumber, IServerStreamWriter<StartStreamRepsonse> client)
+    public void UnregisterClient(int trainNumber, IServerStreamWriter<StartStreamResponse> client)
     {
         _connections[trainNumber].Remove(client);
     }

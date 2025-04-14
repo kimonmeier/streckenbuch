@@ -71,17 +71,22 @@ public class FahrenService : Streckenbuch.Shared.Services.FahrenService.FahrenSe
         }
     }
 
-    public override async Task FahrenStream(StartStreamRequest request, IServerStreamWriter<StartStreamRepsonse> responseStream, ServerCallContext context)
+    public override async Task FahrenStream(StartStreamRequest request, IServerStreamWriter<StartStreamResponse> responseStream, ServerCallContext context)
     {
         _updateBackgroundInformation.RegisterClient(request.TrainNumber, responseStream);
 
-        using PeriodicTimer timer = new PeriodicTimer(TimeSpan.FromSeconds(15));
-        while(!context.CancellationToken.IsCancellationRequested)
+        try
         {
-            await timer.WaitForNextTickAsync(context.CancellationToken);
+            using PeriodicTimer timer = new PeriodicTimer(TimeSpan.FromSeconds(15));
+            while (!context.CancellationToken.IsCancellationRequested)
+            {
+                await timer.WaitForNextTickAsync(context.CancellationToken);
+            }
         }
-
-        _updateBackgroundInformation.UnregisterClient(request.TrainNumber, responseStream);
+        finally
+        {
+            _updateBackgroundInformation.UnregisterClient(request.TrainNumber, responseStream);
+        }
     }
 
     private List<FahrenTransferEntry> GetTrimmedEntries(FahrenRequestStrecke strecke)
