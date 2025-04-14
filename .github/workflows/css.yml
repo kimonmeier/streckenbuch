@@ -12,6 +12,10 @@ on:
 jobs:
   build-css:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
+        working-directory: ./Streckenbuch.Server
     strategy:
       matrix:
         node-version: [18.x, 20.x, 22.x]
@@ -24,8 +28,7 @@ jobs:
       with:
         node-version: ${{ matrix.node-version }}
         cache: 'npm'
-    - name: Install Node Libarys and build css 
-      working-directory: ./Streckenbuch.Server
+    - name: Install Node Libarys and build css
       run: | 
         npm ci
         npm run css:build
