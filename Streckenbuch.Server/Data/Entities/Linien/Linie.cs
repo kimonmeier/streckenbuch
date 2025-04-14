@@ -2,6 +2,7 @@
 
 using Streckenbuch.Server.Data.Entities.Betriebspunkte;
 using Streckenbuch.Shared.Data.Entities;
+using Streckenbuch.Shared.Models;
 
 namespace Streckenbuch.Server.Data.Entities.Linien;
 

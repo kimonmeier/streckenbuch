@@ -1,0 +1,45 @@
+syntax = "proto3";
+option csharp_namespace = "Streckenbuch.Shared.Services";
+package Linien;
+
+import "google/protobuf/empty.proto";
+import "Types/guid.proto";
+
+service LinienService {
+	rpc GetAllLinien(google.protobuf.Empty) returns (GetAllLinienResponse);
+	rpc CreateLinie(CreateLinieRequest) returns (google.protobuf.Empty);
+	rpc EditStreckenZuordnung(EditStreckenZuordnungRequest) returns (google.protobuf.Empty);
+}
+
+message GetAllLinienResponse {
+	repeated LinienProto linien = 1;
+}
+
+message CreateLinieRequest {
+	int32 typ = 1;
+	optional int32 nummer = 2;
+	Types.GuidProto vonBetriebspunktId = 3;
+	Types.GuidProto bisBetriebspunktId = 4;
+}
+
+message EditStreckenZuordnungRequest {
+	Types.GuidProto linieId = 1;
+	repeated LinienStreckenProto strecken = 2;
+}
+
+message LinienProto {
+	Types.GuidProto id = 1;
+	int32 typ = 2;
+	optional int32 nummer = 3;
+	Types.GuidProto vonBetriebspunktId = 4;
+	Types.GuidProto bisBetriebspunktId = 5;
+	repeated LinienStreckenProto strecken = 6;
+}
+
+message LinienStreckenProto {
+	Types.GuidProto id = 1;
+	Types.GuidProto streckenKonfigurationId = 2;
+	Types.GuidProto vonBetriebspunktId = 3;
+	Types.GuidProto bisBetriebspunktId = 4;
+	int32 sortingNumber = 5;
+}

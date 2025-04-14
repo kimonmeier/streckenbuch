@@ -1,6 +1,6 @@
-﻿namespace Streckenbuch.Server.Data.Entities.Linien;
+﻿namespace Streckenbuch.Shared.Models;
 
-public enum LinienTyp
+public enum LinienTyp : int
 {
     SBahn,
     RegioExpress,

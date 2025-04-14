@@ -8,6 +8,7 @@ using Streckenbuch.Server.Helper;
 using Streckenbuch.Shared.Data;
 using Streckenbuch.Shared.Models;
 using Streckenbuch.Shared.Services;
+using Streckenbuch.Shared.Types;
 
 namespace Streckenbuch.Server.Services;
 
@@ -62,5 +63,17 @@ public class BetriebspunkteService : Streckenbuch.Shared.Services.Betriebspunkte
         answer.Betriebspunkte.Add(_mapper.Map<List<BetriebspunktProto>>(list.OrderBy(x => x.SortNummer).Select(x => x.Betriebspunkt)));
         
         return answer;
+    }
+
+    public override async Task<BetriebspunktProto> GetBetriebspunktById(GuidProto request, ServerCallContext context)
+    {
+        var betriebspunkt = await _betriebspunkteRepository.FindByEntityAsync(request);
+
+        if (betriebspunkt is null)
+        {
+            throw new Exception();
+        }
+
+        return _mapper.Map<BetriebspunktProto>(betriebspunkt);
     }
 }

@@ -1,0 +1,135 @@
+﻿@using System.Text
+@using Streckenbuch.Client.Components.Fahren
+@inject StreckenService.StreckenServiceClient streckenService
+@inject BetriebspunkteService.BetriebspunkteServiceClient betriebspunkteSerivce
+@inject LinienService.LinienServiceClient linienService
+@inject IMapper mapper
+
+<MudItem>
+    <MudCard>
+        <MudCardHeader>
+            <MudText Typo="Typo.caption">Strecken bearbeiten</MudText>
+        </MudCardHeader>
+        <MudCardContent>
+            @foreach (var entry in fahrenStreckenEntries)
+            {
+                <FahrenStreckenEntry Strecken="strecken" Model="entry" />
+                @if (!string.IsNullOrEmpty(entry.ErrorMessage))
+                {
+                    <MudAlert Severity="Severity.Error">@entry.ErrorMessage</MudAlert>
+                }
+            }
+            @if (!string.IsNullOrEmpty(errorMessage))
+            {
+                <MudAlert Severity="Severity.Error">Folgende Fehler sind aufgetreten: @errorMessage</MudAlert>
+            }
+            <MudButton OnClick="AddEntry">
+                <MudText Typo="Typo.subtitle1" Color="Color.Primary">+ Eintrag hinzufügen</MudText>
+            </MudButton>
+        </MudCardContent>
+        <MudCardActions>
+            <MudButton OnClick="Submit" Color="Color.Primary">Speichern</MudButton>
+            <MudButton OnClick="Cancel" Color="Color.Secondary">Schliessen</MudButton>
+        </MudCardActions>
+    </MudCard>
+</MudItem>
+
+
+@code {
+    [CascadingParameter]
+    private MudDialogInstance MudDialog { get; set; } = null!;
+
+    [Parameter]
+    public LinienProto Linie { get; set; } = null!;
+
+    private List<StreckenProto> strecken = new List<StreckenProto>();
+    private List<FahrenStreckenEntryModel> fahrenStreckenEntries = new List<FahrenStreckenEntryModel>();
+
+    private string? errorMessage;
+
+    protected override async Task OnInitializedAsync()
+    {
+        strecken = (await streckenService.ListAllStreckenAsync(new Empty())).Strecken.ToList();
+
+        foreach (var item in Linie.Strecken)
+        {
+            Guid streckeId = await streckenService.GetStreckeIdByKonfigurationIdAsync(item.StreckenKonfigurationId);
+            BetriebspunktProto vonBetriebspunkt = await betriebspunkteSerivce.GetBetriebspunktByIdAsync(item.VonBetriebspunktId);
+            BetriebspunktProto bisBetriebspunkt = await betriebspunkteSerivce.GetBetriebspunktByIdAsync(item.BisBetriebspunktId);
+            fahrenStreckenEntries.Add(new FahrenStreckenEntryModel()
+                {
+                    SelectedStrecke = await streckenService.GetStreckeByIdAsync(streckeId),
+                    SelectedKonfiguration = await streckenService.GetStreckenKonfigurationByIdAsync(item.StreckenKonfigurationId),
+                    VonBetriebspunkt = vonBetriebspunkt,
+                    BisBetriebspunkt = bisBetriebspunkt
+                });
+        }
+    }
+
+    private void AddEntry()
+    {
+        fahrenStreckenEntries.Add(new FahrenStreckenEntryModel());
+    }
+
+    private async Task Submit()
+    {
+        if (!Validate())
+        {
+            return;
+        }
+
+        Linie.Strecken.Clear();
+        Linie.Strecken.Add(mapper.Map<List<LinienStreckenProto>>(fahrenStreckenEntries));
+
+        for (int i = 0; i < Linie.Strecken.Count; i++)
+        {
+            Linie.Strecken[i].SortingNumber = i + 1;
+        }
+        EditStreckenZuordnungRequest request = new EditStreckenZuordnungRequest();
+        request.LinieId = Linie.Id;
+        request.Strecken.Add(Linie.Strecken.ToList());
+
+        await linienService.EditStreckenZuordnungAsync(request);
+
+        MudDialog.Close(fahrenStreckenEntries);
+    }
+
+    private bool Validate()
+    {
+        if (!fahrenStreckenEntries.Any())
+        {
+            return false;
+        }
+
+        if (fahrenStreckenEntries.Any(x => !string.IsNullOrEmpty(x.ErrorMessage)))
+        {
+            return false;
+        }
+
+        StringBuilder builder = new StringBuilder();
+
+        int currentIndex = 0;
+        while (currentIndex + 1 < fahrenStreckenEntries.Count)
+        {
+            var currentEntry = fahrenStreckenEntries.ElementAt(currentIndex);
+            var newEntry = fahrenStreckenEntries.ElementAt(currentIndex + 1);
+
+            if (!((Guid)currentEntry.BisBetriebspunkt!.Id).Equals(newEntry.VonBetriebspunkt!.Id))
+            {
+                builder.AppendLine(string.Format("Nach der Strecke {0} stimmt der Übergang nicht, {1} ist nicht {2}", currentEntry.SelectedStrecke?.Nummer, currentEntry.BisBetriebspunkt.Name, newEntry.VonBetriebspunkt.Name));
+            }
+
+            currentIndex++;
+        }
+
+        errorMessage = builder.ToString();
+
+        return string.IsNullOrEmpty(errorMessage);
+    }
+
+    private void Cancel()
+    {
+        MudDialog.Cancel();
+    }
+}
+

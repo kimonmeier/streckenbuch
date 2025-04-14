@@ -10,6 +10,7 @@
     <ItemGroup>
       <None Remove="Services\betriebspunkte.proto" />
       <None Remove="Services\fahren.proto" />
+      <None Remove="Services\linien.proto" />
       <None Remove="Services\signale.proto" />
       <None Remove="Services\strecken.proto" />
       <None Remove="Types\dateOnly.proto" />
@@ -32,6 +33,7 @@
     <ItemGroup>
       <Protobuf Include="Services\betriebspunkte.proto" />
       <Protobuf Include="Services\fahren.proto" />
+      <Protobuf Include="Services\linien.proto" />
       <Protobuf Include="Services\signale.proto" />
       <Protobuf Include="Types\dateOnly.proto" />
       <Protobuf Include="Types\guid.proto" />

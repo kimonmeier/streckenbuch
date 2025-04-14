@@ -10,6 +10,7 @@ service BetriebspunkteService {
 	rpc ListAllBetriebspunkte (google.protobuf.Empty) returns (ListBetriebspunkteAnswer);
 	rpc ListBetriebspunkteByStreckenKonfiguration (ListBetriebspunkteByStreckenKonfigurationRequest) returns (ListBetriebspunkteAnswer);
 	rpc CreateBetriebspunkt (CreateBetriebspunktReqeust) returns (google.protobuf.Empty);
+	rpc GetBetriebspunktById (Types.GuidProto) returns (BetriebspunktProto);
 }
 
 message ListBetriebspunkteByStreckenKonfigurationRequest {

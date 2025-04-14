@@ -19,6 +19,7 @@ public static class ConfigureServices
     public static void AddCustomServices(this IServiceCollection services)
     {
         services.AddTransient<StreckenKonfigurationResolver>();
+        services.AddTransient<LinienStreckenResolver>();
     }
 
     public static void AddRepostories(this IServiceCollection services)
@@ -30,6 +31,8 @@ public static class ConfigureServices
         services.AddTransient<SignalRepository>();
         services.AddTransient<SignalStreckenZuordnungRepository>();
         services.AddTransient<FahrenRepository>();
+        services.AddTransient<LinienRepository>();
+        services.AddTransient<LinienKonfigurationRepository>();
     }
 
     public static async Task CreateRoles(this IServiceProvider provider)

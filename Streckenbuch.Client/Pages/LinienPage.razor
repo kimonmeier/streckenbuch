@@ -1,10 +1,92 @@
 ﻿@attribute [Authorize(Roles = Permissions.Admin)]
 @page "/linien"
 
+@inject LinienService.LinienServiceClient linienService
+@inject BetriebspunkteService.BetriebspunkteServiceClient betriebspunkteService
+@inject IDialogService dialogService
+
 <PageTitle>Linien</PageTitle>
 
-<MudAlert Severity="Severity.Error">Diese Seite befindet sich aktuell im Aufbau</MudAlert>
+<MudTable Items="Linien" Loading="_isLoading" Class="w-full">
+    <HeaderContent>
+        <MudTh>Kategorie</MudTh>
+        <MudTh>Nummer</MudTh>
+        <MudTh>Von</MudTh>
+        <MudTh>Bis</MudTh>
+        <MudTh></MudTh>
+    </HeaderContent>
+    <RowTemplate>
+        <MudTd>@getTypText(context.Typ)</MudTd>
+        <MudTd>@context.Nummer</MudTd>
+        <MudTd>@Betriebspunkte.Single(x => ((Guid)x.Id).Equals((Guid)context.VonBetriebspunktId)).Name</MudTd>
+        <MudTd>@Betriebspunkte.Single(x => ((Guid)x.Id).Equals((Guid)context.BisBetriebspunktId)).Name</MudTd>
+        <MudTd>
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="@(() => editStrecken(context))">
+                Strecken anschauen
+            </MudButton>
+        </MudTd>
+    </RowTemplate>
+</MudTable>
+
+<MudButtonGroup>
+    <MudButton Color="@Color.Primary" OnClick="createLinie">Linie erstellen</MudButton>
+</MudButtonGroup>
 
 @code {
+    private List<LinienProto> Linien { get; set; }
+    private List<BetriebspunktProto> Betriebspunkte { get; set; }
+    private bool _isLoading = false;
 
+    protected override async Task OnInitializedAsync()
+    {
+        _isLoading = true;
+
+        Betriebspunkte = (await betriebspunkteService.ListAllBetriebspunkteAsync(new Empty())).Betriebspunkte.ToList();
+
+        await loadData();
+    }
+
+    private async Task loadData()
+    {
+        _isLoading = true;
+        var list = await linienService.GetAllLinienAsync(new Empty());
+
+        Linien = list.Linien.ToList();
+
+        _isLoading = false;
+    }
+
+    private async Task editStrecken(LinienProto proto)
+    {
+        var param = new DialogParameters<EditLinienStrecken>()
+        {
+            { x => x.Linie, proto },
+        };
+        await dialogService.Show<EditLinienStrecken>("Strecken zuordnen", param).Result;
+
+        await loadData();
+    }
+
+    private async Task createLinie()
+    {
+        dialogService.Show<CreateLinie>();
+
+        await loadData();
+    }
+
+    private string getTypText(int typNummer) {
+        LinienTyp typ = (LinienTyp)typNummer;
+
+        return typ switch
+        {
+            LinienTyp.SBahn => "S-Bahn",
+            LinienTyp.RegioExpress => "RE",
+            LinienTyp.InterRegio => "IR",
+            LinienTyp.InterCity => "IC",
+            LinienTyp.EuroCity => "EC",
+            LinienTyp.NightJet => "NJ",
+            LinienTyp.ICE => "ICE",
+            LinienTyp.TGV => "TGV"
+        };
+    }
 }
