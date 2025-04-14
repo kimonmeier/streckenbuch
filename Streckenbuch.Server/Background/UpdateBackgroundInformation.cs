@@ -1,16 +1,17 @@
 ﻿
 using Grpc.Core;
 using Streckenbuch.Shared.Services;
+using System.Collections.Concurrent;
 
 namespace Streckenbuch.Server.Background;
 
 public class UpdateBackgroundInformation : BackgroundService
 {
-    private Dictionary<int, List<IServerStreamWriter<StartStreamResponse>>> _connections;
+    private ConcurrentDictionary<int, List<IServerStreamWriter<StartStreamResponse>>> _connections;
 
     public UpdateBackgroundInformation()
     {
-        _connections = new Dictionary<int, List<IServerStreamWriter<StartStreamResponse>>>();
+        _connections = new ConcurrentDictionary<int, List<IServerStreamWriter<StartStreamResponse>>>();
     }
 
 
