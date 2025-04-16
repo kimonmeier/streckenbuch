@@ -77,8 +77,7 @@ public class FahrenService : Streckenbuch.Shared.Services.FahrenService.FahrenSe
     public override Task<CaptureMessageResponse> CaptureRealtimeMessages(CaptureMessage request, ServerCallContext context)
     {
         CaptureMessageResponse response = new();
-        response.Messages.Add(_continuousConnection.GetMessagesInQueue(request.ClientId));
-        return Task.FromResult(response);
+        response.Messages.AddRange(_continuousConnection.GetMessagesInQueue(request.ClientId));
     }
 
     public override Task<Empty> RegisterOnTrain(RegisterOnTrainRequest request, ServerCallContext context)

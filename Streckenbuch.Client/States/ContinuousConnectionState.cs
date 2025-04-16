@@ -66,7 +66,7 @@ public class ContinuousConnectionState
 
             if (deserializedEvent is null)
             {
-                throw new Exception("Unkown message type");
+                throw new Exception("Unknown message type");
             }
             
             _sender.Send(deserializedEvent);
