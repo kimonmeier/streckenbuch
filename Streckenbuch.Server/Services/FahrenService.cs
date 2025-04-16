@@ -1,10 +1,13 @@
 ﻿using AutoMapper;
 using Blazor.Serialization.Extensions;
+using Google.Protobuf.WellKnownTypes;
 using Grpc.Core;
 using MediatR;
 using Streckenbuch.Server.Background;
 using Streckenbuch.Server.Data.Repositories;
 using Streckenbuch.Server.Models;
+using Streckenbuch.Server.States;
+using Streckenbuch.Shared.Models;
 using Streckenbuch.Shared.Services;
 using System.Text;
 
@@ -14,15 +17,15 @@ public class FahrenService : Streckenbuch.Shared.Services.FahrenService.FahrenSe
 {
     private readonly FahrenRepository _fahrenRepository;
     private readonly IMapper _mapper;
-    private readonly UpdateBackgroundInformation _updateBackgroundInformation;
+    private readonly ContinuousConnectionState _continuousConnection;
 
-    public FahrenService(FahrenRepository fahrenRepository, IMapper mapper, UpdateBackgroundInformation updateBackgroundInformation)
+    public FahrenService(FahrenRepository fahrenRepository, IMapper mapper, ContinuousConnectionState continuousConnection)
     {
         _fahrenRepository = fahrenRepository;
         _mapper = mapper;
-        _updateBackgroundInformation = updateBackgroundInformation;
+        _continuousConnection = continuousConnection;
     }
-
+    
     public override Task<FahrenResponse> FahrenByLinie(FahrenRequestByLinie request, ServerCallContext context)
     {
         List<FahrenTransferEntry> entries = _fahrenRepository.ListEntriesByLinie(request.LinieId).ToList();
@@ -71,22 +74,25 @@ public class FahrenService : Streckenbuch.Shared.Services.FahrenService.FahrenSe
         }
     }
 
-    public override async Task FahrenStream(StartStreamRequest request, IServerStreamWriter<StartStreamResponse> responseStream, ServerCallContext context)
+    public override Task<CaptureMessageResponse> CaptureRealtimeMessages(CaptureMessage request, ServerCallContext context)
     {
-        _updateBackgroundInformation.RegisterClient(request.TrainNumber, responseStream);
+        CaptureMessageResponse response = new();
+        response.Messages.Add(_continuousConnection.GetMessagesInQueue(request.ClientId));
+        return Task.FromResult(response);
+    }
 
-        try
-        {
-            using PeriodicTimer timer = new PeriodicTimer(TimeSpan.FromSeconds(15));
-            while (!context.CancellationToken.IsCancellationRequested)
-            {
-                await timer.WaitForNextTickAsync(context.CancellationToken);
-            }
-        }
-        finally
-        {
-            _updateBackgroundInformation.UnregisterClient(request.TrainNumber, responseStream);
-        }
+    public override Task<Empty> RegisterOnTrain(RegisterOnTrainRequest request, ServerCallContext context)
+    {
+        _continuousConnection.RegisterTrain(request.ClientId, request.TrainNumber);
+        
+        return Task.FromResult(new Empty());
+    }
+
+    public override Task<Empty> UnregisterOnTrain(UnregisterOnTrainRequest request, ServerCallContext context)
+    {
+        _continuousConnection.UnregisterTrain(request.ClientId);
+        
+        return Task.FromResult(new Empty());
     }
 
     private List<FahrenTransferEntry> GetTrimmedEntries(FahrenRequestStrecke strecke)

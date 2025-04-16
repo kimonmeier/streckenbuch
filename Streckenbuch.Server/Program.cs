@@ -11,6 +11,7 @@ using Streckenbuch.Server.Configuration;
 using Streckenbuch.Server.Data;
 using Streckenbuch.Server.Data.Entities;
 using Streckenbuch.Server.Services;
+using Streckenbuch.Server.States;
 using Streckenbuch.Shared.Data;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -47,7 +48,7 @@ builder.Services.AddCustomServices();
 builder.Services.AddSingleton((services) => services.GetRequiredService<IConfiguration>().GetSection("Mail")?.Get<MailConfiguration>() ?? new MailConfiguration());
 builder.Services.AddSingleton((services) => services.GetRequiredService<IConfiguration>().GetSection("Website")?.Get<WebsiteConfiguration>() ?? new WebsiteConfiguration());
 
-builder.Services.AddSingleton<UpdateBackgroundInformation>();
+builder.Services.AddSingleton<ContinuousConnectionState>();
 builder.Services.AddHostedService<UpdateBackgroundInformation>();
 
 builder.Services.AddAuthorization();

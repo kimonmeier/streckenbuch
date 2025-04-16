@@ -27,8 +27,4 @@
   <ItemGroup>
     <ProjectReference Include="..\Streckenbuch.Shared\Streckenbuch.Shared.csproj" />
   </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="States\" />
-  </ItemGroup>
 </Project>

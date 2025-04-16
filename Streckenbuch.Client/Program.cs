@@ -15,6 +15,7 @@ builder.Services.AddSingleton<FahrenPositionService>();
 builder.Services.AddMudServices();
 builder.Services.AddMudPopoverService();
 builder.Services.AddClientMapping();
+builder.Services.AddMediator();
 builder.Services.AddGeolocationServices();
 builder.Services.AddBlazorGoogleMaps("AIzaSyBg9oVLq85w_iGU_krKnId50ZhtmO3wZRA");
 builder.Services.AddTransient<ClipboardService>();

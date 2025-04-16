@@ -1,44 +1,34 @@
-﻿
-using Grpc.Core;
-using Streckenbuch.Shared.Services;
-using System.Collections.Concurrent;
+﻿using Streckenbuch.Server.States;
+using Streckenbuch.Shared.Contracts;
 
 namespace Streckenbuch.Server.Background;
 
 public class UpdateBackgroundInformation : BackgroundService
 {
-    private ConcurrentDictionary<int, List<IServerStreamWriter<StartStreamResponse>>> _connections;
+    private ILogger<UpdateBackgroundInformation> _logger;
+    private ContinuousConnectionState _continuousConnectionState;
 
-    public UpdateBackgroundInformation()
+    public UpdateBackgroundInformation(ILogger<UpdateBackgroundInformation> logger, ContinuousConnectionState continuousConnectionState)
     {
-        _connections = new ConcurrentDictionary<int, List<IServerStreamWriter<StartStreamResponse>>>();
+        _logger = logger;
+        _continuousConnectionState = continuousConnectionState;
     }
 
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        using PeriodicTimer timer = new PeriodicTimer(TimeSpan.FromSeconds(60));
+        using PeriodicTimer timer = new PeriodicTimer(TimeSpan.FromSeconds(5));
 
-        while(!stoppingToken.IsCancellationRequested)
+        while (!stoppingToken.IsCancellationRequested)
         {
             await timer.WaitForNextTickAsync();
 
+            var clients = _continuousConnectionState.GetRegisteredClients();
+            var registeredTrainOperators = _continuousConnectionState.GetRegisteredTrainOperator();
+            _logger.LogInformation("Update background information with {0} Clients on {1} trains connected", clients.Count, registeredTrainOperators.Count);
+            
             //TODO: Add Logic
         }
     }
 
-    public void RegisterClient(int trainNumber, IServerStreamWriter<StartStreamResponse> client)
-    {
-        if (!_connections.ContainsKey(trainNumber))
-        {
-            _connections[trainNumber] = new List<IServerStreamWriter<StartStreamResponse>>();
-        }
-
-        _connections[trainNumber].Add(client);
-    }
-
-    public void UnregisterClient(int trainNumber, IServerStreamWriter<StartStreamResponse> client)
-    {
-        _connections[trainNumber].Remove(client);
-    }
 }
