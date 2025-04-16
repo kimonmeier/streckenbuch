@@ -1,5 +1,4 @@
 ﻿using Streckenbuch.Server.States;
-using Streckenbuch.Shared.Contracts;
 
 namespace Streckenbuch.Server.Background;
 
