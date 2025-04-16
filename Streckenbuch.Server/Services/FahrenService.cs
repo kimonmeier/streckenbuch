@@ -1,8 +1,15 @@
 ﻿using AutoMapper;
+using Blazor.Serialization.Extensions;
+using Google.Protobuf.WellKnownTypes;
 using Grpc.Core;
+using MediatR;
+using Streckenbuch.Server.Background;
 using Streckenbuch.Server.Data.Repositories;
 using Streckenbuch.Server.Models;
+using Streckenbuch.Server.States;
+using Streckenbuch.Shared.Models;
 using Streckenbuch.Shared.Services;
+using System.Text;
 
 namespace Streckenbuch.Server.Services;
 
@@ -10,13 +17,15 @@ public class FahrenService : Streckenbuch.Shared.Services.FahrenService.FahrenSe
 {
     private readonly FahrenRepository _fahrenRepository;
     private readonly IMapper _mapper;
+    private readonly ContinuousConnectionState _continuousConnection;
 
-    public FahrenService(FahrenRepository fahrenRepository, IMapper mapper)
+    public FahrenService(FahrenRepository fahrenRepository, IMapper mapper, ContinuousConnectionState continuousConnection)
     {
         _fahrenRepository = fahrenRepository;
         _mapper = mapper;
+        _continuousConnection = continuousConnection;
     }
-
+    
     public override Task<FahrenResponse> FahrenByLinie(FahrenRequestByLinie request, ServerCallContext context)
     {
         List<FahrenTransferEntry> entries = _fahrenRepository.ListEntriesByLinie(request.LinieId).ToList();
@@ -63,6 +72,27 @@ public class FahrenService : Streckenbuch.Shared.Services.FahrenService.FahrenSe
                 currentIndex++;
             }
         }
+    }
+
+    public override Task<CaptureMessageResponse> CaptureRealtimeMessages(CaptureMessage request, ServerCallContext context)
+    {
+        CaptureMessageResponse response = new();
+        response.Messages.AddRange(_continuousConnection.GetMessagesInQueue(request.ClientId));
+        return Task.FromResult(response);
+    }
+
+    public override Task<Empty> RegisterOnTrain(RegisterOnTrainRequest request, ServerCallContext context)
+    {
+        _continuousConnection.RegisterTrain(request.ClientId, request.TrainNumber);
+        
+        return Task.FromResult(new Empty());
+    }
+
+    public override Task<Empty> UnregisterOnTrain(UnregisterOnTrainRequest request, ServerCallContext context)
+    {
+        _continuousConnection.UnregisterTrain(request.ClientId);
+        
+        return Task.FromResult(new Empty());
     }
 
     private List<FahrenTransferEntry> GetTrimmedEntries(FahrenRequestStrecke strecke)

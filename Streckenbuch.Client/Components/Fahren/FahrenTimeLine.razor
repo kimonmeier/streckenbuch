@@ -12,7 +12,7 @@
 }
 else if (!_displayedEntries.Any())
 {
-    <MudAlert Severity="Severity.Warning">No Entries remaining!</MudAlert>
+    <MudAlert Severity="Severity.Warning">Sie sind am Ziel angekommen, bitte einen neuen Fahrplan laden!</MudAlert>
 }
 else
 {
@@ -102,7 +102,7 @@ else
     {
         if (_watchTaskId is not null)
         {
-            geolocationService.ClearWatchAsync(_watchTaskId.Value).ConfigureAwait(true).GetAwaiter().GetResult();
+            geolocationService.ClearWatchAsync(_watchTaskId.Value).ConfigureAwait(false);
         }
     }
 

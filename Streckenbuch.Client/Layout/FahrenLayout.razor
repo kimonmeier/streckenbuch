@@ -1,6 +1,10 @@
 ﻿@using Streckenbuch.Client.Components.NavBar
+@using Streckenbuch.Client.States
 @inherits LayoutComponentBase
 @inject NavigationManager navManager
+@inject FahrenService.FahrenServiceClient fahrenService
+@inject ContinuousConnectionState continuousConnectionState
+@implements IDisposable
 
 <MudThemeProvider @ref="@_mudThemeProvider"
                   Theme="@_baseTheme"
@@ -59,15 +63,28 @@
 @code {
     private bool _isDarkMode;
     private MudThemeProvider _mudThemeProvider = null!;
-
-    public event EventHandler? StopScrolling;
+    private readonly CancellationTokenSource _cancellationToken = new CancellationTokenSource();
+    
     public event EventHandler? SelectRoute;
 
-    private MudTheme _baseTheme = new MudTheme()
+    private readonly MudTheme _baseTheme = new MudTheme()
         {
             LayoutProperties = new LayoutProperties()
             {
                 DefaultBorderRadius = ".4rem"
             },
         };
+
+    protected override void OnInitialized()
+    {
+        continuousConnectionState.StartBackgroundTask(_cancellationToken.Token);
+        base.OnInitialized();
+    }
+
+
+    public void Dispose()
+    {
+        _cancellationToken.Cancel();
+    }
+
 }

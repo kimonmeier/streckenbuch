@@ -7,28 +7,26 @@ namespace Streckenbuch.Client.Services;
 
 public class FahrenPositionService
 {
-    private List<IBaseEntry> allEntries = default!;
-    private List<IBaseEntry> currenEntries = default!;
+    private List<IBaseEntry> currentEntries = default!;
     private List<GeolocationPosition> lastPositions = default!;
     private Action<Action> beforeUpdateAction = default!;
 
 
     public List<IBaseEntry> Initialize(List<IBaseEntry> fahrplanEntries, Action<Action> beforeUpdateAction)
     {
-        allEntries = fahrplanEntries;
         this.beforeUpdateAction = beforeUpdateAction;
         // Copy to get new Entries
-        currenEntries = fahrplanEntries.ToList();
+        currentEntries = fahrplanEntries.ToList();
         lastPositions = new List<GeolocationPosition>();
 
-        return currenEntries;
+        return currentEntries;
     }
 
     public void SkipPosition()
     {
         beforeUpdateAction(() =>
         {
-            currenEntries.RemoveAt(currenEntries.Count - 1);
+            currentEntries.RemoveAt(currentEntries.Count - 1);
         }); ;
     }
 
@@ -37,16 +35,16 @@ public class FahrenPositionService
         if (lastPositions.Count == 0)
         {
             lastPositions.Add(newPosition);
-            var closestBetriebspunkt = currenEntries.Where(x => x.Type == EntryType.Betriebspunkt).Select(x => new { Entry = x, Difference = x.Location.GetDistanzInMeters(newPosition) }).OrderBy(x => x.Difference).First().Entry;
+            var closestBetriebspunkt = currentEntries.Where(x => x.Type == EntryType.Betriebspunkt).Select(x => new { Entry = x, Difference = x.Location.GetDistanzInMeters(newPosition) }).OrderBy(x => x.Difference).First().Entry;
 
-            if (currenEntries.First() == closestBetriebspunkt)
+            if (currentEntries.First() == closestBetriebspunkt)
             {
                 return false;
             }
-            var currentEntry = currenEntries.First();
+            var currentEntry = currentEntries.First();
             while (currentEntry != closestBetriebspunkt)
             {
-                currenEntries.Remove(currentEntry);
+                currentEntries.Remove(currentEntry);
             }
             return true;
         }
@@ -78,7 +76,7 @@ public class FahrenPositionService
             return false;
         }
 
-        if (!HasPassedLastEntry(newPosition, currenEntries.First(), lastPositions))
+        if (!HasPassedLastEntry(newPosition, currentEntries.First(), lastPositions))
         {
             lastPositions.Add(newPosition);
             return false;
@@ -86,7 +84,7 @@ public class FahrenPositionService
 
         beforeUpdateAction(() =>
         {
-            currenEntries.RemoveAt(0);
+            currentEntries.RemoveAt(0);
         });
         return true;
     }
