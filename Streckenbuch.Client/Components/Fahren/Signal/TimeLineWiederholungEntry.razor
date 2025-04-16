@@ -1,0 +1,15 @@
+﻿<MudTimelineItem Color="Color.Tertiary">
+    <ItemDot>
+        <MudAvatar>
+            <MudImage ObjectFit="ObjectFit.Contain" Src="images/wiederholung.png"></MudImage>
+        </MudAvatar>
+    </ItemDot>
+    <ItemContent>
+        <MudText Color="Color.Warning">Wiederholung</MudText>
+    </ItemContent>
+</MudTimelineItem>
+
+@code {
+    [Parameter]
+    public WiederholungsSignalEntry Entry { get; set; } = null!;
+}
