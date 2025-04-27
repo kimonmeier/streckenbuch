@@ -4,14 +4,14 @@ namespace Streckenbuch.Client.Extensions;
 
 public static class GeoLocationExtensions
 {
-    public static double GetDistanzInMeters(this GeolocationPosition geolocationPosition, GeolocationPosition geolocationPosition2)
+    public static double GetDistanzInMeters(this GeolocationPosition? geolocationPosition, GeolocationPosition? geolocationPosition2)
     {
-        if (geolocationPosition == null)
+        if (geolocationPosition is null)
         {
             return double.MaxValue;
         }
 
-        if (geolocationPosition2 == null)
+        if (geolocationPosition2 is null)
         {
             return double.MaxValue;
         }
@@ -19,14 +19,14 @@ public static class GeoLocationExtensions
         return GetDistanceBetweenTwoPointsInMeters(geolocationPosition.Coords.Latitude, geolocationPosition.Coords.Longitude, geolocationPosition2.Coords.Latitude, geolocationPosition2.Coords.Longitude);
     }
 
-    public static double GetDistanzInMeters(this GeolocationPosition geolocationPosition, NetTopologySuite.Geometries.Coordinate coordinate)
+    public static double GetDistanzInMeters(this GeolocationPosition? geolocationPosition, NetTopologySuite.Geometries.Coordinate? coordinate)
     {
-        if (coordinate == null)
+        if (coordinate is null)
         {
             return double.MaxValue;
         }
 
-        if (geolocationPosition == null)
+        if (geolocationPosition is null)
         {
             return double.MaxValue;
         }
