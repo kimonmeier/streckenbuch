@@ -91,8 +91,7 @@ public class FahrenPositionService
             distances.Add(nextDistance - distance);
         }
 
-        // Check if any distances are increasing and decreasing. This way whe can be shure that it has passed the entry
-        bool isApproaching = distances.Any(d => d < 0);
+        // Check if any distances are increasing and decreasing. This way we can be sure that it has passed the entry
         bool isMovingAway = distances.Any(d => d > 0); 
 
         if (isApproaching && isMovingAway)
