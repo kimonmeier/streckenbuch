@@ -62,7 +62,8 @@ jobs:
     - name: Build and push Docker image
       uses: docker/build-push-action@v5
       with:
-        context: ./Streckenbuch.Server/
+        context: .
+        file: ./Streckenbuch.Server/
         push: true
         tags: |
           ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.get-tag.outputs.tag }}
