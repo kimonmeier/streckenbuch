@@ -51,8 +51,7 @@ public class FahrenPositionServiceTest
     [Fact]
     public void ShouldMoveOnePosition()
     {
-
-        var mock = new Mock<TestInterface>();
+        Mock<TestInterface> mock = new Mock<TestInterface>();
 
         FahrenPositionService positionService = new FahrenPositionService();
         positionService.Initialize(TimeLineEntries, (action) =>
@@ -63,9 +62,9 @@ public class FahrenPositionServiceTest
 
         mock.Verify(s => s.DoSomething(), Times.Never());
 
-        var positions = Positions.Take(10);
+        IEnumerable<GeolocationPosition> positions = Positions.Take(10);
 
-        foreach(var pos in positions)
+        foreach(GeolocationPosition pos in positions)
         {
             positionService.UpdatePosition(pos);
         }
@@ -388,11 +387,11 @@ public class FahrenPositionServiceTest
 
     public static List<IBaseEntry> TimeLineEntries => new List<IBaseEntry>()
     {
-        { new BahnhofEntry() { Location = new NetTopologySuite.Geometries.Coordinate(47.4032760934054, 8.12615590038544), Name = "Rupperswil" } },
-        { new KombiniertSignalEntry() { Location = new NetTopologySuite.Geometries.Coordinate(47.4035723847273, 8.12776686256773), SignalSeite = Shared.Models.SignalSeite.Abschnitt_Ausfahrt } },
-        { new KombiniertSignalEntry() { Location = new NetTopologySuite.Geometries.Coordinate(47.4042555578771, 8.13428282621334), SignalSeite = Shared.Models.SignalSeite.Ausfahrt } },
+        { new BahnhofEntry() { Location = new NetTopologySuite.Geometries.Coordinate(47.3916525103458, 8.1696260844281), Name = "Lenzburg" } },
         { new KombiniertSignalEntry() { Location = new NetTopologySuite.Geometries.Coordinate(47.3951799713142, 8.15822796604049), SignalSeite = Shared.Models.SignalSeite.Einfahrt } },
-        { new BahnhofEntry() { Location = new NetTopologySuite.Geometries.Coordinate(47.3916525103458, 8.1696260844281), Name = "Lenzburg" } }
+        { new KombiniertSignalEntry() { Location = new NetTopologySuite.Geometries.Coordinate(47.4042555578771, 8.13428282621334), SignalSeite = Shared.Models.SignalSeite.Ausfahrt } },
+        { new KombiniertSignalEntry() { Location = new NetTopologySuite.Geometries.Coordinate(47.4035723847273, 8.12776686256773), SignalSeite = Shared.Models.SignalSeite.Abschnitt_Ausfahrt } },
+        { new BahnhofEntry() { Location = new NetTopologySuite.Geometries.Coordinate(47.4032760934054, 8.12615590038544), Name = "Rupperswil" } }
     };
 
     #endregion
