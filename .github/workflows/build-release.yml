@@ -63,7 +63,7 @@ jobs:
       uses: docker/build-push-action@v5
       with:
         context: .
-        file: ./Streckenbuch.Server/
+        file: ./Streckenbuch.Server/Dockerfile
         push: true
         tags: |
           ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.get-tag.outputs.tag }}
