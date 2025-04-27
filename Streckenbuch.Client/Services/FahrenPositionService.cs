@@ -76,33 +76,30 @@ public class FahrenPositionService
 
     private static bool HasPassedLastEntry(GeolocationPosition newPosition, IBaseEntry lastEntry, List<GeolocationPosition> lastPositions)
     {
-        // Calculate distance from the new position to the last entry
-        var distanceToEntryFromNewPosition = lastEntry.Location.GetDistanzInMeters(newPosition);
-
-        // If we have less than two positions, we can't determine the direction yet
         if (lastPositions.Count < 3)
         {
             return false;
         }
 
-        var oldPositionThree = lastPositions[lastPositions.Count - 3];
-        var oldPositionTwo = lastPositions[lastPositions.Count - 2];
-        var oldPositionOne = lastPositions[lastPositions.Count - 1];
+        int rangeSize = Math.Min(lastPositions.Count, 50); // You can adjust this size for flexibility
+        var distances = new List<double>();
 
-        // Calculate the distance from previous positions to the last entry
-        var distanceFromOldPositionOne = lastEntry.Location.GetDistanzInMeters(oldPositionOne);
-        var distanceFromOldPositionTwo = lastEntry.Location.GetDistanzInMeters(oldPositionTwo);
-        var distanceFromOldPositionThree = lastEntry.Location.GetDistanzInMeters(oldPositionThree);
-
-        // Check if the distance to the last entry is increasing or decreasing
-        if (distanceFromOldPositionOne < distanceFromOldPositionTwo &&
-            distanceFromOldPositionTwo < distanceFromOldPositionThree)
+        for (int i = 0; i < rangeSize - 1; i++)
         {
-            // If the distances are decreasing, we are moving towards the entry
-            return false;
+            var distance = lastEntry.Location.GetDistanzInMeters(lastPositions[lastPositions.Count - rangeSize + i]);
+            var nextDistance = lastEntry.Location.GetDistanzInMeters(lastPositions[lastPositions.Count - rangeSize + i + 1]);
+            distances.Add(nextDistance - distance);
         }
 
-        // If the distance is increasing, we have passed the last entry
-        return true;
+        // Check if any distances are increasing and decreasing. This way whe can be shure that it has passed the entry
+        bool isApproaching = distances.Any(d => d < 0);
+        bool isMovingAway = distances.Any(d => d > 0); 
+
+        if (isApproaching && isMovingAway)
+        {
+            return true;
+        }
+
+        return false;
     }
 }
