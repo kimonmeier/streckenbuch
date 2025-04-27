@@ -9,6 +9,9 @@ on:
         description: 'Tag name for the Docker image (e.g., v1.0.0)'
         required: true
         type: string
+  push:
+    branches:
+      - main  # Trigger for main branch push
     
 env:
   REGISTRY: ghcr.io
@@ -60,8 +63,10 @@ jobs:
       run: |
         if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
           echo "tag=${{ github.event.inputs.tag_name }}" >> $GITHUB_OUTPUT
-        else
+        elif [ "${{ github.event_name }}" == "release" ]; then
           echo "tag=${{ github.event.release.tag_name }}" >> $GITHUB_OUTPUT
+        elif [ "${{ github.ref }}" == "refs/heads/main" ]; then
+          echo "tag=unstable" >> $GITHUB_OUTPUT
         fi
         
     - name: Build and push Docker image
