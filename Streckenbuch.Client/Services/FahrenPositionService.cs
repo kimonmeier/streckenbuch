@@ -32,6 +32,11 @@ public class FahrenPositionService
 
     public bool UpdatePosition(GeolocationPosition newPosition)
     {
+        if (currentEntries.Count == 0)
+        {
+            return false;
+        }
+        
         if (lastPositions.Count == 0)
         {
             lastPositions.Add(newPosition);
