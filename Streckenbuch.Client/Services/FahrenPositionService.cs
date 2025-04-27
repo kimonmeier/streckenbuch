@@ -37,46 +37,26 @@ public class FahrenPositionService
             lastPositions.Add(newPosition);
             var closestBetriebspunkt = currentEntries.Where(x => x.Type == EntryType.Betriebspunkt).Select(x => new { Entry = x, Difference = x.Location.GetDistanzInMeters(newPosition) }).OrderBy(x => x.Difference).First().Entry;
 
-            if (currentEntries.First() == closestBetriebspunkt)
+            if (currentEntries.Last() == closestBetriebspunkt)
             {
                 return false;
             }
-            var currentEntry = currentEntries.First();
+            var currentEntry = currentEntries.Last();
             while (currentEntry != closestBetriebspunkt)
             {
                 currentEntries.Remove(currentEntry);
+                currentEntry = currentEntries.Last();
             }
             return true;
         }
 
 
-        if (newPosition.Coords.Accuracy <= 5)
-        {
-            if (lastPositions.Last().GetDistanzInMeters(newPosition) <= 5)
-            {
-                return false;
-            }
-        }
-        else if (newPosition.Coords.Accuracy <= 10)
-        {
-            if (lastPositions.Last().GetDistanzInMeters(newPosition) <= 10)
-            {
-                return false;
-            }
-        }
-        else if (newPosition.Coords.Accuracy <= 300)
-        {
-            if (lastPositions.Last().GetDistanzInMeters(newPosition) <= 300)
-            {
-                return false;
-            }
-        }
-        else
+        if (lastPositions.Last().GetDistanzInMeters(newPosition) <= newPosition.Coords.Accuracy * 1.50)
         {
             return false;
         }
 
-        if (!HasPassedLastEntry(newPosition, currentEntries.First(), lastPositions))
+        if (!HasPassedLastEntry(newPosition, currentEntries.Last(), lastPositions))
         {
             lastPositions.Add(newPosition);
             return false;
@@ -84,7 +64,7 @@ public class FahrenPositionService
 
         beforeUpdateAction(() =>
         {
-            currentEntries.RemoveAt(0);
+            currentEntries.RemoveAt(currentEntries.Count - 1);
         });
         return true;
     }
