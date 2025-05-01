@@ -45,7 +45,8 @@ public class ContinuousConnectionState
     {
         await _fahrenServiceClient.RegisterOnTrainAsync(new RegisterOnTrainRequest()
         {
-            ClientId = _id, TrainNumber = trainNumber
+            ClientId = _id,
+            TrainNumber = trainNumber
         });
     }
 
