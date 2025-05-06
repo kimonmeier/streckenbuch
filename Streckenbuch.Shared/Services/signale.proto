@@ -24,7 +24,8 @@ service SignaleService {
 message CreateSignalSortingRequest {
   Types.GuidProto streckenKonfigurationId = 1;
   Types.DateOnlyProto vonDatum = 2;
-  optional Types.DateOnlyProto bisDatum = 3;
+  bool copyPreviousSorting = 3;
+  optional Types.DateOnlyProto bisDatum = 4;
 }
 
 message DeleteSignalSortingRequest {

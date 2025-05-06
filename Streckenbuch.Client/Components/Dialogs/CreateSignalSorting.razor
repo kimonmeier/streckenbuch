@@ -9,6 +9,7 @@
                 <MudCardContent>
                     <MudDatePicker @bind-Date="Model.GueltigAb" For="@(() => Model.GueltigAb)" Required="true" Label="Von" />
                     <MudDatePicker @bind-Date="Model.GueltigBis" For="@(() => Model.GueltigAb)" Clearable="true" Label="Bis"/>
+                    <MudCheckBox @bind-Value="Model.CopyPreviousConfiguration" For="@(() => Model.CopyPreviousConfiguration)" Label="Vorherige Sortierung kopieren?" />
                 </MudCardContent>
                 <MudCardActions>
                     <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary">Create</MudButton>
@@ -26,6 +27,9 @@
         public DateTime? GueltigAb { get; set; }    
         
         public DateTime? GueltigBis { get; set; }    
+        
+        [Required]
+        public bool CopyPreviousConfiguration { get; set; }
     }
 
     [CascadingParameter]
@@ -40,7 +44,7 @@
     {
         await SignalService.CreateSignalSortingAsync(new CreateSignalSortingRequest()
         {
-            StreckenKonfigurationId = StreckenkonfigurationId, VonDatum = Model.GueltigAb, BisDatum = Model.GueltigBis
+            StreckenKonfigurationId = StreckenkonfigurationId, VonDatum = Model.GueltigAb, BisDatum = Model.GueltigBis, CopyPreviousSorting = Model.CopyPreviousConfiguration
         });
 
         MudDialog.Close();

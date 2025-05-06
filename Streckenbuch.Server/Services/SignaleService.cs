@@ -200,12 +200,18 @@ public class SignaleService : Streckenbuch.Shared.Services.SignaleService.Signal
         {
             var list = await _signalStreckenZuordnungSortingStreckeRepository.ListByStreckeKonfigurationId(request.StreckenKonfigurationId);
 
+            Guid? toCopy = null;
             if (request.BisDatum is null)
             {
                 var entry = list.SingleOrDefault(x => x.GueltigVon <= request.VonDatum && x.GueltigBis is null);
 
                 if (entry is not null)
                 {
+                    if (request.CopyPreviousSorting)
+                    {
+                        toCopy = entry.Id;
+                    }
+
                     entry.GueltigBis = ((DateOnly)request.VonDatum).AddDays(-1);
 
                     await _signalStreckenZuordnungSortingStreckeRepository.UpdateAsync(entry);
@@ -228,11 +234,32 @@ public class SignaleService : Streckenbuch.Shared.Services.SignaleService.Signal
                 }
             }
 
-            await _signalStreckenZuordnungSortingStreckeRepository.AddAsync(new SignalStreckenZuordnungSortingStrecke()
+            var sortingStrecke = new SignalStreckenZuordnungSortingStrecke
             {
                 GueltigVon = (DateOnly?)request.VonDatum ?? DateOnly.MinValue, GueltigBis = ((DateOnly?)request.BisDatum), StreckenKonfigurationId = request.StreckenKonfigurationId
-            });
+            };
+            await _signalStreckenZuordnungSortingStreckeRepository.AddAsync(sortingStrecke);
 
+            if (toCopy is not null)
+            {
+                var toCopyStrecke = await _signalStreckenZuordnungSortingStreckeRepository.GetWithChild(toCopy.Value);
+
+                foreach (var betriebspunkt in toCopyStrecke!.Betriebspunkte)
+                {
+                    var copiedBetriebspunkt = await _signalStreckenZuordnungSortingBetriebspunktRepository.AddAsync(new SignalStreckenZuordnungSortingBetriebspunkt()
+                    {
+                        BetriebspunktId = betriebspunkt.BetriebspunktId, SignalStreckenZuordnungSortingStrecke = sortingStrecke,
+                    });
+
+                    foreach (var sortingSignal in betriebspunkt.Signale)
+                    {
+                        await _signalStreckenZuordnungSortingSignalRepository.AddAsync(new SignalStreckenZuordnungSortingSignal()
+                        {
+                            SignalId = sortingSignal.SignalId, SortingOrder = sortingSignal.SortingOrder, SignalStreckenZuordnungSortingBetriebspunkt = copiedBetriebspunkt,
+                        });
+                    }
+                }
+            }
 
             await dbTransaction.Commit(context.CancellationToken);
         }
