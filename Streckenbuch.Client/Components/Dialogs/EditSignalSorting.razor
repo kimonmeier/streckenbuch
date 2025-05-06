@@ -249,7 +249,7 @@ else
                 zugewieseneSignale[betriebspunktId].Clear();
                 offeneSignale[betriebspunktId].Clear();
 
-                foreach (var signalSorting in (sortingBetriebspunkt?.Signale) ?? new RepeatedField<SignalSortingSignal>())
+                foreach (var signalSorting in (sortingBetriebspunkt?.Signale.OrderBy(x => x.SortingNumber).ToList()) ?? new List<SignalSortingSignal>())
                 {
                     var signal = signalProtos.Single(x => ((Guid)x.SignalId).Equals(signalSorting.SignalId));
 
@@ -268,7 +268,7 @@ else
                     });
                     index++;
                 }
-
+                
                 signaleLoading[betriebspunktId] = false;
             })
             .ContinueWith(x => InvokeAsync(StateHasChanged))
