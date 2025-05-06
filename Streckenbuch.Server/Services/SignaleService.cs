@@ -216,11 +216,11 @@ public class SignaleService : Streckenbuch.Shared.Services.SignaleService.Signal
                 var firstEntry = list.SingleOrDefault(x => x.GueltigVon <= request.BisDatum && x.GueltigBis >= request.BisDatum);
                 if (firstEntry is not null)
                 {
-                    firstEntry.GueltigBis = ((DateOnly)request.BisDatum).AddDays(-1);
+                    firstEntry.GueltigBis = ((DateOnly)request.VonDatum).AddDays(-1);
                     await _signalStreckenZuordnungSortingStreckeRepository.UpdateAsync(firstEntry);
                 }
 
-                var lastEntry = list.FirstOrDefault(x => x.GueltigBis >= request.VonDatum);
+                var lastEntry = list.FirstOrDefault(x => x.GueltigVon >= request.VonDatum);
                 if (lastEntry is not null)
                 {
                     lastEntry.GueltigVon = ((DateOnly)request.BisDatum).AddDays(1);
