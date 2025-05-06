@@ -105,11 +105,16 @@ public class FahrenRepository
                 });
             }
 
-            var lastSignal = entries.Last(x =>
-                x.DisplaySeite == DisplaySeite.Ausfahrt_Abschnitt &&
-                x.SignalZuordnung!.Signal.Typ is SignalTyp.Hauptsignal or SignalTyp.Kombiniert or SignalTyp.Streckengeschwindigkeit);
-            
-            lastSignal.DisplaySeite = DisplaySeite.Ausfahrt;
+            var lastSignal = entries.LastOrDefault(x =>
+                x.SignalZuordnung is not null &&
+                x.SignalZuordnung.Signal.BetriebspunktId == betriebspunktZuordnung.Betriebspunkt.Id &&
+                x.SignalZuordnung.Signal.Typ is SignalTyp.Hauptsignal or SignalTyp.Kombiniert or SignalTyp.Streckengeschwindigkeit &&
+                x.DisplaySeite == DisplaySeite.Ausfahrt_Abschnitt);
+
+            if (lastSignal is not null)
+            {
+                lastSignal.DisplaySeite = DisplaySeite.Ausfahrt;
+            }
         }
 
         return entries;
