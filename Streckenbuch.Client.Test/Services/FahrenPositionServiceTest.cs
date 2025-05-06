@@ -72,12 +72,97 @@ public class FahrenPositionServiceTest
         mock.Verify(s => s.DoSomething(), Times.Exactly(2));
     }
 
+    [Fact]
+    public void ShouldNotMoveAwayFromLastTimelineEntry()
+    {
+        var mock = new Mock<TestInterface>();
 
+        FahrenPositionService positionService = new FahrenPositionService();
+        positionService.Initialize(TimeLineEntries, (action) =>
+        {
+            mock.Object.DoSomething();
+            action();
+        });
+
+        mock.Verify(s => s.DoSomething(), Times.Never());
+
+        // Get last two timeline entries
+        var lastEntry = TimeLineEntries[^1]; // Rupperswil
+        var secondLastEntry = TimeLineEntries[^2]; // Abschnitt_Ausfahrt Signal
+
+        // Calculate the direction vector from second-last to last
+        var directionLatitude = lastEntry.Location.Y - secondLastEntry.Location.Y;
+        var directionLongitude = lastEntry.Location.X - secondLastEntry.Location.X;
+        
+        List<GeolocationPosition> positions = new List<GeolocationPosition>();
+
+        // 1. First position exactly at the last entry
+        positions.Add(new GeolocationPosition
+        {
+            Coords = new GeolocationCoordinates
+            {
+                Latitude = lastEntry.Location.X,
+                Longitude = lastEntry.Location.Y,
+                Accuracy = 5.0
+            },
+            Timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()
+        });
+        
+        // 2. Next positions slowly moving *away* from lastEntry
+        for (int i = 1; i <= 100; i++)
+        {            
+            Console.WriteLine("{{coords:{{accuracy:1,latitude:{0},longitude:{1}}}}},", lastEntry.Location.X + i * directionLatitude, lastEntry.Location.Y + i * directionLongitude);
+
+            positions.Add(new GeolocationPosition
+            {
+                Coords = new GeolocationCoordinates
+                {
+                    Latitude = lastEntry.Location.X + i * directionLatitude, // Every step a bit farther
+                    Longitude = lastEntry.Location.Y + i * directionLongitude,
+                    Accuracy = 5.0
+                },
+                Timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()
+            });
+        }
+
+        foreach (var pos in positions)
+        {
+            positionService.UpdatePosition(pos);
+        }
+
+        // The service should NOT trigger DoSomething, because movement is away from the timeline
+        mock.Verify(s => s.DoSomething(), Times.Never());
+    }
 
     #region Data
 
     #region PositionData
     public const string PositionData = @"[
+
+  {
+    timestamp: 1744367741326,
+    coords: {
+      accuracy: 60.6150016784668,
+      latitude: 47.4014565,
+      longitude: 8.1173157,
+      altitude: 423.5,
+      altitudeAccuracy: null,
+      heading: 80.00009155273438,
+      speed: 38.49980926513672
+    }
+  },
+  {
+    timestamp: 1744367741326,
+    coords: {
+      accuracy: 60.6150016784668,
+      latitude: 47.4022565,
+      longitude: 8.1233157,
+      altitude: 423.5,
+      altitudeAccuracy: null,
+      heading: 80.00009155273438,
+      speed: 38.49980926513672
+    }
+  },
 {""timestamp"":1744367741326,""coords"":{""accuracy"":60.6150016784668,""latitude"":47.4034565,""longitude"":8.1273157,""altitude"":423.5,""altitudeAccuracy"":null,""heading"":80.00009155273438,""speed"":38.49980926513672}},
 {""timestamp"":1744367742350,""coords"":{""accuracy"":3.7899999618530273,""latitude"":47.4035725,""longitude"":8.1275989,""altitude"":423.5,""altitudeAccuracy"":null,""heading"":74.00704193115234,""speed"":38.628726959228516}},
 {""timestamp"":1744367742851,""coords"":{""accuracy"":3.7899999618530273,""latitude"":47.4036517,""longitude"":8.127981,""altitude"":423.5,""altitudeAccuracy"":null,""heading"":74.00426483154297,""speed"":38.60675048828125}},
