@@ -10,9 +10,9 @@ namespace Streckenbuch.Server.Data.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.Sql("UPDATE Seite = 0 FROM Signal WHERE Seite = 1");
-            migrationBuilder.Sql("UPDATE Seite = 1 FROM Signal WHERE Seite = 2");
-            migrationBuilder.Sql("UPDATE Seite = 1 FROM Signal WHERE Seite = 3");
+            migrationBuilder.Sql("UPDATE Signal SET Seite = 0 WHERE Seite = 1");
+            migrationBuilder.Sql("UPDATE Signal SET Seite = 1 WHERE Seite = 2");
+            migrationBuilder.Sql("UPDATE Signal SET Seite = 1 WHERE Seite = 3");
         }
 
         /// <inheritdoc />
