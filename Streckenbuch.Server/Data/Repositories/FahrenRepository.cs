@@ -63,17 +63,22 @@ public class FahrenRepository
                 .AsNoTracking()
                 .Include(x => x.Signal)
                 .Where(x => x.StreckeId == betriebspunktZuordnung.Id)
-                .Where(x => x.Signal.BetriebspunktId.Equals(betriebspunktZuordnung.Betriebspunkt.Id)).ToList();
+                .Where(x => x.Signal.BetriebspunktId.Equals(betriebspunktZuordnung.Betriebspunkt.Id))
+                .ToList();
 
             var signaleSorting = signalSorting
                 .Where(x => x.SignalStreckenZuordnungSortingBetriebspunkt.BetriebspunktId.Equals(betriebspunktZuordnung.Betriebspunkt.Id))
-                .OrderBy(x => x.SortingOrder);
+                .Where(x => x.SignalStreckenZuordnungSortingBetriebspunkt.SignalStreckenZuordnungSortingStrecke.GueltigVon <= DateOnly.FromDateTime(DateTime.Today) && 
+                           (x.SignalStreckenZuordnungSortingBetriebspunkt.SignalStreckenZuordnungSortingStrecke.GueltigBis == null || 
+                            x.SignalStreckenZuordnungSortingBetriebspunkt.SignalStreckenZuordnungSortingStrecke.GueltigBis >= DateOnly.FromDateTime(DateTime.Today)))
+                .OrderBy(x => x.SortingOrder)
+                .ToList();
 
             var einfahrSignale = signale.Where(x => x.Signal.Seite == SignalSeite.Einfahrt);
             var ausfahrSignale = signale.Where(x => x.Signal.Seite == SignalSeite.Ausfahrt);
 
             int index = 0;
-            foreach (var einfahrSignal in einfahrSignale.Join(signaleSorting, x => x.Id, x => x.SignalId, (x, y) => new
+            foreach (var einfahrSignal in einfahrSignale.Join(signaleSorting, x => x.SignalId, x => x.SignalId, (x, y) => new
                      {
                          Signal = x, Sorting = y
                      }).OrderBy(x => x.Sorting.SortingOrder))
@@ -94,14 +99,14 @@ public class FahrenRepository
                 Betriebspunkt = betriebspunktZuordnung.Betriebspunkt
             });
 
-            foreach (var einfahrSignal in ausfahrSignale.Join(signaleSorting, x => x.Id, x => x.SignalId, (x, y) => new
+            foreach (var ausfahrSignal in ausfahrSignale.Join(signaleSorting, x => x.SignalId, x => x.SignalId, (x, y) => new
                      {
                          Signal = x, Sorting = y
                      }).OrderBy(x => x.Sorting.SortingOrder))
             {
                 entries.Add(new FahrenTransferEntry()
                 {
-                    SignalZuordnung = einfahrSignal.Signal, DisplaySeite = DisplaySeite.Ausfahrt_Abschnitt
+                    SignalZuordnung = ausfahrSignal.Signal, DisplaySeite = DisplaySeite.Ausfahrt_Abschnitt
                 });
             }
 
