@@ -10,6 +10,7 @@ import "Types/location.proto";
 service SignaleService {
   rpc ListAllSignale (google.protobuf.Empty) returns  (ListSignaleAnswer);
   rpc ListSignaleByBetriebspunkt (ListByBetriebspunktRequest) returns (ListSignaleAnswer);
+  rpc ListSignaleByBetriebspunktAndStreckenkonfiguration (ListSignaleByBetriebspunktAndStreckenkonfigurationRequest) returns (ListSignaleAnswer);
   rpc CreateSignal (CreateSignalRequest) returns (google.protobuf.Empty);
   rpc DeleteSignal (DeleteSignalRequest) returns (google.protobuf.Empty);
   rpc ListZuordnungBySignal (ListZuordnungBySignalRequest) returns (ListZuordnungBySignalAnswer);
@@ -79,6 +80,11 @@ message ListSignaleAnswer {
 
 message ListByBetriebspunktRequest {
   Types.GuidProto betriebspunktId = 1;
+}
+
+message ListSignaleByBetriebspunktAndStreckenkonfigurationRequest {
+  Types.GuidProto betriebspunktId = 1;
+  Types.GuidProto streckenKonfigurationId = 2;
 }
 
 message SignalProto {

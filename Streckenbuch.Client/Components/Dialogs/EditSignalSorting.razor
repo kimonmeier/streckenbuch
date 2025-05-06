@@ -236,9 +236,10 @@ else
 
         signaleLoading[betriebspunktId] = true;
 
-        SignaleService.ListSignaleByBetriebspunktAsync(new ListByBetriebspunktRequest()
+        SignaleService.ListSignaleByBetriebspunktAndStreckenkonfigurationAsync(new ListSignaleByBetriebspunktAndStreckenkonfigurationRequest()
             {
-                BetriebspunktId = betriebspunktId
+                BetriebspunktId = betriebspunktId,
+                StreckenKonfigurationId = StreckenKonfigurationId
             })
             .ResponseAsync
             .ContinueWith(signalAnswer =>

@@ -281,4 +281,13 @@ public class SignaleService : Streckenbuch.Shared.Services.SignaleService.Signal
 
         return new Empty();
     }
+
+    public override async Task<ListSignaleAnswer> ListSignaleByBetriebspunktAndStreckenkonfiguration(ListSignaleByBetriebspunktAndStreckenkonfigurationRequest request, ServerCallContext context)
+    {
+        ListSignaleAnswer answer = new ListSignaleAnswer();
+        var list = await _signalStreckenZuordnungRepository.ListByBetriebspunktAndStrecke(request.BetriebspunktId, request.StreckenKonfigurationId);
+        answer.Signale.Add(_mapper.Map<List<SignalProto>>(list.Select(x => x.Signal)));
+        
+        return answer;
+    }
 }
