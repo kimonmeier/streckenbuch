@@ -388,9 +388,9 @@ public class FahrenPositionServiceTest
     public static List<IBaseEntry> TimeLineEntries => new List<IBaseEntry>()
     {
         { new BahnhofEntry() { Location = new NetTopologySuite.Geometries.Coordinate(47.3916525103458, 8.1696260844281), Name = "Lenzburg" } },
-        { new KombiniertSignalEntry() { Location = new NetTopologySuite.Geometries.Coordinate(47.3951799713142, 8.15822796604049), SignalSeite = Shared.Models.SignalSeite.Einfahrt } },
-        { new KombiniertSignalEntry() { Location = new NetTopologySuite.Geometries.Coordinate(47.4042555578771, 8.13428282621334), SignalSeite = Shared.Models.SignalSeite.Ausfahrt } },
-        { new KombiniertSignalEntry() { Location = new NetTopologySuite.Geometries.Coordinate(47.4035723847273, 8.12776686256773), SignalSeite = Shared.Models.SignalSeite.Abschnitt_Ausfahrt } },
+        { new KombiniertSignalEntry() { Location = new NetTopologySuite.Geometries.Coordinate(47.3951799713142, 8.15822796604049), SignalSeite = Shared.Models.DisplaySeite.Einfahrt } },
+        { new KombiniertSignalEntry() { Location = new NetTopologySuite.Geometries.Coordinate(47.4042555578771, 8.13428282621334), SignalSeite = Shared.Models.DisplaySeite.Ausfahrt } },
+        { new KombiniertSignalEntry() { Location = new NetTopologySuite.Geometries.Coordinate(47.4035723847273, 8.12776686256773), SignalSeite = Shared.Models.DisplaySeite.Ausfahrt_Abschnitt } },
         { new BahnhofEntry() { Location = new NetTopologySuite.Geometries.Coordinate(47.4032760934054, 8.12615590038544), Name = "Rupperswil" } }
     };
 

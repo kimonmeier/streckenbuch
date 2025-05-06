@@ -14,19 +14,21 @@
     <RowTemplate>
         <MudTd>@context.Nummer</MudTd>
         <MudTd>
-            <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="@(() => createKonfiguration(context.Id))">
+            <MudButton Variant="Variant.Filled" Color="Color.Primary"
+                       OnClick="@(() => createKonfiguration(context.Id))">
                 Konfiguration erstellen
             </MudButton>
         </MudTd>
     </RowTemplate>
     <ChildRowContent>
-        <MudTr />
+        <MudTr/>
         <MudTable Items="context.Konfigurationen" Context="konfiguration" Class="w-full">
             <HeaderContent>
                 <MudTh>Name</MudTh>
                 <MudTh>Von</MudTh>
                 <MudTh>Bis</MudTh>
                 <MudTh>Zuordnungen</MudTh>
+                <MudTh>Signale</MudTh>
             </HeaderContent>
             <RowTemplate>
                 <MudTd>
@@ -39,7 +41,14 @@
                     @konfiguration.BisBetriebspunkt
                 </MudTd>
                 <MudTd>
-                    <MudButton OnClick="@(() => openZuordnungen(konfiguration.Id))" Variant="Variant.Filled" Color="Color.Secondary">Schliessen</MudButton>
+                    <MudButton OnClick="@(() => openZuordnungen(konfiguration.Id))" Variant="Variant.Filled"
+                               Color="Color.Secondary">Konfiguration
+                    </MudButton>
+                </MudTd>
+                <MudTd>
+                    <MudButton OnClick="@(() => openSignalSorting(konfiguration.Id))" Variant="Variant.Filled"
+                               Color="Color.Tertiary">Signale
+                    </MudButton>
                 </MudTd>
             </RowTemplate>
         </MudTable>
@@ -54,7 +63,7 @@
     private List<StreckenModel>? strecken;
     private bool isLoading;
 
-    protected override async Task OnInitializedAsync()
+    protected async override Task OnInitializedAsync()
     {
         await loadData();
     }
@@ -72,7 +81,9 @@
     {
         var parameters = new DialogParameters<CreateStreckenKonfiguration>
         {
-            { x => x.StreckeId, streckenId },
+            {
+                x => x.StreckeId, streckenId
+            },
         };
 
         return dialogService.ShowAsync<CreateStreckenKonfiguration>("Streckenkonfiguration erstellen", parameters);
@@ -89,9 +100,24 @@
     {
         var parameters = new DialogParameters<EditStreckenZurodnungen>
         {
-            { x => x.StreckenKonfigurationId, konfigurationId },
+            {
+                x => x.StreckenKonfigurationId, konfigurationId
+            },
         };
 
         await dialogService.Show<EditStreckenZurodnungen>("Zuordnungen", parameters).Result;
     }
+
+    private async Task openSignalSorting(Guid konfigurationId)
+    {
+        var parameters = new DialogParameters<EditSignalSorting>
+        {
+            {
+                x => x.StreckenKonfigurationId, konfigurationId
+            },
+        };
+
+        await dialogService.Show<EditSignalSorting>("Zuordnungen", parameters).Result;
+    }
+
 }

@@ -16,6 +16,11 @@ public abstract class GenericRepository<TEntity> where TEntity : class, IEntity
         _dbContext.ChangeTracker.QueryTrackingBehavior = QueryTrackingBehavior.TrackAll;
     }
 
+    protected DbSet<TOtherEntity> FindDbSet<TOtherEntity>() where TOtherEntity : class, IEntity
+    {
+        return _dbContext.Set<TOtherEntity>();
+    }
+
     public async Task<TEntity> AddAsync(TEntity entity)
     {
         return (await Entities.AddAsync(entity)).Entity;

@@ -59,7 +59,7 @@ else
     private List<BetriebspunktProto> zugeordneteBetriebspunkte = new List<BetriebspunktProto>();
     private List<StreckeZuordnung> zuordnungen = new List<StreckeZuordnung>();
 
-    protected override async Task OnInitializedAsync()
+    protected async override Task OnInitializedAsync()
     {
         alleBetriebspunkte = (await betriebspunkteService.ListAllBetriebspunkteAsync(new Empty())).Betriebspunkte.ToList();
 
@@ -89,7 +89,7 @@ else
 
     private async Task RemoveZuordnung((int oldIndex, int newIndex) indices)
     {
-        if (this.isLoading)
+        if (isLoading)
         {
             return;
         }
@@ -106,11 +106,11 @@ else
 
     private async Task UpdateZuordnung((int oldIndex, int newIndex) indices)
     {
-        if (this.isLoading)
+        if (isLoading)
         {
             return;
         }
-        var betriebspunkt = this.zugeordneteBetriebspunkte[indices.oldIndex];
+        var betriebspunkt = zugeordneteBetriebspunkte[indices.oldIndex];
 
         await streckenService.ChangeStreckenZuordnungAsync(new ChangeStreckenZuordnungRequest()
             {
@@ -125,7 +125,7 @@ else
 
     private async Task RemoveBetriebspunkt((int oldIndex, int newIndex) indices)
     {
-        if (this.isLoading)
+        if (isLoading)
         {
             return;
         }

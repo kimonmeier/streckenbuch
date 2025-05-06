@@ -1,0 +1,339 @@
+﻿@using Google.Protobuf.Collections
+@using System.Text
+@inject SignaleService.SignaleServiceClient SignaleService
+@inject BetriebspunkteService.BetriebspunkteServiceClient BetriebspunkteService
+@inject IDialogService dialogService
+
+@if (isLoading)
+{
+    <MudProgressCircular Indeterminate="true"></MudProgressCircular>
+}
+else
+{
+    <MudItem>
+        <MudTabs>
+            @foreach (var strecke in Strecken)
+            {
+                <MudTabPanel Text="@GetTabText(strecke)">
+                    <MudExpansionPanels MultiExpansion="true">
+                        @foreach (var betriebspunkt in betriebspunkte)
+                        {
+                            var betriebspunktSignal = strecke.Betriebspunkte.SingleOrDefault(x => x.BetriebspunktId.Equals(betriebspunkt.Id));
+                            <MudExpansionPanel Text="@betriebspunkt.Name"
+                                               ExpandedChanged="@((newValue) => Callback(newValue, betriebspunkt.Id, betriebspunktSignal))">
+                                @if (signaleLoading[betriebspunkt.Id])
+                                {
+                                    <MudProgressCircular Indeterminate="true"></MudProgressCircular>
+                                }
+                                else
+                                {
+                                    <div class="flex flex-row h-full">
+                                        <div class="w-1/2 border p-2 rounded-lg h-full">
+                                            <SortableList Class="w-full h-full"
+                                                          Id="@GetId(betriebspunkt.Id, 1)"
+                                                          ForceFallback="false"
+                                                          Items="zugewieseneSignale[betriebspunkt.Id]"
+                                                          Group="@betriebspunkt.Id.ToString()"
+                                                          Context="item"
+                                                          OnRemove="@((tuple) => RemoveZugeordnetesSignal(betriebspunkt.Id, tuple))"
+                                                          OnUpdate="@((tuple) => UpdateZugeordnetesSignal(betriebspunkt.Id, tuple))">
+                                                <SortableItemTemplate>
+                                                    <div class="has-border has-background-white has-cursor-pointer">
+                                                        <p class="is-size-4 p-2 ml-4">@GetSignalName(betriebspunkt.Id, item.SignalId)</p>
+                                                    </div>
+                                                </SortableItemTemplate>
+                                            </SortableList>
+                                        </div>
+
+                                        <div class="w-1/2 border p-2 rounded-lg h-full">
+                                            <SortableList Class="w-full h-full"
+                                                          Id="@GetId(betriebspunkt.Id, 2)"
+                                                          ForceFallback="false"
+                                                          Items="offeneSignale[betriebspunkt.Id]"
+                                                          Group="@betriebspunkt.Id.ToString()"
+                                                          Context="item"
+                                                          OnRemove="@((tuple) => RemoveOffenesSignal(betriebspunkt.Id, tuple))"
+                                                          OnUpdate="@((tuple) => UpdateOffenesSignal(betriebspunkt.Id, tuple))">
+                                                <SortableItemTemplate>
+                                                    <div class="has-border has-background-white has-cursor-pointer">
+                                                        <p class="is-size-4 p-2 ml-4">@GetSignalName(betriebspunkt.Id, item.SignalId)</p>
+                                                    </div>
+                                                </SortableItemTemplate>
+                                            </SortableList>
+                                        </div>
+                                    </div>
+                                }
+                            </MudExpansionPanel>
+                        }
+                    </MudExpansionPanels>
+                </MudTabPanel>
+            }
+            <MudButtonGroup>
+                <MudButton OnClick="Submit" Color="Color.Primary">Speichern</MudButton>
+                <MudButton OnClick="Cancel" Color="Color.Secondary">Schliessen</MudButton>
+                <MudButton OnClick="CreateDateRange" Color="Color.Tertiary">Datum erstellen</MudButton>
+            </MudButtonGroup>
+        </MudTabs>
+    </MudItem>
+}
+
+@code {
+
+    private record Entry
+    {
+        public Guid SignalId { get; set; }
+
+        public int Indices { get; set; }
+    }
+
+    [CascadingParameter]
+    private MudDialogInstance MudDialog { get; set; } = null!;
+    
+    [Parameter]
+    public Guid StreckenKonfigurationId { get; set; }
+
+    private bool isLoading = false;
+
+    private List<SignalSortingStrecke> Strecken { get; set; }
+
+    private List<BetriebspunktProto> betriebspunkte { get; set; }
+
+    private Dictionary<Guid, bool> signaleLoading { get; set; }
+
+    private Dictionary<Guid, List<SignalProto>> signale { get; set; }
+
+    private Dictionary<Guid, List<Entry>> zugewieseneSignale { get; set; }
+
+    private Dictionary<Guid, List<Entry>> offeneSignale { get; set; }
+
+    protected async override Task OnInitializedAsync()
+    {
+        await LoadData();
+    }
+
+    private async Task LoadData()
+    {
+        isLoading = true;
+
+        betriebspunkte = (await BetriebspunkteService.ListBetriebspunkteByStreckenKonfigurationAsync(new ListBetriebspunkteByStreckenKonfigurationRequest() { StreckenKonfigurationId = StreckenKonfigurationId})).Betriebspunkte.ToList();
+        signale = new Dictionary<Guid, List<SignalProto>>();
+        signaleLoading = new Dictionary<Guid, bool>();
+        zugewieseneSignale = new Dictionary<Guid, List<Entry>>();
+        offeneSignale = new Dictionary<Guid, List<Entry>>();
+
+        foreach (var betriebspunkt in betriebspunkte)
+        {
+            signaleLoading.Add(betriebspunkt.Id, false);
+            signale.Add(betriebspunkt.Id, new List<SignalProto>());
+            zugewieseneSignale.Add(betriebspunkt.Id, new List<Entry>());
+            offeneSignale.Add(betriebspunkt.Id, new List<Entry>());
+        }
+
+        var answer = await SignaleService.ListSignalSortingAsync(new ListSignalSortingRequest()
+        {
+            StreckeKonfigurationId = StreckenKonfigurationId
+        });
+
+        Strecken = answer.Strecken.ToList();
+        isLoading = false;
+    }
+
+    private string GetTabText(SignalSortingStrecke strecke)
+    {
+        StringBuilder builder = new StringBuilder();
+
+        builder.Append(((DateOnly)strecke.VonDatum!).ToShortDateString());
+        builder.Append(" - ");
+
+        if ((DateOnly?)strecke.BisDatum is not null)
+        {
+            builder.Append(((DateOnly)strecke.BisDatum!).ToShortDateString());
+        }
+
+        return builder.ToString();
+    }
+
+    private string GetSignalName(Guid betriebspunktId, Guid signalId)
+    {
+        return signale[betriebspunktId].Single(x => x.SignalId == signalId).Name;
+    }
+
+    private string GetId(Guid id, int liste)
+    {
+        return "sortable" + id + liste;
+    }
+
+    private void RemoveZugeordnetesSignal(Guid betriebspunktId, (int oldIndices, int newIndices) indices)
+    {
+        var entry = zugewieseneSignale[betriebspunktId].Single(x => x.Indices == indices.oldIndices);
+        zugewieseneSignale[betriebspunktId].Remove(entry);
+
+        for (int i = 0; i < zugewieseneSignale[betriebspunktId].Count; i++)
+        {
+            zugewieseneSignale[betriebspunktId][i].Indices = i;
+        }
+
+        entry.Indices = indices.newIndices;
+        offeneSignale[betriebspunktId].Insert(indices.newIndices, entry);
+
+        for (int i = 0; i < offeneSignale[betriebspunktId].Count; i++)
+        {
+            offeneSignale[betriebspunktId][i].Indices = i;
+        }
+    }
+
+    private void RemoveOffenesSignal(Guid betriebspunktId, (int oldIndices, int newIndices) indices)
+    {
+        var entry = offeneSignale[betriebspunktId].Single(x => x.Indices == indices.oldIndices);
+        offeneSignale[betriebspunktId].Remove(entry);
+
+        for (int i = 0; i < offeneSignale[betriebspunktId].Count; i++)
+        {
+            offeneSignale[betriebspunktId][i].Indices = i;
+        }
+
+        entry.Indices = indices.newIndices;
+        zugewieseneSignale[betriebspunktId].Insert(indices.newIndices, entry);
+
+        for (int i = 0; i < zugewieseneSignale[betriebspunktId].Count; i++)
+        {
+            zugewieseneSignale[betriebspunktId][i].Indices = i;
+        }
+    }
+
+    private void UpdateZugeordnetesSignal(Guid betriebspunktId, (int oldIndices, int newIndices) indices)
+    {
+        var entry = zugewieseneSignale[betriebspunktId].Single(x => x.Indices == indices.oldIndices);
+        zugewieseneSignale[betriebspunktId].Remove(entry);
+        entry.Indices = indices.newIndices;
+        zugewieseneSignale[betriebspunktId].Insert(indices.newIndices, entry);
+
+        for (int i = 0; i < zugewieseneSignale[betriebspunktId].Count; i++)
+        {
+            zugewieseneSignale[betriebspunktId][i].Indices = i;
+        }
+    }
+
+    private void UpdateOffenesSignal(Guid betriebspunktId, (int oldIndices, int newIndices) indices)
+    {
+        var entry = offeneSignale[betriebspunktId].Single(x => x.Indices == indices.oldIndices);
+        offeneSignale[betriebspunktId].Remove(entry);
+        entry.Indices = indices.newIndices;
+        offeneSignale[betriebspunktId].Insert(indices.newIndices, entry);
+
+        for (int i = 0; i < offeneSignale[betriebspunktId].Count; i++)
+        {
+            offeneSignale[betriebspunktId][i].Indices = i;
+        }
+    }
+
+    private void Callback(bool newValue, Guid betriebspunktId, SignalSortingBetriebspunkt? sortingBetriebspunkt)
+    {
+        if (!newValue)
+        {
+            return;
+        }
+
+        signaleLoading[betriebspunktId] = true;
+
+        SignaleService.ListSignaleByBetriebspunktAsync(new ListByBetriebspunktRequest()
+            {
+                BetriebspunktId = betriebspunktId
+            })
+            .ResponseAsync
+            .ContinueWith(signalAnswer =>
+            {
+                var signalProtos = signalAnswer.Result.Signale.ToList();
+
+                signale[betriebspunktId] = signalProtos;
+                zugewieseneSignale[betriebspunktId].Clear();
+                offeneSignale[betriebspunktId].Clear();
+
+                foreach (var signalSorting in (sortingBetriebspunkt?.Signale) ?? new RepeatedField<SignalSortingSignal>())
+                {
+                    var signal = signalProtos.Single(x => ((Guid)x.SignalId).Equals(signalSorting.SignalId));
+
+                    zugewieseneSignale[betriebspunktId].Add(new Entry()
+                    {
+                        SignalId = signal.SignalId, Indices = signalSorting.SortingNumber
+                    });
+                }
+
+                int index = 0;
+                foreach (SignalProto signalProto in signalProtos.Where(x => zugewieseneSignale[betriebspunktId].All(z => z.SignalId != x.SignalId)))
+                {
+                    offeneSignale[betriebspunktId].Add(new Entry()
+                    {
+                        SignalId = signalProto.SignalId, Indices = index
+                    });
+                    index++;
+                }
+
+                signaleLoading[betriebspunktId] = false;
+            });
+
+    }
+
+    private async Task CreateDateRange(MouseEventArgs obj)
+    {
+        var parameters = new DialogParameters<CreateSignalSorting>
+        {
+            {
+                x => x.StreckenkonfigurationId, StreckenKonfigurationId
+            },
+        };
+
+        await dialogService.Show<CreateSignalSorting>("Erstellen", parameters).Result;
+        
+        
+        await LoadData();
+    }
+
+    private async Task Submit()
+    {
+        foreach (KeyValuePair<Guid, List<Entry>> betriebspunktSignalPair in zugewieseneSignale)
+        {
+            foreach (var sortingStrecke in Strecken)
+            {
+                var betriebspunktSignal = sortingStrecke.Betriebspunkte.SingleOrDefault(x => x.BetriebspunktId == betriebspunktSignalPair.Key);
+                if (betriebspunktSignal is null)
+                {
+                    betriebspunktSignal = new SignalSortingBetriebspunkt()
+                    {
+                        BetriebspunktId = betriebspunktSignalPair.Key
+                    };
+                    
+                    sortingStrecke.Betriebspunkte.Add(betriebspunktSignal);
+                }
+                
+                betriebspunktSignal.Signale.Clear();
+
+                foreach (Entry signalEntry in betriebspunktSignalPair.Value)
+                {
+                    betriebspunktSignal.Signale.Add(new SignalSortingSignal()
+                    {
+                        SignalId = signalEntry.SignalId,
+                        SortingNumber = signalEntry.Indices
+                    });
+                }
+            }
+        }
+
+
+        foreach (SignalSortingStrecke sortingStrecke in Strecken)
+        {
+            await SignaleService.ChangeSignalSortingAsync(new ChangeSignalSortingRequest()
+            {
+                Strecke = sortingStrecke
+            });
+        }
+        
+        MudDialog.Close();
+    }
+
+    private void Cancel()
+    {
+        MudDialog.Close();
+    }
+
+}

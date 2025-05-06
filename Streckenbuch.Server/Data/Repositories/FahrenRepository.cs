@@ -20,37 +20,35 @@ public class FahrenRepository
     }
 
     public List<FahrenTransferEntry> ListEntriesByLinie(Guid linieId)
-    {        
+    {
         List<FahrenTransferEntry> entries = new();
 
         var streckenKonfigurationEntries = _dbContext
             .Set<LinienStreckenKonfigurationen>().Where(x => x.LinieId.Equals(linieId))
             .OrderBy(x => x.Order)
-            .Select(x => new { x.StreckenKonfigurationId, x.VonBetriebspunktId, x.BisBetriebspunktId });
+            .Select(x => new
+            {
+                x.StreckenKonfigurationId, x.VonBetriebspunktId, x.BisBetriebspunktId
+            });
 
         foreach (var konfigurationEntry in streckenKonfigurationEntries)
         {
             List<FahrenTransferEntry> list = ListEntriesByStrecke(konfigurationEntry.StreckenKonfigurationId);
-            /* Maybe obsolete
-            while (list[0].Betriebspunkt == null || list[0].Betriebspunkt?.Id != konfigurationEntry.VonBetriebspunktId)
-            {
-                list.RemoveAt(0);
-            }
-
-            while (list[^1].Betriebspunkt == null || list[^1].Betriebspunkt?.Id != konfigurationEntry.VonBetriebspunktId)
-            {
-                list.RemoveAt(list.Count - 1);
-            }
-            */
             entries.AddRange(list);
         }
 
         return entries;
     }
-    
+
     public List<FahrenTransferEntry> ListEntriesByStrecke(Guid streckenKonfigurationId)
     {
         List<FahrenTransferEntry> entries = new List<FahrenTransferEntry>();
+
+        var signalSorting = _dbContext
+            .Set<SignalStreckenZuordnungSortingSignal>()
+            .Where(x => x.SignalStreckenZuordnungSortingBetriebspunkt.SignalStreckenZuordnungSortingStrecke.StreckenKonfigurationId == streckenKonfigurationId)
+            .Where(x => x.SignalStreckenZuordnungSortingBetriebspunkt.SignalStreckenZuordnungSortingStrecke.GueltigVon <= DateOnly.FromDateTime(DateTime.Today))
+            .AsQueryable();
 
         var betriebspunkte = _dbContext
             .Set<BetriebspunktStreckenZuordnung>()
@@ -67,85 +65,51 @@ public class FahrenRepository
                 .Where(x => x.StreckeId == betriebspunktZuordnung.Id)
                 .Where(x => x.Signal.BetriebspunktId.Equals(betriebspunktZuordnung.Betriebspunkt.Id)).ToList();
 
-            var einfahrSignale = signale.Where(x => x.Signal.Seite == SignalSeite.Einfahrt);
-            var abschnitEinfahrtSignale = signale.Where(x => x.Signal.Seite == SignalSeite.Abschnitt_Einfahrt);
+            var signaleSorting = signalSorting
+                .Where(x => x.SignalStreckenZuordnungSortingBetriebspunkt.BetriebspunktId.Equals(betriebspunktZuordnung.Betriebspunkt.Id))
+                .OrderBy(x => x.SortingOrder);
 
-            var abschnittAusfahrtSignale = signale.Where(x => x.Signal.Seite == SignalSeite.Abschnitt_Ausfahrt);
+            var einfahrSignale = signale.Where(x => x.Signal.Seite == SignalSeite.Einfahrt);
             var ausfahrSignale = signale.Where(x => x.Signal.Seite == SignalSeite.Ausfahrt);
 
-            #region Einfahrt
-
-            entries.AddRange(einfahrSignale.Where(x => x.Signal.Typ == SignalTyp.Vorsignal).Select(x => new FahrenTransferEntry()
-            {
-                SignalZuordnung = x
-            }));
-
-            entries.AddRange(einfahrSignale.Where(x => x.Signal.Typ == SignalTyp.Wiederholung).Select(x => new FahrenTransferEntry()
-            {
-                SignalZuordnung = x
-            }));
-
-            var einfahrSignal = einfahrSignale.SingleOrDefault(x => x.Signal.Typ == SignalTyp.Hauptsignal || x.Signal.Typ == SignalTyp.Kombiniert);
-
-            if (einfahrSignal is not null)
+            int index = 0;
+            foreach (var einfahrSignal in einfahrSignale.Join(signaleSorting, x => x.Id, x => x.SignalId, (x, y) => new
+                     {
+                         Signal = x, Sorting = y
+                     }).OrderBy(x => x.Sorting.SortingOrder))
             {
                 entries.Add(new FahrenTransferEntry()
                 {
-                    SignalZuordnung = einfahrSignal
+                    SignalZuordnung = einfahrSignal.Signal, DisplaySeite = index == 0 ? DisplaySeite.Einfahrt : DisplaySeite.Einfahrt_Abschnitt
                 });
+
+                if (einfahrSignal.Signal.Signal.Typ is SignalTyp.Hauptsignal or SignalTyp.Kombiniert)
+                {
+                    index++;
+                }
             }
-
-            #endregion
-
-            entries.AddRange(abschnitEinfahrtSignale.Select(x => new FahrenTransferEntry()
-            {
-                SignalZuordnung = x
-            }));
-
 
             entries.Add(new FahrenTransferEntry()
             {
                 Betriebspunkt = betriebspunktZuordnung.Betriebspunkt
             });
 
-
-            entries.AddRange(abschnittAusfahrtSignale.Select(x => new FahrenTransferEntry()
+            foreach (var einfahrSignal in ausfahrSignale.Join(signaleSorting, x => x.Id, x => x.SignalId, (x, y) => new
+                     {
+                         Signal = x, Sorting = y
+                     }).OrderBy(x => x.Sorting.SortingOrder))
             {
-                SignalZuordnung = x
-            }));
+                entries.Add(new FahrenTransferEntry()
+                {
+                    SignalZuordnung = einfahrSignal.Signal, DisplaySeite = DisplaySeite.Ausfahrt_Abschnitt
+                });
+            }
 
-            #region Ausfahrt
-
-            entries.AddRange(ausfahrSignale.Where(x => x.Signal.Typ == SignalTyp.Vorsignal).Select(x => new FahrenTransferEntry()
-            {
-                SignalZuordnung = x
-            })); 
+            var lastSignal = entries.Last(x =>
+                x.DisplaySeite == DisplaySeite.Ausfahrt_Abschnitt &&
+                x.SignalZuordnung!.Signal.Typ is SignalTyp.Hauptsignal or SignalTyp.Kombiniert or SignalTyp.Streckengeschwindigkeit);
             
-            entries.AddRange(ausfahrSignale.Where(x => x.Signal.Typ == SignalTyp.Wiederholung).Select(x => new FahrenTransferEntry()
-            {
-                SignalZuordnung = x
-            }));
-
-            var ausfahrSignal = ausfahrSignale.SingleOrDefault(x => x.Signal.Typ == SignalTyp.Hauptsignal || x.Signal.Typ == SignalTyp.Kombiniert);
-
-            if (ausfahrSignal is not null)
-            {
-                entries.Add(new FahrenTransferEntry()
-                {
-                    SignalZuordnung = ausfahrSignal
-                });
-            }
-
-            var chivron = ausfahrSignale.SingleOrDefault(x => x.Signal.Typ == SignalTyp.Streckengeschwindigkeit);
-            if (chivron is not null)
-            {
-                entries.Add(new FahrenTransferEntry()
-                {
-                    SignalZuordnung = chivron
-                });
-            }
-
-            #endregion
+            lastSignal.DisplaySeite = DisplaySeite.Ausfahrt;
         }
 
         return entries;

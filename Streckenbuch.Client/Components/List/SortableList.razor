@@ -23,7 +23,7 @@
     [Parameter, AllowNull]
     public List<T> Items { get; set; }
 
-    [Parameter]
+    [Parameter] 
     public EventCallback<(int oldIndex, int newIndex)> OnUpdate { get; set; }
 
     [Parameter]

@@ -4,12 +4,15 @@
 @inject IJSRuntime JSRuntime
 
 <EditForm Model="@model" OnValidSubmit="Submit">
-    <DataAnnotationsValidator />
+    <DataAnnotationsValidator/>
     <MudGrid>
         <MudItem>
             <MudCard>
                 <MudCardContent>
-                    <MudAutocomplete Label="Betriebspunkt" T="BetriebspunktProto" For="@(() => model.Betriebspunkt)" Value="model.Betriebspunkt" ValueChanged="changedBetriebspunkt" SearchFunc="SearchBetriebspunkte" ToStringFunc="@((e) => e.Name)"></MudAutocomplete>
+                    <MudAutocomplete Label="Betriebspunkt" T="BetriebspunktProto" For="@(() => model.Betriebspunkt)"
+                                     Value="model.Betriebspunkt" ValueChanged="changedBetriebspunkt"
+                                     SearchFunc="SearchBetriebspunkte"
+                                     ToStringFunc="@((e) => e.Name)"></MudAutocomplete>
                     <MudSelect Label="Signal Typ" For="@(() => model.Typ)" @bind-Value="model.Typ">
                         <MudSelectItem Value="SignalTyp.Hauptsignal">
                             reines Hauptsignal
@@ -29,34 +32,34 @@
                     </MudSelect>
                     <MudSelect Label="Signal Seite" For="@(() => model.Seite)" @bind-Value="model.Seite">
                         <MudSelectItem Value="SignalSeite.Einfahrt">
-                            Einfahrsignal
-                        </MudSelectItem>
-                        <MudSelectItem Value="SignalSeite.Abschnitt_Einfahrt">
-                            Einfahr-Abschnittsignal
-                        </MudSelectItem>
-                        <MudSelectItem Value="SignalSeite.Abschnitt_Ausfahrt">
-                            Ausfahr-Abschnittsignal
+                            Einfahrt
                         </MudSelectItem>
                         <MudSelectItem Value="SignalSeite.Ausfahrt">
-                            Ausfahrsignal
+                            Ausfahrt
                         </MudSelectItem>
                     </MudSelect>
                     <MudTextField Label="Name" HelperText="Optional"
-                                  @bind-Value="model.Name" For="@(() => model.Name)" />
+                                  @bind-Value="model.Name" For="@(() => model.Name)"/>
                     <MudCard>
                         <MudCardHeader>
                             <MudText Typo="Typo.h6">Ort auswählen</MudText>
-                            <MudTextField T="string" TextChanged="@((val) => changeSearch(val))" Placeholder="Suche" Adornment="Adornment.Start"
-                                          AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
+                            <MudTextField T="string" TextChanged="@((val) => changeSearch(val))" Placeholder="Suche"
+                                          Adornment="Adornment.Start"
+                                          AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium"
+                                          Class="mt-0"></MudTextField>
                         </MudCardHeader>
                         <MudCardContent>
-                            <Streckenbuch.Client.Components.Maps.LocationPicker ZoomLevel="17" @ref="locationPicker"></Streckenbuch.Client.Components.Maps.LocationPicker>
+                            <Streckenbuch.Client.Components.Maps.LocationPicker ZoomLevel="17"
+                                                                                @ref="locationPicker"></Streckenbuch.Client.Components.Maps.LocationPicker>
                         </MudCardContent>
                     </MudCard>
                 </MudCardContent>
                 <MudCardActions>
-                    <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary">Create</MudButton>
-                    <MudButton ButtonType="ButtonType.Button" Variant="Variant.Filled" Color="Color.Secondary" OnClick="Cancel">Cancel</MudButton>
+                    <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary">Create
+                    </MudButton>
+                    <MudButton ButtonType="ButtonType.Button" Variant="Variant.Filled" Color="Color.Secondary"
+                               OnClick="Cancel">Cancel
+                    </MudButton>
                 </MudCardActions>
             </MudCard>
         </MudItem>
@@ -65,6 +68,7 @@
 
 
 @code {
+
     [CascadingParameter]
     private MudDialogInstance MudDialog { get; set; } = null!;
 
@@ -90,7 +94,7 @@
         public string? Name { get; set; } = null!;
     }
 
-    protected override async Task OnInitializedAsync()
+    protected async override Task OnInitializedAsync()
     {
         betriebspunkte = (await betriebspunktService.ListAllBetriebspunkteAsync(new Empty())).Betriebspunkte.ToList();
 
@@ -106,6 +110,7 @@
         {
             return;
         }
+
         locationPicker.OnAfterInit += OnAfterMapInit;
     }
 
@@ -137,17 +142,16 @@
         var markerPosition = await locationPicker.GetCenter();
 
         await signalService.CreateSignalAsync(new CreateSignalRequest()
+        {
+            BetriebspunktId = model.Betriebspunkt!.Id,
+            Name = model.Name,
+            SignalSeite = (int)model.Seite,
+            SignalTyp = (int)model.Typ,
+            Location = new Shared.Types.LocationProto()
             {
-                BetriebspunktId = model.Betriebspunkt!.Id,
-                Name = model.Name,
-                SignalSeite = (int)model.Seite,
-                SignalTyp = (int)model.Typ,
-                Location = new Shared.Types.LocationProto()
-                {
-                    Longitude = markerPosition.Lng,
-                    Latitude = markerPosition.Lat
-                }
-            });
+                Longitude = markerPosition.Lng, Latitude = markerPosition.Lat
+            }
+        });
 
         MudDialog.Close();
     }
@@ -167,4 +171,5 @@
 
         return betriebspunkte.Where(x => x.Name.ToLowerInvariant().Contains(value.ToLowerInvariant(), StringComparison.InvariantCultureIgnoreCase));
     }
+
 }

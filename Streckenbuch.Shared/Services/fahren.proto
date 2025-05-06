@@ -68,5 +68,5 @@ message FahrenEntry {
 	optional string name = 4;
 	optional string kommentar = 5;
 	optional int32 signalTyp = 6;
-	optional int32 signalSeite = 7;
+	optional int32 displaySeite = 7;
 }

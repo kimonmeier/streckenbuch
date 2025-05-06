@@ -62,7 +62,7 @@ else
     private List<StreckeZuordnungSignal> zugeordneteStrecke = new List<StreckeZuordnungSignal>();
     private List<SignalZuordnung> zuordnungen = new List<SignalZuordnung>();
 
-    protected override async Task OnInitializedAsync()
+    protected async override Task OnInitializedAsync()
     {
         alleStrecken = (await streckenService.ListStreckenZuordnungByBetriebspunktAsync(new ListZuordnungByBetriebspunktRequest()
             {
@@ -91,7 +91,7 @@ else
 
     private async Task RemoveZuordnung((int oldIndex, int newIndex) indices)
     {
-        if (this.isLoading)
+        if (isLoading)
         {
             return;
         }
@@ -108,7 +108,7 @@ else
 
     private async Task RemoveStrecke((int oldIndex, int newIndex) indices)
     {
-        if (this.isLoading)
+        if (isLoading)
         {
             return;
         }
@@ -128,8 +128,6 @@ else
             {
                 SignalId = SignalId,
                 StreckeBetriebspunktZuordnungId = strecke.StreckenZuordnungId,
-                AbDatum = zuordnungDetails.AbDatum,
-                BisDatum = zuordnungDetails.BisDatum,
                 IsSpecialCase = zuordnungDetails.IsSpecialCase ?? false,
             };
         if (!string.IsNullOrEmpty(zuordnungDetails.SpecialCase))

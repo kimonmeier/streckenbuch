@@ -99,12 +99,12 @@ public class FahrenService : Streckenbuch.Shared.Services.FahrenService.FahrenSe
     {
         var entries = _fahrenRepository.ListEntriesByStrecke(strecke.StreckenKonfigurationId);
 
-        while (!entries.Where(x => x.Betriebspunkt != null).First().Betriebspunkt!.Id.Equals(strecke.VonBetriebspunktId))
+        while (!entries.First(x => x.Betriebspunkt != null).Betriebspunkt!.Id.Equals(strecke.VonBetriebspunktId))
         {
             entries.RemoveAt(0);
         }
 
-        while (!entries.Where(x => x.Betriebspunkt != null).Last().Betriebspunkt!.Id.Equals(strecke.BisBetriebspunktId))
+        while (!entries.Last(x => x.Betriebspunkt != null).Betriebspunkt!.Id.Equals(strecke.BisBetriebspunktId))
         {
             entries.RemoveAt(entries.Count - 1);
         }

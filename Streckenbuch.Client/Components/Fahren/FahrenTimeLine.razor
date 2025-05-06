@@ -75,13 +75,13 @@ else
     private void moveDown(Action executeAfterUpdate)
     {
         // Add Transition before
-        this._hasToMoveDown = true;
+        _hasToMoveDown = true;
 
         Task.Run(async () =>
         {
             await Task.Delay(1100);
 
-            this._hasToMoveDown = false;
+            _hasToMoveDown = false;
             executeAfterUpdate();
 
             StateHasChanged();

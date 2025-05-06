@@ -6,9 +6,9 @@ public class SignalStreckenZuordnungSortingSignal : IEntity
 {
     public Guid Id { get; set; }
     
-    public Guid SignalStreckenZuordnungId { get; set; }
+    public Guid SignalId { get; set; }
     
-    public SignalStreckenZuordnung SignalStreckenZuordnung { get; set; }
+    public Signal Signal { get; set; }
     
     public Guid SignalStreckenZuordnungSortingBetriebspunktId { get; set; }
     

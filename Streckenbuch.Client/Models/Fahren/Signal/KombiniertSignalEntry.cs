@@ -9,7 +9,7 @@ public class KombiniertSignalEntry : ISignalEntry
 
     public SignalTyp SignalTyp => SignalTyp.Kombiniert;
 
-    public SignalSeite SignalSeite { get; set; }
+    public DisplaySeite SignalSeite { get; set; }
 
     public string? Kommentar { get; set; }
 

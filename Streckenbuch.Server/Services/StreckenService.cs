@@ -30,9 +30,9 @@ public class StreckenService : Streckenbuch.Shared.Services.StreckenService.Stre
         _betriebspunktStreckenZuordnungRepository = betriebspunktStreckenZuordnungRepository;
     }
 
-    public override async Task<Shared.Services.ListStreckenAnswer> ListAllStrecken(Empty request, ServerCallContext context)
+    public override async Task<ListStreckenAnswer> ListAllStrecken(Empty request, ServerCallContext context)
     {
-        var answer = new Shared.Services.ListStreckenAnswer();
+        var answer = new ListStreckenAnswer();
         var list = await _streckenRepository.ListAllAsync();
         answer.Strecken.Add(_mapper.Map<List<StreckenProto>>(list));
 

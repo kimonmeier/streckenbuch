@@ -19,9 +19,9 @@ public class SignalStreckenZuordnungSortingBetriebspunktConfiguration : IEntityT
             .ValueGeneratedOnAdd();
         
         builder
-            .HasOne(x => x.BetriebspunktStreckenZuordnung)
+            .HasOne(x => x.Betriebspunkt)
             .WithMany()
-            .HasForeignKey(x => x.BetriebspunktStreckenZuordnungId);
+            .HasForeignKey(x => x.BetriebspunktId);
 
         builder
             .HasOne(x => x.SignalStreckenZuordnungSortingStrecke)

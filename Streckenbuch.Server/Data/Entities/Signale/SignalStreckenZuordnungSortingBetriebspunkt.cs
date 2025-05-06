@@ -11,9 +11,9 @@ public class SignalStreckenZuordnungSortingBetriebspunkt : IEntity
     
     public SignalStreckenZuordnungSortingStrecke SignalStreckenZuordnungSortingStrecke { get; set; }
     
-    public Guid BetriebspunktStreckenZuordnungId { get; set; }
+    public Guid BetriebspunktId { get; set; }
     
-    public BetriebspunktStreckenZuordnung BetriebspunktStreckenZuordnung { get; set; }
+    public Betriebspunkt Betriebspunkt { get; set; }
     
     public List<SignalStreckenZuordnungSortingSignal> Signale { get; set; }
 }

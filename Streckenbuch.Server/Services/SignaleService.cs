@@ -3,6 +3,7 @@ using Google.Protobuf.WellKnownTypes;
 using Grpc.Core;
 using Microsoft.AspNetCore.Identity;
 using Streckenbuch.Server.Data.Entities;
+using Streckenbuch.Server.Data.Entities.Signale;
 using Streckenbuch.Server.Data.Repositories;
 using Streckenbuch.Server.Helper;
 using Streckenbuch.Shared.Data;
@@ -15,17 +16,26 @@ public class SignaleService : Streckenbuch.Shared.Services.SignaleService.Signal
 {
     private readonly SignalRepository _signalRepository;
     private readonly SignalStreckenZuordnungRepository _signalStreckenZuordnungRepository;
+    private readonly SignalStreckenZuordnungSortingStreckeRepository _signalStreckenZuordnungSortingStreckeRepository;
+    private readonly SignalStreckenZuordnungSortingBetriebspunktRepository _signalStreckenZuordnungSortingBetriebspunktRepository;
+    private readonly SignalStreckenZuordnungSortingSignalRepository _signalStreckenZuordnungSortingSignalRepository;
     private readonly DbTransactionFactory _dbTransactionFactory;
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly IMapper _mapper;
 
-    public SignaleService(DbTransactionFactory dbTransactionFactory, UserManager<ApplicationUser> userManager, IMapper mapper, SignalRepository signalRepository, SignalStreckenZuordnungRepository signalStreckenZuordnungRepository)
+    public SignaleService(DbTransactionFactory dbTransactionFactory, UserManager<ApplicationUser> userManager, IMapper mapper, SignalRepository signalRepository,
+        SignalStreckenZuordnungRepository signalStreckenZuordnungRepository, SignalStreckenZuordnungSortingStreckeRepository signalStreckenZuordnungSortingStreckeRepository,
+        SignalStreckenZuordnungSortingBetriebspunktRepository signalStreckenZuordnungSortingBetriebspunktRepository,
+        SignalStreckenZuordnungSortingSignalRepository signalStreckenZuordnungSortingSignalRepository)
     {
         _dbTransactionFactory = dbTransactionFactory;
         _userManager = userManager;
         _mapper = mapper;
         _signalRepository = signalRepository;
         _signalStreckenZuordnungRepository = signalStreckenZuordnungRepository;
+        _signalStreckenZuordnungSortingStreckeRepository = signalStreckenZuordnungSortingStreckeRepository;
+        _signalStreckenZuordnungSortingBetriebspunktRepository = signalStreckenZuordnungSortingBetriebspunktRepository;
+        _signalStreckenZuordnungSortingSignalRepository = signalStreckenZuordnungSortingSignalRepository;
     }
 
     public override async Task<ListSignaleAnswer> ListAllSignale(Empty request, ServerCallContext context)
@@ -33,6 +43,7 @@ public class SignaleService : Streckenbuch.Shared.Services.SignaleService.Signal
         var answer = new ListSignaleAnswer();
         var list = await _signalRepository.ListAllAsync();
         answer.Signale.Add(_mapper.Map<List<SignalProto>>(list));
+
         return answer;
     }
 
@@ -41,6 +52,7 @@ public class SignaleService : Streckenbuch.Shared.Services.SignaleService.Signal
         var answer = new ListSignaleAnswer();
         var list = await _signalRepository.ListByBetriebspunktAsync(request.BetriebspunktId);
         answer.Signale.Add(_mapper.Map<List<SignalProto>>(list));
+
         return answer;
     }
 
@@ -59,7 +71,7 @@ public class SignaleService : Streckenbuch.Shared.Services.SignaleService.Signal
                 Typ = (SignalTyp)request.SignalTyp,
             });
             await dbTransaction.Commit(context.CancellationToken);
-        };
+        }
 
 
         return new Empty();
@@ -73,7 +85,7 @@ public class SignaleService : Streckenbuch.Shared.Services.SignaleService.Signal
         {
             await _signalRepository.RemoveAsync(request.SignalId);
             await dbTransaction.Commit(context.CancellationToken);
-        };
+        }
 
         return new Empty();
     }
@@ -88,13 +100,11 @@ public class SignaleService : Streckenbuch.Shared.Services.SignaleService.Signal
             {
                 SignalId = request.SignalId,
                 StreckeId = request.StreckeBetriebspunktZuordnungId,
-                GueltigAb = ((DateOnly?)request.AbDatum!).Value,
-                GueltigBis = request.BisDatum,
                 NonStandard = request.HasIsSpecialCase && request.IsSpecialCase,
                 NonStandardKommentar = request.HasSpecialCase ? request.SpecialCase : null,
             });
             await dbTransaction.Commit(context.CancellationToken);
-        };
+        }
 
         return new Empty();
     }
@@ -108,7 +118,7 @@ public class SignaleService : Streckenbuch.Shared.Services.SignaleService.Signal
             var zuordnung = await _signalStreckenZuordnungRepository.FindZuordnungBySignalAndStrecke(request.SignalId, request.StreckeBetriebspunktZuordnungId);
             await _signalStreckenZuordnungRepository.RemoveAsync(zuordnung);
             await dbTransaction.Commit(context.CancellationToken);
-        };
+        }
 
         return new Empty();
     }
@@ -120,5 +130,128 @@ public class SignaleService : Streckenbuch.Shared.Services.SignaleService.Signal
         answer.Zuordnungen.Add(_mapper.Map<List<SignalZuordnung>>(list));
 
         return answer;
+    }
+
+    public override async Task<ListSignalSortingResponse> ListSignalSorting(ListSignalSortingRequest request, ServerCallContext context)
+    {
+        ListSignalSortingResponse answer = new ListSignalSortingResponse();
+        List<SignalStreckenZuordnungSortingStrecke> sortingStrecken =
+            await _signalStreckenZuordnungSortingStreckeRepository.GetByStreckeKonfigurationIdWithChild(request.StreckeKonfigurationId);
+        answer.Strecken.Add(_mapper.Map<List<SignalSortingStrecke>>(sortingStrecken));
+
+        return answer;
+    }
+
+    public override async Task<Empty> ChangeSignalSorting(ChangeSignalSortingRequest request, ServerCallContext context)
+    {
+        await context.GetAuthenticatedUser(_userManager);
+
+        using (var dbTransaction = _dbTransactionFactory.CreateTransaction())
+        {
+            var existingStrecke = await _signalStreckenZuordnungSortingStreckeRepository.GetWithChild(request.Strecke.SortingId);
+
+            if (existingStrecke is null)
+            {
+                throw new Exception();
+            }
+
+            // Delete old Entries
+            // NOT OPTIMAL, BUT MOST TIME EFFICIENT. THIS CAUSES A LOT OF WRITE OPERATIONS
+            foreach (var betriebspunkt in existingStrecke.Betriebspunkte)
+            {
+                foreach (var signal in betriebspunkt.Signale)
+                {
+                    await _signalStreckenZuordnungSortingSignalRepository.RemoveAsync(signal.Id);
+                }
+
+                await _signalStreckenZuordnungSortingBetriebspunktRepository.RemoveAsync(betriebspunkt.Id);
+            }
+
+            // Add new Entries
+            // NOT OPTIMAL, BUT MOST TIME EFFICIENT. THIS CAUSES A LOT OF WRITE OPERATIONS
+            foreach (var betriebspunkt in request.Strecke.Betriebspunkte)
+            {
+                var newBetriebspunkt = new SignalStreckenZuordnungSortingBetriebspunkt
+                {
+                    BetriebspunktId = betriebspunkt.BetriebspunktId, SignalStreckenZuordnungSortingStreckeId = existingStrecke.Id,
+                };
+                await _signalStreckenZuordnungSortingBetriebspunktRepository.AddAsync(newBetriebspunkt);
+
+                foreach (var signal in betriebspunkt.Signale)
+                {
+                    await _signalStreckenZuordnungSortingSignalRepository.AddAsync(new SignalStreckenZuordnungSortingSignal
+                    {
+                        SignalId = signal.SignalId, SignalStreckenZuordnungSortingBetriebspunkt = newBetriebspunkt, SortingOrder = (short)signal.SortingNumber
+                    });
+                }
+            }
+
+            await dbTransaction.Commit(context.CancellationToken);
+        }
+
+        return new Empty();
+    }
+
+    public override async Task<Empty> CreateSignalSorting(CreateSignalSortingRequest request, ServerCallContext context)
+    {
+        await context.GetAuthenticatedUser(_userManager);
+
+        using (Transaction dbTransaction = _dbTransactionFactory.CreateTransaction())
+        {
+            var list = await _signalStreckenZuordnungSortingStreckeRepository.ListByStreckeKonfigurationId(request.StreckenKonfigurationId);
+
+            if (request.BisDatum is null)
+            {
+                var entry = list.SingleOrDefault(x => x.GueltigVon <= request.VonDatum && x.GueltigBis is null);
+
+                if (entry is not null)
+                {
+                    entry.GueltigBis = ((DateOnly)request.VonDatum).AddDays(-1);
+
+                    await _signalStreckenZuordnungSortingStreckeRepository.UpdateAsync(entry);
+                }
+            }
+            else
+            {
+                var firstEntry = list.SingleOrDefault(x => x.GueltigVon <= request.BisDatum && x.GueltigBis >= request.BisDatum);
+                if (firstEntry is not null)
+                {
+                    firstEntry.GueltigBis = ((DateOnly)request.BisDatum).AddDays(-1);
+                    await _signalStreckenZuordnungSortingStreckeRepository.UpdateAsync(firstEntry);
+                }
+
+                var lastEntry = list.FirstOrDefault(x => x.GueltigBis >= request.VonDatum);
+                if (lastEntry is not null)
+                {
+                    lastEntry.GueltigVon = ((DateOnly)request.BisDatum).AddDays(1);
+                    await _signalStreckenZuordnungSortingStreckeRepository.UpdateAsync(lastEntry);
+                }
+            }
+
+            await _signalStreckenZuordnungSortingStreckeRepository.AddAsync(new SignalStreckenZuordnungSortingStrecke()
+            {
+                GueltigVon = (DateOnly?)request.VonDatum ?? DateOnly.MinValue, GueltigBis = ((DateOnly?)request.BisDatum), StreckenKonfigurationId = request.StreckenKonfigurationId
+            });
+
+
+            await dbTransaction.Commit(context.CancellationToken);
+        }
+
+
+        return new Empty();
+    }
+
+    public override async Task<Empty> DeleteSignalSorting(DeleteSignalSortingRequest request, ServerCallContext context)
+    {
+        await context.GetAuthenticatedUser(_userManager);
+
+        using (var dbTransaction = _dbTransactionFactory.CreateTransaction())
+        {
+            await _signalStreckenZuordnungSortingStreckeRepository.RemoveAsync(request.Id);
+            await dbTransaction.Commit(context.CancellationToken);
+        }
+
+
+        return new Empty();
     }
 }

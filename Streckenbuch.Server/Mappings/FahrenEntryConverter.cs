@@ -15,7 +15,10 @@ public class FahrenEntryConverter : ITypeConverter<FahrenTransferEntry, FahrenEn
 
         if (source.SignalZuordnung is not null)
         {
-            return context.Mapper.Map<FahrenEntry>(source.SignalZuordnung);
+            FahrenEntry fahrenEntry = context.Mapper.Map<FahrenEntry>(source.SignalZuordnung);
+            fahrenEntry.DisplaySeite = (int)(source.DisplaySeite ?? throw new InvalidDataException());
+
+            return fahrenEntry;
         }
 
         throw new NotImplementedException();
