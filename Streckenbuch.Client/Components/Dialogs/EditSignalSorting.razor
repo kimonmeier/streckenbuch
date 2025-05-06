@@ -12,7 +12,7 @@ else
 {
     <MudItem>
         <MudTabs>
-            @foreach (var strecke in Strecken)
+            @foreach (var strecke in Strecken.OrderBy(x => (DateOnly)x.VonDatum))
             {
                 <MudTabPanel Text="@GetTabText(strecke)">
                     <MudExpansionPanels MultiExpansion="true">
