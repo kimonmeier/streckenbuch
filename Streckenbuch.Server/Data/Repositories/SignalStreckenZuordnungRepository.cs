@@ -20,4 +20,9 @@ public class SignalStreckenZuordnungRepository : GenericRepository<SignalStrecke
     {
         return Entities.Where(x => x.SignalId == signalId).ToListAsync();
     }
+
+    public Task<List<SignalStreckenZuordnung>> ListByBetriebspunktAndStrecke(Guid betriebspunktId, Guid streckenkonfigurationId)
+    {
+        return Entities.Include(x => x.Signal).Where(x => x.Strecke.BetriebspunktId == betriebspunktId && x.Strecke.StreckenKonfigurationId == streckenkonfigurationId).ToListAsync();
+    }
 }
