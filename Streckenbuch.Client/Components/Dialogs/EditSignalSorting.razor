@@ -270,7 +270,9 @@ else
                 }
 
                 signaleLoading[betriebspunktId] = false;
-            });
+            })
+            .ContinueWith(x => InvokeAsync(StateHasChanged))
+            .ConfigureAwait(false);
 
     }
 
