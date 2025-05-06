@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Streckenbuch.Server.Configuration;
+using Streckenbuch.Server.Data.Entities;
 using Streckenbuch.Server.Data.Repositories;
 using Streckenbuch.Server.Mappings;
 using Streckenbuch.Shared.Mapping;
@@ -14,6 +15,7 @@ public static class ConfigureServices
     {
         services.AddSharedAutoMapper(typeof(Program).Assembly);
         services.AddTransient<FahrenEntryConverter>();
+        services.AddTransient(typeof(RepeatedFieldConverter<>));
     }
 
     public static void AddCustomServices(this IServiceCollection services)
@@ -30,6 +32,9 @@ public static class ConfigureServices
         services.AddTransient<BetriebspunktStreckenZuordnungRepository>();
         services.AddTransient<SignalRepository>();
         services.AddTransient<SignalStreckenZuordnungRepository>();
+        services.AddTransient<SignalStreckenZuordnungSortingStreckeRepository>();
+        services.AddTransient<SignalStreckenZuordnungSortingBetriebspunktRepository>();
+        services.AddTransient<SignalStreckenZuordnungSortingSignalRepository>();
         services.AddTransient<FahrenRepository>();
         services.AddTransient<LinienRepository>();
         services.AddTransient<LinienKonfigurationRepository>();

@@ -8,24 +8,24 @@
 
         @switch (Entry.SignalSeite)
         {
-            case SignalSeite.Einfahrt:
+            case DisplaySeite.Einfahrt:
                 <MudText Color="Color">
                     Einfahrt
                 </MudText>
                 break;
-            case SignalSeite.Abschnitt_Einfahrt:
+            case DisplaySeite.Einfahrt_Abschnitt:
 
                 <MudText Color="Color">
                     Abschnitt Einfahrt
                 </MudText>
                 break;
-            case SignalSeite.Abschnitt_Ausfahrt:
+            case DisplaySeite.Ausfahrt_Abschnitt:
 
                 <MudText Color="Color">
                     Abschnitt Ausfahrt
                 </MudText>
                 break;
-            case SignalSeite.Ausfahrt:
+            case DisplaySeite.Ausfahrt:
 
                 <MudText Color="Color">
                     Ausfahrtsignal
@@ -47,7 +47,7 @@
     [Parameter]
     public KombiniertSignalEntry Entry { get; set; } = null!;
 
-    public MudBlazor.Color Color
+    public Color Color
     {
         get
         {
@@ -58,11 +58,11 @@
 
             switch (Entry.SignalSeite)
             {
-                case SignalSeite.Einfahrt:
-                case SignalSeite.Abschnitt_Einfahrt:
+                case DisplaySeite.Einfahrt:
+                case DisplaySeite.Einfahrt_Abschnitt:
                     return Color.Success;
-                case SignalSeite.Abschnitt_Ausfahrt:
-                case SignalSeite.Ausfahrt:
+                case DisplaySeite.Ausfahrt_Abschnitt:
+                case DisplaySeite.Ausfahrt:
                     return Color.Error;
             }
 

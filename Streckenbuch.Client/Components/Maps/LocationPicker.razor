@@ -5,9 +5,9 @@
 
 <GoogleMap @ref="@_map" OnAfterInit="OnAfterMapInit" Options="@_mapOptions" Id="map"></GoogleMap>
 @code {
-    private GoogleMap _map = default!;
-    private MapOptions _mapOptions = default!;
-    private JsObjectRef placeJsObject = default!;
+    private GoogleMap _map = null!;
+    private MapOptions _mapOptions = null!;
+    private JsObjectRef _placeJsObject = null!;
 
     public event EventHandler? OnAfterInit;
 
@@ -19,7 +19,7 @@
         var module = await JS.InvokeAsync<IJSObjectReference>("import", "./Components/Maps/LocationPicker.razor.js");
         await module.InvokeVoidAsync("addCenterMaker");
 
-        this.placeJsObject = await JsObjectRef.CreateAsync(this._map.JsRuntime, "google.maps.places.PlacesService", _map.InteropObject);
+        _placeJsObject = await JsObjectRef.CreateAsync(_map.JsRuntime, "google.maps.places.PlacesService", _map.InteropObject);
 
         OnAfterInit?.Invoke(this, EventArgs.Empty);
     }
@@ -45,7 +45,7 @@
                 Fields = ["name", "geometry"],
                 Query = search,
             };
-        var response = await this.placeJsObject.InvokeAsync<PlaceResponse>("findPlaceFromQuery", obj);
+        var response = await _placeJsObject.InvokeAsync<PlaceResponse>("findPlaceFromQuery", obj);
 
         if (response?.Results?.FirstOrDefault()?.Geometry?.Location is null)
         {
@@ -54,7 +54,7 @@
 
         await _map.InteropObject.SetCenter(response.Results!.First()!.Geometry!.Location!);
 
-        this.StateHasChanged();
+        StateHasChanged();
     }
 
     public async Task SetCenter(double latitude, double longitude)

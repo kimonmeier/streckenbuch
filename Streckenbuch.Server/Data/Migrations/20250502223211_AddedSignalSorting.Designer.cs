@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Streckenbuch.Server.Data;
 
@@ -10,9 +11,11 @@ using Streckenbuch.Server.Data;
 namespace Streckenbuch.Server.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250502223211_AddedSignalSorting")]
+    partial class AddedSignalSorting
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "8.0.8");
@@ -352,6 +355,12 @@ namespace Streckenbuch.Server.Data.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("TEXT");
 
+                    b.Property<DateOnly>("GueltigAb")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateOnly?>("GueltigBis")
+                        .HasColumnType("TEXT");
+
                     b.Property<bool>("NonStandard")
                         .HasColumnType("INTEGER");
 
@@ -379,7 +388,7 @@ namespace Streckenbuch.Server.Data.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("TEXT");
 
-                    b.Property<Guid>("BetriebspunktId")
+                    b.Property<Guid>("BetriebspunktStreckenZuordnungId")
                         .HasColumnType("TEXT");
 
                     b.Property<Guid>("SignalStreckenZuordnungSortingStreckeId")
@@ -387,7 +396,7 @@ namespace Streckenbuch.Server.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("BetriebspunktId");
+                    b.HasIndex("BetriebspunktStreckenZuordnungId");
 
                     b.HasIndex("SignalStreckenZuordnungSortingStreckeId");
 
@@ -400,7 +409,7 @@ namespace Streckenbuch.Server.Data.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("TEXT");
 
-                    b.Property<Guid>("SignalId")
+                    b.Property<Guid>("SignalStreckenZuordnungId")
                         .HasColumnType("TEXT");
 
                     b.Property<Guid>("SignalStreckenZuordnungSortingBetriebspunktId")
@@ -411,7 +420,7 @@ namespace Streckenbuch.Server.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("SignalId");
+                    b.HasIndex("SignalStreckenZuordnungId");
 
                     b.HasIndex("SignalStreckenZuordnungSortingBetriebspunktId");
 
@@ -692,9 +701,9 @@ namespace Streckenbuch.Server.Data.Migrations
 
             modelBuilder.Entity("Streckenbuch.Server.Data.Entities.Signale.SignalStreckenZuordnungSortingBetriebspunkt", b =>
                 {
-                    b.HasOne("Streckenbuch.Server.Data.Entities.Betriebspunkte.Betriebspunkt", "Betriebspunkt")
+                    b.HasOne("Streckenbuch.Server.Data.Entities.Betriebspunkte.BetriebspunktStreckenZuordnung", "BetriebspunktStreckenZuordnung")
                         .WithMany()
-                        .HasForeignKey("BetriebspunktId")
+                        .HasForeignKey("BetriebspunktStreckenZuordnungId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -704,16 +713,16 @@ namespace Streckenbuch.Server.Data.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("Betriebspunkt");
+                    b.Navigation("BetriebspunktStreckenZuordnung");
 
                     b.Navigation("SignalStreckenZuordnungSortingStrecke");
                 });
 
             modelBuilder.Entity("Streckenbuch.Server.Data.Entities.Signale.SignalStreckenZuordnungSortingSignal", b =>
                 {
-                    b.HasOne("Streckenbuch.Server.Data.Entities.Signale.Signal", "Signal")
+                    b.HasOne("Streckenbuch.Server.Data.Entities.Signale.SignalStreckenZuordnung", "SignalStreckenZuordnung")
                         .WithMany()
-                        .HasForeignKey("SignalId")
+                        .HasForeignKey("SignalStreckenZuordnungId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -723,7 +732,7 @@ namespace Streckenbuch.Server.Data.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("Signal");
+                    b.Navigation("SignalStreckenZuordnung");
 
                     b.Navigation("SignalStreckenZuordnungSortingBetriebspunkt");
                 });

@@ -2,8 +2,6 @@
 
 public enum SignalSeite
 {
-    Abschnitt_Einfahrt,
     Einfahrt,
-    Abschnitt_Ausfahrt,
     Ausfahrt
 }

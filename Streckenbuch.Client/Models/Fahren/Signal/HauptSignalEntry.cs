@@ -9,7 +9,7 @@ public class HauptSignalEntry : ISignalEntry
 
     public SignalTyp SignalTyp => SignalTyp.Hauptsignal;
 
-    public SignalSeite SignalSeite { get; set; }
+    public DisplaySeite SignalSeite { get; set; }
 
     public string? Kommentar { get; set; }
 

@@ -2,7 +2,7 @@
 
 public partial class DateOnlyProto
 {
-    public static implicit operator DateOnly?(DateOnlyProto dateOnlyProto)
+    public static implicit operator DateOnly?(DateOnlyProto? dateOnlyProto)
     {
         if (dateOnlyProto == null)
         {

@@ -17,10 +17,6 @@ public class SignalStreckenZuordnung : IEntity
 
     public Signal Signal { get; set; }
 
-    public DateOnly GueltigAb { get; set; }
-
-    public DateOnly? GueltigBis { get; set; }
-
     public bool NonStandard { get; set; }
 
     public string? NonStandardKommentar { get; set; }

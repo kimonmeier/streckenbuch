@@ -24,7 +24,7 @@ public class FahrenSignalMapping : IMap<FahrenEntry, ISignalEntry>, IMap<FahrenE
         mapping
             .ForMember(dest => dest.Location, opt => opt.MapFrom(src => src.Location))
             .ForMember(dest => dest.Kommentar, opt => opt.MapFrom(src => src.Kommentar))
-            .ForMember(dest => dest.SignalSeite, opt => opt.MapFrom(src => src.SignalSeite));
+            .ForMember(dest => dest.SignalSeite, opt => opt.MapFrom(src => src.DisplaySeite));
     }
 
     public void Mapping(IMappingExpression<FahrenEntry, KombiniertSignalEntry> mapping)
@@ -32,7 +32,7 @@ public class FahrenSignalMapping : IMap<FahrenEntry, ISignalEntry>, IMap<FahrenE
         mapping
             .ForMember(dest => dest.Location, opt => opt.MapFrom(src => src.Location))
             .ForMember(dest => dest.Kommentar, opt => opt.MapFrom(src => src.Kommentar))
-            .ForMember(dest => dest.SignalSeite, opt => opt.MapFrom(src => src.SignalSeite));
+            .ForMember(dest => dest.SignalSeite, opt => opt.MapFrom(src => src.DisplaySeite));
     }
 
     public void Mapping(IMappingExpression<FahrenEntry, VorsignalEntry> mapping)

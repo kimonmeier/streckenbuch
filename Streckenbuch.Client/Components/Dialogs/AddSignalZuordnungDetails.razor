@@ -3,8 +3,6 @@
     <MudItem>
         <MudCard>
             <MudCardContent>
-                <MudDatePicker Label="Gültig ab" @bind-Date="model.AbDatum" For="@(() => model.AbDatum)"></MudDatePicker>
-                <MudDatePicker Label="Gültig bis" @bind-Date="model.BisDatum" For="@(() => model.BisDatum)"></MudDatePicker>
                 <MudCheckBox Label="Spezielles Signal" @bind-Value="model.IsSpecialCase" For="@(() => model.IsSpecialCase)"></MudCheckBox>
                 @if (model.IsSpecialCase.HasValue && model.IsSpecialCase.Value)
                 {
@@ -37,35 +35,12 @@
 
     public class AddSignalZuordnungDetailsForm : IValidatableObject
     {
-        [Required]
-        [DataType(DataType.Date)]
-        public DateTime? AbDatum { get; set; } = DateTime.Today;
-
-        [DataType(DataType.Date)]
-        public DateTime? BisDatum { get; set; } = null;
-
         public bool? IsSpecialCase { get; set; }
 
         public string? SpecialCase { get; set; }
 
         public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
         {
-            if (AbDatum < DateTime.Today)
-            {
-                yield return new ValidationResult(
-                    "Das Signal kann frühstens heute gültig sein!",
-                    [nameof(AbDatum)]
-                );
-            }
-
-            if (BisDatum is not null && BisDatum > AbDatum)
-            {
-                yield return new ValidationResult(
-                    "Das Signal hat keinen gültigen Zeitraum",
-                    [nameof(BisDatum)]
-                );
-            }
-
             if (IsSpecialCase.HasValue && IsSpecialCase.Value && string.IsNullOrEmpty(SpecialCase))
             {
                 yield return new ValidationResult(
