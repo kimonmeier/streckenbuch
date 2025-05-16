@@ -39,7 +39,11 @@ public class LinienStreckenKonfigurationenConfiguration : IEntityTypeConfigurati
             .HasForeignKey(x => x.BisBetriebspunktId);
 
         builder
-            .HasIndex([nameof(LinienStreckenKonfigurationen.LinieId), nameof(LinienStreckenKonfigurationen.StreckenKonfigurationId)])
+            .HasIndex([nameof(LinienStreckenKonfigurationen.LinieId), nameof(LinienStreckenKonfigurationen.StreckenKonfigurationId), nameof(LinienStreckenKonfigurationen.VonBetriebspunktId)])
+            .IsUnique();
+        
+        builder
+            .HasIndex([nameof(LinienStreckenKonfigurationen.LinieId), nameof(LinienStreckenKonfigurationen.StreckenKonfigurationId), nameof(LinienStreckenKonfigurationen.BisBetriebspunktId)])
             .IsUnique();
     }
 }
