@@ -101,7 +101,9 @@ else
     private Dictionary<Guid, List<SignalProto>> Signale { get; set; } = new();
 
     private Dictionary<Guid, List<Entry>> ZugewieseneSignale { get; set; } = new();
-      
+    
+    private Dictionary<Guid, bool> SignaleLoading { get; set; } = new();
+
     private Dictionary<Guid, bool> SignaleLoadedOnce { get; set; } = new();
 
     private Dictionary<Guid, List<Entry>> OffeneSignale { get; set; }= new();
@@ -312,7 +314,7 @@ else
                     sortingStrecke.Betriebspunkte.Add(betriebspunktSignal);
                 }
 
-                if (!signaleLoadedOnce[betriebspunktSignalPair.Key])
+                if (!SignaleLoadedOnce[betriebspunktSignalPair.Key])
                 {
                     // Panel was never opened so no signals were every loaded. If the request was getting through every signal would be deleted!
                     continue;
