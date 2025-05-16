@@ -92,7 +92,7 @@ else
             return;
         }
 
-        bool moveEntries = fahrenPositionService.UpdatePosition(position);
+        fahrenPositionService.UpdatePosition(position).ConfigureAwait(false);
     }
 
     public void Dispose()
