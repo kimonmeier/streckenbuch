@@ -1,4 +1,4 @@
-﻿@using Google.Protobuf.Collections
+@using Google.Protobuf.Collections
 @using System.Text
 @inject SignaleService.SignaleServiceClient SignaleService
 @inject BetriebspunkteService.BetriebspunkteServiceClient BetriebspunkteService
@@ -98,11 +98,13 @@ else
 
     private List<BetriebspunktProto> Betriebspunkte { get; set; } = new();
 
-    private Dictionary<Guid, bool> SignaleLoading { get; set; } = new();
-
-    private Dictionary<Guid, List<SignalProto>> Signale { get; set; }= new();
+    private Dictionary<Guid, List<SignalProto>> Signale { get; set; } = new();
 
     private Dictionary<Guid, List<Entry>> ZugewieseneSignale { get; set; } = new();
+    
+    private Dictionary<Guid, bool> SignaleLoading { get; set; } = new();
+
+    private Dictionary<Guid, bool> SignaleLoadedOnce { get; set; } = new();
 
     private Dictionary<Guid, List<Entry>> OffeneSignale { get; set; }= new();
 
@@ -119,11 +121,13 @@ else
         Signale = new Dictionary<Guid, List<SignalProto>>();
         SignaleLoading = new Dictionary<Guid, bool>();
         ZugewieseneSignale = new Dictionary<Guid, List<Entry>>();
+        SignaleLoadedOnce = new Dictionary<Guid, bool>();
         OffeneSignale = new Dictionary<Guid, List<Entry>>();
 
         foreach (var betriebspunkt in Betriebspunkte)
         {
             SignaleLoading.Add(betriebspunkt.Id, false);
+            SignaleLoadedOnce.Add(betriebspunkt.Id, false);
             Signale.Add(betriebspunkt.Id, new List<SignalProto>());
             ZugewieseneSignale.Add(betriebspunkt.Id, new List<Entry>());
             OffeneSignale.Add(betriebspunkt.Id, new List<Entry>());
@@ -235,6 +239,7 @@ else
         }
 
         SignaleLoading[betriebspunktId] = true;
+        SignaleLoadedOnce[betriebspunktId] = true;
 
         SignaleService.ListSignaleByBetriebspunktAndStreckenkonfigurationAsync(new ListSignaleByBetriebspunktAndStreckenkonfigurationRequest()
             {
@@ -308,7 +313,12 @@ else
                     
                     sortingStrecke.Betriebspunkte.Add(betriebspunktSignal);
                 }
-                
+
+                if (!SignaleLoadedOnce[betriebspunktSignalPair.Key])
+                {
+                    // Panel was never opened so no signals were every loaded. If the request was getting through every signal would be deleted!
+                    continue;
+                }
                 betriebspunktSignal.Signale.Clear();
 
                 foreach (Entry signalEntry in betriebspunktSignalPair.Value)

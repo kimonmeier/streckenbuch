@@ -66,10 +66,10 @@ public class FahrenService : Streckenbuch.Shared.Services.FahrenService.FahrenSe
 
             var currentIndex = firstIndex + 1;
 
-            while (currentIndex < secondIndex)
+            while (currentIndex <= secondIndex)
             {
                 entries.RemoveAt(currentIndex);
-                currentIndex++;
+                secondIndex--;
             }
         }
     }
