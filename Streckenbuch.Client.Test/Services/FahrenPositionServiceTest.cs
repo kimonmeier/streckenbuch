@@ -47,6 +47,35 @@ public class FahrenPositionServiceTest
 
         mock.Verify(s => s.DoSomething(), Times.Never());
     }
+    
+    [Fact]
+    public async Task ShouldMoveOnePositionWithMultipleUpdatesInOneCycle()
+    {
+        Mock<TestInterface> mock = new Mock<TestInterface>();
+
+        FahrenPositionService positionService = new FahrenPositionService();
+        positionService.Initialize(TimeLineEntries, (action) =>
+        {
+            _ = Task.Run(async () =>
+            {
+                await Task.Delay(TimeSpan.FromSeconds(2.1));
+                mock.Object.DoSomething();
+                action();
+            }).ConfigureAwait(false);
+        });
+
+        mock.Verify(s => s.DoSomething(), Times.Never());
+
+        IEnumerable<GeolocationPosition> positions = Positions.Take(10);
+
+        foreach(GeolocationPosition pos in positions)
+        {
+            await Task.Delay(TimeSpan.FromSeconds(0.5));
+            positionService.UpdatePosition(pos);
+        }
+
+        mock.Verify(s => s.DoSomething(), Times.Exactly(2));
+    }
 
     [Fact]
     public void ShouldMoveOnePosition()
