@@ -6,11 +6,7 @@
 @inject FahrenPositionService fahrenPositionService
 
 
-@if (_displayedEntries is null)
-{
-    <MudAlert Severity="Severity.Info">Bitte einen Fahrplan laden</MudAlert>
-}
-else if (!_displayedEntries.Any())
+@if (!_displayedEntries.Any())
 {
     <MudAlert Severity="Severity.Warning">Sie sind am Ziel angekommen, bitte einen neuen Fahrplan laden!</MudAlert>
 }
@@ -23,7 +19,7 @@ else
             @foreach (var entry in _displayedEntries)
             {
                 <div class="h-[100px] w-full @(_hasToMoveDown ? "slide-bottom" : string.Empty)">
-                    <FahrenTimeLineEntry OnClickAction="onEntryClick" Entry="entry"/>
+                    <FahrenTimeLineEntry OnClickAction="OnEntryClick" Entry="entry"/>
                 </div>
             }
         </MudTimeline>
@@ -37,15 +33,11 @@ else
 
     private List<IBaseEntry> _displayedEntries = new();
     private bool _hasToMoveDown = false;
-    private bool _isUpdating = false;
     private double? _watchTaskId;
 
-    protected override async Task OnInitializedAsync()
+    protected async override Task OnInitializedAsync()
     {
-        _watchTaskId = await geolocationService.WatchPositionAsync((position) =>
-            {
-                updatePosition(position);
-            },
+        _watchTaskId = await geolocationService.WatchPositionAsync(UpdatePosition,
             (error) =>
             {
                 Console.WriteLine("Error occured during watch position {0}", error.Message);
@@ -64,22 +56,22 @@ else
             return;
         }
 
-        _displayedEntries = fahrenPositionService.Initialize(FahrplanEntries, moveDown);
+        _displayedEntries = fahrenPositionService.Initialize(FahrplanEntries, MoveDown);
     }
 
-    private void onEntryClick(IBaseEntry entry)
+    private void OnEntryClick(IBaseEntry entry)
     {
         Console.WriteLine("TODO!");
     }
 
-    private void moveDown(Action executeAfterUpdate)
+    private void MoveDown(Action executeAfterUpdate)
     {
         // Add Transition before
         _hasToMoveDown = true;
 
         Task.Run(async () =>
         {
-            await Task.Delay(1100);
+            await Task.Delay(TimeSpan.FromSeconds(2.1));
 
             _hasToMoveDown = false;
             executeAfterUpdate();
@@ -88,14 +80,14 @@ else
         });
     }
 
-    private void updatePosition(GeolocationPosition position)
+    private void UpdatePosition(GeolocationPosition position)
     {
         if (FahrplanEntries is null || !FahrplanEntries.Any())
         {
             return;
         }
 
-        bool moveEntries = fahrenPositionService.UpdatePosition(position);
+        fahrenPositionService.UpdatePosition(position).ConfigureAwait(false);
     }
 
     public void Dispose()

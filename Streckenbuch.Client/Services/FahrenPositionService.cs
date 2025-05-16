@@ -7,71 +7,129 @@ namespace Streckenbuch.Client.Services;
 
 public class FahrenPositionService
 {
-    private List<IBaseEntry> currentEntries = default!;
-    private List<GeolocationPosition> lastPositions = default!;
-    private Action<Action> beforeUpdateAction = default!;
+    private const double AccuracyFactor = 1.50;
+
+    private List<IBaseEntry> _currentEntries = default!;
+    private List<GeolocationPosition> _lastPositions = default!;
+    private Action<Action> _beforeUpdateAction = default!;
+    private readonly SemaphoreSlim _semaphoreSlim = new SemaphoreSlim(1, 1);
 
 
     public List<IBaseEntry> Initialize(List<IBaseEntry> fahrplanEntries, Action<Action> beforeUpdateAction)
     {
-        this.beforeUpdateAction = beforeUpdateAction;
+        this._beforeUpdateAction = beforeUpdateAction;
         // Copy to get new Entries
-        currentEntries = fahrplanEntries.ToList();
-        lastPositions = new List<GeolocationPosition>();
+        _currentEntries = fahrplanEntries.ToList();
+        _lastPositions = new List<GeolocationPosition>();
 
-        return currentEntries;
+        return _currentEntries;
     }
 
     public void SkipPosition()
     {
-        beforeUpdateAction(() =>
+        _beforeUpdateAction(() =>
         {
-            currentEntries.RemoveAt(currentEntries.Count - 1);
-        }); ;
+            _currentEntries.RemoveAt(_currentEntries.Count - 1);
+            _semaphoreSlim.Release();
+        });
     }
 
-    public bool UpdatePosition(GeolocationPosition newPosition)
+    public async Task UpdatePosition(GeolocationPosition newPosition)
     {
-        if (currentEntries.Count == 0)
+        try
         {
-            return false;
-        }
-        
-        if (lastPositions.Count == 0)
-        {
-            lastPositions.Add(newPosition);
-            var closestBetriebspunkt = currentEntries.Where(x => x.Type == EntryType.Betriebspunkt).Select(x => new { Entry = x, Difference = x.Location.GetDistanzInMeters(newPosition) }).OrderBy(x => x.Difference).First().Entry;
+            await _semaphoreSlim.WaitAsync();
 
-            if (currentEntries.Last() == closestBetriebspunkt)
+            if (!HasValidEntries())
             {
-                return false;
+                _semaphoreSlim.Release();
+                return;
             }
-            var currentEntry = currentEntries.Last();
-            while (currentEntry != closestBetriebspunkt)
+
+            if (_lastPositions.Count == 0)
             {
-                currentEntries.Remove(currentEntry);
-                currentEntry = currentEntries.Last();
+                HandleFirstPosition(newPosition);
+
+                _semaphoreSlim.Release();
+                return;
             }
-            return true;
+
+            if (IsWithinAccuracyThreshold(newPosition))
+            {
+                _semaphoreSlim.Release();
+                return;
+            }
+
+            if (!HasPassedLastEntry(newPosition, _currentEntries.Last(), _lastPositions))
+            {
+                _lastPositions.Add(newPosition);
+                
+                _semaphoreSlim.Release();
+                return;
+            }
+
+            RemoveLastEntry();
+        }
+        catch (Exception _)
+        {
+            _semaphoreSlim.Release();
+
+            throw;
+        }
+    }
+
+    private bool HasValidEntries()
+    {
+        return _currentEntries.Count > 0;
+    }
+
+    private bool HandleFirstPosition(GeolocationPosition newPosition)
+    {
+        _lastPositions.Add(newPosition);
+        var closestBetriebspunkt = FindClosestBetriebspunkt(newPosition);
+
+        if (closestBetriebspunkt is null)
+        {
+            throw new Exception("No Betriebspunkt found");
         }
 
-
-        if (lastPositions.Last().GetDistanzInMeters(newPosition) <= newPosition.Coords.Accuracy * 1.50)
+        if (_currentEntries.Last() == closestBetriebspunkt)
         {
             return false;
         }
 
-        if (!HasPassedLastEntry(newPosition, currentEntries.Last(), lastPositions))
-        {
-            lastPositions.Add(newPosition);
-            return false;
-        }
+        RemoveEntriesUntilBetriebspunkt(closestBetriebspunkt);
 
-        beforeUpdateAction(() =>
-        {
-            currentEntries.RemoveAt(currentEntries.Count - 1);
-        });
         return true;
+    }
+
+    private IBaseEntry? FindClosestBetriebspunkt(GeolocationPosition position)
+    {
+        return _currentEntries
+            .Where(x => x.Type == EntryType.Betriebspunkt)
+            .MinBy(x => x.Location.GetDistanzInMeters(position));
+    }
+
+    private void RemoveEntriesUntilBetriebspunkt(IBaseEntry targetBetriebspunkt)
+    {
+        while (_currentEntries.Last() != targetBetriebspunkt)
+        {
+            _currentEntries.Remove(_currentEntries.Last());
+        }
+    }
+
+    private bool IsWithinAccuracyThreshold(GeolocationPosition newPosition)
+    {
+        return _lastPositions.Last().GetDistanzInMeters(newPosition) <= newPosition.Coords.Accuracy * AccuracyFactor;
+    }
+
+    private void RemoveLastEntry()
+    {
+        _beforeUpdateAction(() =>
+        {
+            _currentEntries.RemoveAt(_currentEntries.Count - 1);
+            _semaphoreSlim.Release();
+        });
     }
 
     private static bool HasPassedLastEntry(GeolocationPosition newPosition, IBaseEntry lastEntry, List<GeolocationPosition> lastPositions)
@@ -93,7 +151,7 @@ public class FahrenPositionService
 
         // Check if any distances are increasing and decreasing. This way we can be sure that it has passed the entry
         bool isApproaching = distances.Any(d => d < 0);
-        bool isMovingAway = distances.Any(d => d > 0); 
+        bool isMovingAway = distances.Any(d => d > 0);
 
         if (isApproaching && isMovingAway)
         {
