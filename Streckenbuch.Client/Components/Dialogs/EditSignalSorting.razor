@@ -99,6 +99,8 @@ else
     private List<BetriebspunktProto> betriebspunkte { get; set; }
 
     private Dictionary<Guid, bool> signaleLoading { get; set; }
+    
+    private Dictionary<Guid, bool> signaleLoadedOnce { get; set; }
 
     private Dictionary<Guid, List<SignalProto>> signale { get; set; }
 
@@ -118,12 +120,14 @@ else
         betriebspunkte = (await BetriebspunkteService.ListBetriebspunkteByStreckenKonfigurationAsync(new ListBetriebspunkteByStreckenKonfigurationRequest() { StreckenKonfigurationId = StreckenKonfigurationId})).Betriebspunkte.ToList();
         signale = new Dictionary<Guid, List<SignalProto>>();
         signaleLoading = new Dictionary<Guid, bool>();
+        signaleLoadedOnce = new Dictionary<Guid, bool>();
         zugewieseneSignale = new Dictionary<Guid, List<Entry>>();
         offeneSignale = new Dictionary<Guid, List<Entry>>();
 
         foreach (var betriebspunkt in betriebspunkte)
         {
             signaleLoading.Add(betriebspunkt.Id, false);
+            signaleLoadedOnce.Add(betriebspunkt.Id, false);
             signale.Add(betriebspunkt.Id, new List<SignalProto>());
             zugewieseneSignale.Add(betriebspunkt.Id, new List<Entry>());
             offeneSignale.Add(betriebspunkt.Id, new List<Entry>());
@@ -235,6 +239,7 @@ else
         }
 
         signaleLoading[betriebspunktId] = true;
+        signaleLoadedOnce[betriebspunktId] = true;
 
         SignaleService.ListSignaleByBetriebspunktAndStreckenkonfigurationAsync(new ListSignaleByBetriebspunktAndStreckenkonfigurationRequest()
             {
@@ -308,7 +313,12 @@ else
                     
                     sortingStrecke.Betriebspunkte.Add(betriebspunktSignal);
                 }
-                
+
+                if (!signaleLoadedOnce[betriebspunktSignalPair.Key])
+                {
+                    // Panel was never opened so no signals were every loaded. If the request was getting through every signal would be deleted!
+                    continue;
+                }
                 betriebspunktSignal.Signale.Clear();
 
                 foreach (Entry signalEntry in betriebspunktSignalPair.Value)
