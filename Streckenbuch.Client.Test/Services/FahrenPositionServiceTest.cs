@@ -47,9 +47,40 @@ public class FahrenPositionServiceTest
 
         mock.Verify(s => s.DoSomething(), Times.Never());
     }
-
+    
     [Fact]
-    public void ShouldMoveOnePosition()
+    public async Task ShouldMoveOnePositionWithMultipleUpdatesInOneCycle()
+    {
+        Mock<TestInterface> mock = new Mock<TestInterface>();
+
+        FahrenPositionService positionService = new FahrenPositionService();
+        positionService.Initialize(TimeLineEntries, (action) =>
+        {
+            _ = Task.Run(async () =>
+            {
+                await Task.Delay(TimeSpan.FromSeconds(2.1));
+                mock.Object.DoSomething();
+                action();
+            }).ConfigureAwait(false);
+        });
+
+        mock.Verify(s => s.DoSomething(), Times.Never());
+
+        IEnumerable<GeolocationPosition> positions = Positions.Take(10);
+
+        foreach(GeolocationPosition pos in positions)
+        {
+            await Task.Delay(TimeSpan.FromSeconds(0.5));
+            await positionService.UpdatePosition(pos);
+        }
+        
+        await Task.Delay(TimeSpan.FromSeconds(5));
+
+        mock.Verify(s => s.DoSomething(), Times.Exactly(2));
+    }
+    
+    [Fact]
+    public async Task ShouldMoveOnlyOnePositionWhenSpammedWithUpdates()
     {
         Mock<TestInterface> mock = new Mock<TestInterface>();
 
@@ -66,7 +97,33 @@ public class FahrenPositionServiceTest
 
         foreach(GeolocationPosition pos in positions)
         {
-            positionService.UpdatePosition(pos);
+            _ = positionService.UpdatePosition(pos);
+        }
+        
+        await Task.Delay(TimeSpan.FromSeconds(5));
+
+        mock.Verify(s => s.DoSomething(), Times.Exactly(2));
+    }
+
+    [Fact]
+    public async Task ShouldMoveOnePosition()
+    {
+        Mock<TestInterface> mock = new Mock<TestInterface>();
+
+        FahrenPositionService positionService = new FahrenPositionService();
+        positionService.Initialize(TimeLineEntries, (action) =>
+        {
+            mock.Object.DoSomething();
+            action();
+        });
+
+        mock.Verify(s => s.DoSomething(), Times.Never());
+
+        IEnumerable<GeolocationPosition> positions = Positions.Take(10);
+
+        foreach(GeolocationPosition pos in positions)
+        {
+            await positionService.UpdatePosition(pos);
         }
 
         mock.Verify(s => s.DoSomething(), Times.Exactly(2));
