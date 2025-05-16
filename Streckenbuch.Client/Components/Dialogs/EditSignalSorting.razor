@@ -4,7 +4,7 @@
 @inject BetriebspunkteService.BetriebspunkteServiceClient BetriebspunkteService
 @inject IDialogService dialogService
 
-@if (isLoading)
+@if (_isLoading)
 {
     <MudProgressCircular Indeterminate="true"></MudProgressCircular>
 }
@@ -12,16 +12,16 @@ else
 {
     <MudItem>
         <MudTabs>
-            @foreach (var strecke in Strecken.OrderBy(x => (DateOnly)x.VonDatum))
+            @foreach (var strecke in Strecken.OrderBy(x => (DateOnly?)x.VonDatum ?? DateOnly.MinValue))
             {
                 <MudTabPanel Text="@GetTabText(strecke)">
                     <MudExpansionPanels MultiExpansion="true">
-                        @foreach (var betriebspunkt in betriebspunkte)
+                        @foreach (var betriebspunkt in Betriebspunkte)
                         {
                             var betriebspunktSignal = strecke.Betriebspunkte.SingleOrDefault(x => x.BetriebspunktId.Equals(betriebspunkt.Id));
                             <MudExpansionPanel Text="@betriebspunkt.Name"
                                                ExpandedChanged="@((newValue) => Callback(newValue, betriebspunkt.Id, betriebspunktSignal))">
-                                @if (signaleLoading[betriebspunkt.Id])
+                                @if (SignaleLoading[betriebspunkt.Id])
                                 {
                                     <MudProgressCircular Indeterminate="true"></MudProgressCircular>
                                 }
@@ -32,7 +32,7 @@ else
                                             <SortableList Class="w-full h-full"
                                                           Id="@GetId(betriebspunkt.Id, 1)"
                                                           ForceFallback="false"
-                                                          Items="zugewieseneSignale[betriebspunkt.Id]"
+                                                          Items="ZugewieseneSignale[betriebspunkt.Id]"
                                                           Group="@betriebspunkt.Id.ToString()"
                                                           Context="item"
                                                           OnRemove="@((tuple) => RemoveZugeordnetesSignal(betriebspunkt.Id, tuple))"
@@ -49,7 +49,7 @@ else
                                             <SortableList Class="w-full h-full"
                                                           Id="@GetId(betriebspunkt.Id, 2)"
                                                           ForceFallback="false"
-                                                          Items="offeneSignale[betriebspunkt.Id]"
+                                                          Items="OffeneSignale[betriebspunkt.Id]"
                                                           Group="@betriebspunkt.Id.ToString()"
                                                           Context="item"
                                                           OnRemove="@((tuple) => RemoveOffenesSignal(betriebspunkt.Id, tuple))"
@@ -92,19 +92,19 @@ else
     [Parameter]
     public Guid StreckenKonfigurationId { get; set; }
 
-    private bool isLoading = false;
+    private bool _isLoading = false;
 
-    private List<SignalSortingStrecke> Strecken { get; set; }
+    private List<SignalSortingStrecke> Strecken { get; set; }= new();
 
-    private List<BetriebspunktProto> betriebspunkte { get; set; }
+    private List<BetriebspunktProto> Betriebspunkte { get; set; } = new();
 
-    private Dictionary<Guid, bool> signaleLoading { get; set; }
+    private Dictionary<Guid, bool> SignaleLoading { get; set; } = new();
 
-    private Dictionary<Guid, List<SignalProto>> signale { get; set; }
+    private Dictionary<Guid, List<SignalProto>> Signale { get; set; }= new();
 
-    private Dictionary<Guid, List<Entry>> zugewieseneSignale { get; set; }
+    private Dictionary<Guid, List<Entry>> ZugewieseneSignale { get; set; } = new();
 
-    private Dictionary<Guid, List<Entry>> offeneSignale { get; set; }
+    private Dictionary<Guid, List<Entry>> OffeneSignale { get; set; }= new();
 
     protected async override Task OnInitializedAsync()
     {
@@ -113,20 +113,20 @@ else
 
     private async Task LoadData()
     {
-        isLoading = true;
+        _isLoading = true;
 
-        betriebspunkte = (await BetriebspunkteService.ListBetriebspunkteByStreckenKonfigurationAsync(new ListBetriebspunkteByStreckenKonfigurationRequest() { StreckenKonfigurationId = StreckenKonfigurationId})).Betriebspunkte.ToList();
-        signale = new Dictionary<Guid, List<SignalProto>>();
-        signaleLoading = new Dictionary<Guid, bool>();
-        zugewieseneSignale = new Dictionary<Guid, List<Entry>>();
-        offeneSignale = new Dictionary<Guid, List<Entry>>();
+        Betriebspunkte = (await BetriebspunkteService.ListBetriebspunkteByStreckenKonfigurationAsync(new ListBetriebspunkteByStreckenKonfigurationRequest() { StreckenKonfigurationId = StreckenKonfigurationId})).Betriebspunkte.ToList();
+        Signale = new Dictionary<Guid, List<SignalProto>>();
+        SignaleLoading = new Dictionary<Guid, bool>();
+        ZugewieseneSignale = new Dictionary<Guid, List<Entry>>();
+        OffeneSignale = new Dictionary<Guid, List<Entry>>();
 
-        foreach (var betriebspunkt in betriebspunkte)
+        foreach (var betriebspunkt in Betriebspunkte)
         {
-            signaleLoading.Add(betriebspunkt.Id, false);
-            signale.Add(betriebspunkt.Id, new List<SignalProto>());
-            zugewieseneSignale.Add(betriebspunkt.Id, new List<Entry>());
-            offeneSignale.Add(betriebspunkt.Id, new List<Entry>());
+            SignaleLoading.Add(betriebspunkt.Id, false);
+            Signale.Add(betriebspunkt.Id, new List<SignalProto>());
+            ZugewieseneSignale.Add(betriebspunkt.Id, new List<Entry>());
+            OffeneSignale.Add(betriebspunkt.Id, new List<Entry>());
         }
 
         var answer = await SignaleService.ListSignalSortingAsync(new ListSignalSortingRequest()
@@ -135,7 +135,7 @@ else
         });
 
         Strecken = answer.Strecken.ToList();
-        isLoading = false;
+        _isLoading = false;
     }
 
     private string GetTabText(SignalSortingStrecke strecke)
@@ -155,7 +155,7 @@ else
 
     private string GetSignalName(Guid betriebspunktId, Guid signalId)
     {
-        return signale[betriebspunktId].Single(x => x.SignalId == signalId).Name;
+        return Signale[betriebspunktId].Single(x => x.SignalId == signalId).Name;
     }
 
     private string GetId(Guid id, int liste)
@@ -165,65 +165,65 @@ else
 
     private void RemoveZugeordnetesSignal(Guid betriebspunktId, (int oldIndices, int newIndices) indices)
     {
-        var entry = zugewieseneSignale[betriebspunktId].Single(x => x.Indices == indices.oldIndices);
-        zugewieseneSignale[betriebspunktId].Remove(entry);
+        var entry = ZugewieseneSignale[betriebspunktId].Single(x => x.Indices == indices.oldIndices);
+        ZugewieseneSignale[betriebspunktId].Remove(entry);
 
-        for (int i = 0; i < zugewieseneSignale[betriebspunktId].Count; i++)
+        for (int i = 0; i < ZugewieseneSignale[betriebspunktId].Count; i++)
         {
-            zugewieseneSignale[betriebspunktId][i].Indices = i;
+            ZugewieseneSignale[betriebspunktId][i].Indices = i;
         }
 
         entry.Indices = indices.newIndices;
-        offeneSignale[betriebspunktId].Insert(indices.newIndices, entry);
+        OffeneSignale[betriebspunktId].Insert(indices.newIndices, entry);
 
-        for (int i = 0; i < offeneSignale[betriebspunktId].Count; i++)
+        for (int i = 0; i < OffeneSignale[betriebspunktId].Count; i++)
         {
-            offeneSignale[betriebspunktId][i].Indices = i;
+            OffeneSignale[betriebspunktId][i].Indices = i;
         }
     }
 
     private void RemoveOffenesSignal(Guid betriebspunktId, (int oldIndices, int newIndices) indices)
     {
-        var entry = offeneSignale[betriebspunktId].Single(x => x.Indices == indices.oldIndices);
-        offeneSignale[betriebspunktId].Remove(entry);
+        var entry = OffeneSignale[betriebspunktId].Single(x => x.Indices == indices.oldIndices);
+        OffeneSignale[betriebspunktId].Remove(entry);
 
-        for (int i = 0; i < offeneSignale[betriebspunktId].Count; i++)
+        for (int i = 0; i < OffeneSignale[betriebspunktId].Count; i++)
         {
-            offeneSignale[betriebspunktId][i].Indices = i;
+            OffeneSignale[betriebspunktId][i].Indices = i;
         }
 
         entry.Indices = indices.newIndices;
-        zugewieseneSignale[betriebspunktId].Insert(indices.newIndices, entry);
+        ZugewieseneSignale[betriebspunktId].Insert(indices.newIndices, entry);
 
-        for (int i = 0; i < zugewieseneSignale[betriebspunktId].Count; i++)
+        for (int i = 0; i < ZugewieseneSignale[betriebspunktId].Count; i++)
         {
-            zugewieseneSignale[betriebspunktId][i].Indices = i;
+            ZugewieseneSignale[betriebspunktId][i].Indices = i;
         }
     }
 
     private void UpdateZugeordnetesSignal(Guid betriebspunktId, (int oldIndices, int newIndices) indices)
     {
-        var entry = zugewieseneSignale[betriebspunktId].Single(x => x.Indices == indices.oldIndices);
-        zugewieseneSignale[betriebspunktId].Remove(entry);
+        var entry = ZugewieseneSignale[betriebspunktId].Single(x => x.Indices == indices.oldIndices);
+        ZugewieseneSignale[betriebspunktId].Remove(entry);
         entry.Indices = indices.newIndices;
-        zugewieseneSignale[betriebspunktId].Insert(indices.newIndices, entry);
+        ZugewieseneSignale[betriebspunktId].Insert(indices.newIndices, entry);
 
-        for (int i = 0; i < zugewieseneSignale[betriebspunktId].Count; i++)
+        for (int i = 0; i < ZugewieseneSignale[betriebspunktId].Count; i++)
         {
-            zugewieseneSignale[betriebspunktId][i].Indices = i;
+            ZugewieseneSignale[betriebspunktId][i].Indices = i;
         }
     }
 
     private void UpdateOffenesSignal(Guid betriebspunktId, (int oldIndices, int newIndices) indices)
     {
-        var entry = offeneSignale[betriebspunktId].Single(x => x.Indices == indices.oldIndices);
-        offeneSignale[betriebspunktId].Remove(entry);
+        var entry = OffeneSignale[betriebspunktId].Single(x => x.Indices == indices.oldIndices);
+        OffeneSignale[betriebspunktId].Remove(entry);
         entry.Indices = indices.newIndices;
-        offeneSignale[betriebspunktId].Insert(indices.newIndices, entry);
+        OffeneSignale[betriebspunktId].Insert(indices.newIndices, entry);
 
-        for (int i = 0; i < offeneSignale[betriebspunktId].Count; i++)
+        for (int i = 0; i < OffeneSignale[betriebspunktId].Count; i++)
         {
-            offeneSignale[betriebspunktId][i].Indices = i;
+            OffeneSignale[betriebspunktId][i].Indices = i;
         }
     }
 
@@ -234,7 +234,7 @@ else
             return;
         }
 
-        signaleLoading[betriebspunktId] = true;
+        SignaleLoading[betriebspunktId] = true;
 
         SignaleService.ListSignaleByBetriebspunktAndStreckenkonfigurationAsync(new ListSignaleByBetriebspunktAndStreckenkonfigurationRequest()
             {
@@ -246,31 +246,31 @@ else
             {
                 var signalProtos = signalAnswer.Result.Signale.ToList();
 
-                signale[betriebspunktId] = signalProtos;
-                zugewieseneSignale[betriebspunktId].Clear();
-                offeneSignale[betriebspunktId].Clear();
+                Signale[betriebspunktId] = signalProtos;
+                ZugewieseneSignale[betriebspunktId].Clear();
+                OffeneSignale[betriebspunktId].Clear();
 
                 foreach (var signalSorting in (sortingBetriebspunkt?.Signale.OrderBy(x => x.SortingNumber).ToList()) ?? new List<SignalSortingSignal>())
                 {
                     var signal = signalProtos.Single(x => ((Guid)x.SignalId).Equals(signalSorting.SignalId));
 
-                    zugewieseneSignale[betriebspunktId].Add(new Entry()
+                    ZugewieseneSignale[betriebspunktId].Add(new Entry()
                     {
                         SignalId = signal.SignalId, Indices = signalSorting.SortingNumber
                     });
                 }
 
                 int index = 0;
-                foreach (SignalProto signalProto in signalProtos.Where(x => zugewieseneSignale[betriebspunktId].All(z => z.SignalId != x.SignalId)))
+                foreach (SignalProto signalProto in signalProtos.Where(x => ZugewieseneSignale[betriebspunktId].All(z => z.SignalId != x.SignalId)))
                 {
-                    offeneSignale[betriebspunktId].Add(new Entry()
+                    OffeneSignale[betriebspunktId].Add(new Entry()
                     {
                         SignalId = signalProto.SignalId, Indices = index
                     });
                     index++;
                 }
                 
-                signaleLoading[betriebspunktId] = false;
+                SignaleLoading[betriebspunktId] = false;
             })
             .ContinueWith(x => InvokeAsync(StateHasChanged))
             .ConfigureAwait(false);
@@ -294,7 +294,7 @@ else
 
     private async Task Submit()
     {
-        foreach (KeyValuePair<Guid, List<Entry>> betriebspunktSignalPair in zugewieseneSignale)
+        foreach (KeyValuePair<Guid, List<Entry>> betriebspunktSignalPair in ZugewieseneSignale)
         {
             foreach (var sortingStrecke in Strecken)
             {

@@ -73,6 +73,8 @@ public class FahrenPositionService
         catch (Exception _)
         {
             _semaphoreSlim.Release();
+
+            throw;
         }
     }
 

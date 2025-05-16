@@ -3,28 +3,29 @@
 <div class="flex flex-col">
     <div class="flex flex-row">
         <MudAutocomplete SearchFunc="SearchStrecken" T="StreckenProto" ResetValueOnEmptyText="true" Value="Model.SelectedStrecke" ToStringFunc="@((target) => target.Nummer.ToString())" ValueChanged="OnStreckeChanged" Label="Strecke"></MudAutocomplete>
-        <MudAutocomplete SearchFunc="SearchStreckenKonfiguration" T="StreckenKonfigurationProto" Value="Model.SelectedKonfiguration" ShowProgressIndicator="streckenKonfigurationen == null" ValueChanged="OnKonfigurationChanged" ToStringFunc="@((target) => target.Name)" Label="Konfiguration"></MudAutocomplete>
+        <MudAutocomplete SearchFunc="SearchStreckenKonfiguration" T="StreckenKonfigurationProto" Value="Model.SelectedKonfiguration" ShowProgressIndicator="_streckenKonfigurationen == null" ValueChanged="OnKonfigurationChanged" ToStringFunc="@((target) => target.Name)" Label="Konfiguration"></MudAutocomplete>
     </div>
     <MudAutocomplete SearchFunc="SearchBetriebspunkte" T="BetriebspunktProto" Label="Von Betriebspunkt" Value="Model.VonBetriebspunkt" ToStringFunc="@((target) => target.Name)" ValueChanged="VonBetriebspuntChanged" />
     <MudAutocomplete SearchFunc="SearchBetriebspunkte" T="BetriebspunktProto" Label="Bis Betriebspunkt" Value="Model.BisBetriebspunkt" ToStringFunc="@((target) => target.Name)" ValueChanged="BisBetriebspuntChanged" />
 </div>
 
 @code {
+
     [Parameter]
-    public List<StreckenProto> Strecken { get; set; }
+    public List<StreckenProto> Strecken { get; set; } = new();
 
     [Parameter]
     public FahrenStreckenEntryModel Model { get; set; } = null!;
 
-    private List<StreckenKonfigurationProto>? streckenKonfigurationen = null;
-    private List<BetriebspunktProto>? betriebspunkte = null;
+    private List<StreckenKonfigurationProto> _streckenKonfigurationen = null!;
+    private List<BetriebspunktProto> _betriebspunkte = null!;
 
     private void OnStreckeChanged(StreckenProto streckenProto)
     {
         Model.SelectedStrecke = streckenProto;
-        streckenKonfigurationen = streckenProto.Konfigurationen.ToList();
+        _streckenKonfigurationen = streckenProto.Konfigurationen.ToList();
         Model.SelectedKonfiguration = null;
-        betriebspunkte = null;
+        _betriebspunkte = null;
         Model.VonBetriebspunkt = null;
         Model.BisBetriebspunkt = null;
     }
@@ -32,13 +33,13 @@
     private async Task OnKonfigurationChanged(StreckenKonfigurationProto streckenKonfigurationProto)
     {
         Model.SelectedKonfiguration = streckenKonfigurationProto;
-        betriebspunkte = (await betriebspunktService.ListBetriebspunkteByStreckenKonfigurationAsync(new ListBetriebspunkteByStreckenKonfigurationRequest()
+        _betriebspunkte = (await betriebspunktService.ListBetriebspunkteByStreckenKonfigurationAsync(new ListBetriebspunkteByStreckenKonfigurationRequest()
             {
                 StreckenKonfigurationId = streckenKonfigurationProto.Id
             })).Betriebspunkte.ToList();
 
-        Model.VonBetriebspunkt = betriebspunkte.First();
-        Model.BisBetriebspunkt = betriebspunkte.Last();
+        Model.VonBetriebspunkt = _betriebspunkte.First();
+        Model.BisBetriebspunkt = _betriebspunkte.Last();
     }
 
     private void VonBetriebspuntChanged(BetriebspunktProto betriebspunktProto)
@@ -67,12 +68,12 @@
             return true;
         }
 
-        if (betriebspunkte is null)
+        if (_betriebspunkte is null)
         {
             throw new Exception("Something went wrong");
         }
 
-        if (betriebspunkte.IndexOf(vonBetriebspunkt) < betriebspunkte.IndexOf(bisBetriebspunkt))
+        if (_betriebspunkte.IndexOf(vonBetriebspunkt) < _betriebspunkte.IndexOf(bisBetriebspunkt))
         {
             Model.ErrorMessage = string.Empty;
             return true;
@@ -98,10 +99,10 @@
         await Task.CompletedTask;
         if (string.IsNullOrEmpty(value))
         {
-            return streckenKonfigurationen;
+            return _streckenKonfigurationen;
         }
 
-        return streckenKonfigurationen.Where(x => x.Name.ToLower().Contains(value.ToLower()));
+        return _streckenKonfigurationen.Where(x => x.Name.ToLower().Contains(value.ToLower()));
     }
 
     private async Task<IEnumerable<BetriebspunktProto>> SearchBetriebspunkte(string value, CancellationToken token)
@@ -109,9 +110,9 @@
         await Task.CompletedTask;
         if (string.IsNullOrEmpty(value))
         {
-            return betriebspunkte;
+            return _betriebspunkte;
         }
 
-        return betriebspunkte.Where(x => x.Name.ToLowerInvariant().Contains(value.ToLowerInvariant(), StringComparison.InvariantCultureIgnoreCase));
+        return _betriebspunkte.Where(x => x.Name.ToLowerInvariant().Contains(value.ToLowerInvariant(), StringComparison.InvariantCultureIgnoreCase));
     }
 }
