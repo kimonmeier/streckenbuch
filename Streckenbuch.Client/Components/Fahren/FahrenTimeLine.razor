@@ -40,12 +40,9 @@ else
     private bool _isUpdating = false;
     private double? _watchTaskId;
 
-    protected override async Task OnInitializedAsync()
+    protected async override Task OnInitializedAsync()
     {
-        _watchTaskId = await geolocationService.WatchPositionAsync((position) =>
-            {
-                updatePosition(position);
-            },
+        _watchTaskId = await geolocationService.WatchPositionAsync(updatePosition,
             (error) =>
             {
                 Console.WriteLine("Error occured during watch position {0}", error.Message);
@@ -79,7 +76,7 @@ else
 
         Task.Run(async () =>
         {
-            await Task.Delay(1100);
+            await Task.Delay(TimeSpan.FromSeconds(2.1));
 
             _hasToMoveDown = false;
             executeAfterUpdate();
