@@ -24,7 +24,8 @@ public class FahrenRepository
         List<FahrenTransferEntry> entries = new();
 
         var streckenKonfigurationEntries = _dbContext
-            .Set<LinienStreckenKonfigurationen>().Where(x => x.LinieId.Equals(linieId))
+            .Set<LinienStreckenKonfigurationen>()
+            .Where(x => x.LinieId.Equals(linieId))
             .OrderBy(x => x.Order)
             .Select(x => new
             {
@@ -34,6 +35,16 @@ public class FahrenRepository
         foreach (var konfigurationEntry in streckenKonfigurationEntries)
         {
             List<FahrenTransferEntry> list = ListEntriesByStrecke(konfigurationEntry.StreckenKonfigurationId);
+            while (!list.First(x => x.Betriebspunkt != null).Betriebspunkt!.Id.Equals(konfigurationEntry.VonBetriebspunktId))
+            {
+                list.RemoveAt(0);
+            }
+
+            while (!list.Last(x => x.Betriebspunkt != null).Betriebspunkt!.Id.Equals(konfigurationEntry.BisBetriebspunktId))
+            {
+                list.RemoveAt(list.Count - 1);
+            }
+            
             entries.AddRange(list);
         }
 

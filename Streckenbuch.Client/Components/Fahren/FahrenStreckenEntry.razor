@@ -25,9 +25,22 @@
         Model.SelectedStrecke = streckenProto;
         _streckenKonfigurationen = streckenProto.Konfigurationen.ToList();
         Model.SelectedKonfiguration = null;
-        _betriebspunkte = null;
+        _betriebspunkte = null!;
         Model.VonBetriebspunkt = null;
         Model.BisBetriebspunkt = null;
+    }
+
+    protected async override Task OnInitializedAsync()
+    {
+        if (Model.SelectedKonfiguration is null)
+        {
+            return;
+        }
+        
+        _betriebspunkte = (await betriebspunktService.ListBetriebspunkteByStreckenKonfigurationAsync(new ListBetriebspunkteByStreckenKonfigurationRequest()
+        {
+            StreckenKonfigurationId = Model.SelectedKonfiguration.Id
+        })).Betriebspunkte.ToList();
     }
 
     private async Task OnKonfigurationChanged(StreckenKonfigurationProto streckenKonfigurationProto)
