@@ -30,7 +30,6 @@ public class FahrenPositionService
         _beforeUpdateAction(() =>
         {
             _currentEntries.RemoveAt(_currentEntries.Count - 1);
-            _semaphoreSlim.Release();
         });
     }
 

@@ -69,14 +69,16 @@ else
         // Add Transition before
         _hasToMoveDown = true;
 
+        InvokeAsync(StateHasChanged);
+        
         Task.Run(async () =>
         {
-            await Task.Delay(TimeSpan.FromSeconds(2.1));
+            await Task.Delay(TimeSpan.FromSeconds(1.5));
 
-            _hasToMoveDown = false;
             executeAfterUpdate();
-
-            StateHasChanged();
+            _hasToMoveDown = false;
+            
+            await InvokeAsync(StateHasChanged);
         });
     }
 
