@@ -9,6 +9,8 @@ service StreckenService {
 	rpc ListAllStrecken (google.protobuf.Empty) returns (ListStreckenAnswer);
 	rpc CreateStrecke (CreateStreckeRequest) returns (google.protobuf.Empty);
 	rpc CreateKonfiguration (CreateKonfigurationRequest) returns (google.protobuf.Empty);
+	rpc DeleteStrecke (DeleteStreckeRequest) returns (google.protobuf.Empty);
+	rpc DeleteKonfiguration (DeleteKonfigurationRequest) returns (google.protobuf.Empty);
 	rpc ListStreckenZuordnungByStrecke (ListZuordnungByStreckeRequest) returns (ListZuordnungByStreckeAnswer);
 	rpc ListStreckenZuordnungByBetriebspunkt (ListZuordnungByBetriebspunktRequest) returns (ListZuordnungByBetriebspunktAnswer);
 	rpc CreateStreckenZuordnung (CreateStreckenZuordnungRequest) returns (google.protobuf.Empty);
@@ -17,6 +19,14 @@ service StreckenService {
 	rpc GetStreckeById (Types.GuidProto) returns (StreckenProto);
 	rpc GetStreckenKonfigurationById (Types.GuidProto) returns (StreckenKonfigurationProto);
 	rpc GetStreckeIdByKonfigurationId (Types.GuidProto) returns (Types.GuidProto);
+}
+
+message DeleteStreckeRequest {
+	Types.GuidProto streckeId = 1;
+}
+
+message DeleteKonfigurationRequest {
+	Types.GuidProto konfigurationId = 1;
 }
 
 message ListZuordnungByStreckeRequest {
