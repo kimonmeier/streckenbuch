@@ -5,7 +5,7 @@ using Streckenbuch.Shared.Services;
 
 namespace Streckenbuch.Client.Mappings;
 
-public class FahrenSignalMapping : IMap<FahrenEntry, ISignalEntry>, IMap<FahrenEntry, ChivronSignalEntry>, IMap<FahrenEntry, HauptSignalEntry>, IMap<FahrenEntry, KombiniertSignalEntry>, IMap<FahrenEntry, VorsignalEntry>, IMap<FahrenEntry, WiederholungsSignalEntry>
+public class FahrenSignalMapping : IMap<FahrenEntry, ISignalEntry>, IMap<FahrenEntry, ChivronSignalEntry>, IMap<FahrenEntry, HauptSignalEntry>, IMap<FahrenEntry, KombiniertSignalEntry>, IMap<FahrenEntry, VorsignalEntry>, IMap<FahrenEntry, WiederholungsSignalEntry>, IMap<FahrenEntry, FahrtstellungsmelderEntry>
 {
     public void Mapping(IMappingExpression<FahrenEntry, ISignalEntry> mapping)
     {
@@ -45,5 +45,13 @@ public class FahrenSignalMapping : IMap<FahrenEntry, ISignalEntry>, IMap<FahrenE
     {
         mapping
             .ForMember(dest => dest.Location, opt => opt.MapFrom(src => src.Location));
+    }
+
+    public void Mapping(IMappingExpression<FahrenEntry, FahrtstellungsmelderEntry> mapping)
+    {
+        mapping
+            .ForMember(dest => dest.Location, opt => opt.MapFrom(src => src.Location))
+            .ForMember(dest => dest.Kommentar, opt => opt.MapFrom(src => src.Kommentar))
+            .ForMember(dest => dest.SignalSeite, opt => opt.MapFrom(src => src.DisplaySeite));
     }
 }

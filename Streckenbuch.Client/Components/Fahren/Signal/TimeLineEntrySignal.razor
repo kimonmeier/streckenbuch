@@ -1,26 +1,37 @@
 ﻿@switch (Entry.SignalTyp)
 {
     case SignalTyp.Hauptsignal:
-        <TimeLineHauptsignalEntry Entry="Entry as HauptSignalEntry" />
+        <TimeLineHauptsignalEntry Entry="Entry as HauptSignalEntry"/>
+
         break;
     case SignalTyp.Kombiniert:
-        <TimeLineKombiniertEntry Entry="Entry as KombiniertSignalEntry" />
+        <TimeLineKombiniertEntry Entry="Entry as KombiniertSignalEntry"/>
+
         break;
     case SignalTyp.Vorsignal:
-        <TimeLineVorsignalEntry Entry="Entry as VorsignalEntry" />
+        <TimeLineVorsignalEntry Entry="Entry as VorsignalEntry"/>
+
         break;
     case SignalTyp.Streckengeschwindigkeit:
-        <TimeLineStreckengeschwindigkeitEntry Entry="Entry as ChivronSignalEntry" />
+        <TimeLineStreckengeschwindigkeitEntry Entry="Entry as ChivronSignalEntry"/>
+
         break;
     case SignalTyp.Wiederholung:
-        <TimeLineWiederholungEntry Entry="Entry as WiederholungsSignalEntry" />
+        <TimeLineWiederholungEntry Entry="Entry as WiederholungsSignalEntry"/>
+
+        break;
+    case SignalTyp.Fahrstellungsmelder:
+        <TimeLineFahrtstellungsmelderEntry Entry="Entry as FahrtstellungsmelderEntry"/>
+
         break;
 }
 
 @code {
+
     [Parameter]
     public ISignalEntry Entry { get; set; } = null!;
 
     [Parameter]
     public Action<ISignalEntry> OnClickAction { get; set; } = null!;
+
 }

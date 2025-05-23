@@ -1,0 +1,23 @@
+﻿<MudTimelineItem>
+    <ItemDot>
+        <MudAvatar>
+            <MudImage ObjectFit="ObjectFit.Contain"  Src="images/fahrtstellungsmelder.png"></MudImage>
+        </MudAvatar>
+    </ItemDot>
+    <ItemContent>
+        <MudText Color="Color.Tertiary">Fahrstellungsmelder</MudText>
+    </ItemContent>
+    <ItemOpposite>
+        @if (!string.IsNullOrEmpty(Entry.Kommentar))
+        {
+            <MudText Typo="Typo.subtitle1">
+                @Entry.Kommentar
+            </MudText>
+        }
+    </ItemOpposite>
+</MudTimelineItem>
+@code {
+
+    [Parameter]
+    public FahrtstellungsmelderEntry Entry { get; set; } = null!;
+}
