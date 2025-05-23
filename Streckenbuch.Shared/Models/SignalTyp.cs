@@ -6,5 +6,6 @@ public enum SignalTyp
     Hauptsignal,
     Kombiniert,
     Streckengeschwindigkeit,
-    Wiederholung
+    Wiederholung,
+    Fahrstellungsmelder
 }

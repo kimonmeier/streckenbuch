@@ -39,6 +39,8 @@ public class FahrenEntryConverter : ITypeConverter<FahrenEntry, IBaseEntry>, ITy
                 return context.Mapper.Map<KombiniertSignalEntry>(source);
             case SignalTyp.Wiederholung:
                 return context.Mapper.Map<WiederholungsSignalEntry>(source);
+            case SignalTyp.Fahrstellungsmelder:
+                return context.Mapper.Map<FahrtstellungsmelderEntry>(source);
         }
 
         throw new NotImplementedException();
