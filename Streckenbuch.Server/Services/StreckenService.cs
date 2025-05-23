@@ -161,4 +161,30 @@ public class StreckenService : Streckenbuch.Shared.Services.StreckenService.Stre
 
         return result.StreckeId;
     }
+
+    public override async Task<Empty> DeleteStrecke(DeleteStreckeRequest request, ServerCallContext context)
+    {
+        await context.GetAuthenticatedUser(_userManager);
+        
+        using (var dbTransaction = _dbTransactionFactory.CreateTransaction())
+        {
+            await _streckenRepository.RemoveAsync(request.StreckeId);
+            await dbTransaction.Commit(context.CancellationToken);
+        }
+
+        return new Empty();
+    }
+
+    public override async Task<Empty> DeleteKonfiguration(DeleteKonfigurationRequest request, ServerCallContext context)
+    {
+        await context.GetAuthenticatedUser(_userManager);
+        
+        using (var dbTransaction = _dbTransactionFactory.CreateTransaction())
+        {
+            await _streckenKonfigurationRepository.RemoveAsync(request.KonfigurationId);
+            await dbTransaction.Commit(context.CancellationToken);
+        }
+
+        return new Empty();
+    }
 }
