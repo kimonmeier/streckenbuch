@@ -10,6 +10,7 @@
     <HeaderContent>
         <MudTh>Nummer</MudTh>
         <MudTh></MudTh>
+        <MudTh></MudTh>
     </HeaderContent>
     <RowTemplate>
         <MudTd>@context.Nummer</MudTd>
@@ -17,6 +18,12 @@
             <MudButton Variant="Variant.Filled" Color="Color.Primary"
                        OnClick="@(() => createKonfiguration(context.Id))">
                 Konfiguration erstellen
+            </MudButton>
+        </MudTd>
+        <MudTd>
+            <MudButton Variant="Variant.Filled" Color="Color.Error"
+                       OnClick="@(() => DeleteStrecke(context.Id))">
+                Löschen!
             </MudButton>
         </MudTd>
     </RowTemplate>
@@ -29,6 +36,7 @@
                 <MudTh>Bis</MudTh>
                 <MudTh>Zuordnungen</MudTh>
                 <MudTh>Signale</MudTh>
+                <MudTh></MudTh>
             </HeaderContent>
             <RowTemplate>
                 <MudTd>
@@ -48,6 +56,12 @@
                 <MudTd>
                     <MudButton OnClick="@(() => openSignalSorting(konfiguration.Id))" Variant="Variant.Filled"
                                Color="Color.Tertiary">Signale
+                    </MudButton>
+                </MudTd>
+                <MudTd>
+                    <MudButton Variant="Variant.Filled" Color="Color.Error"
+                               OnClick="@(() => DeleteKonfiguration(konfiguration.Id))">
+                        Löschen!
                     </MudButton>
                 </MudTd>
             </RowTemplate>
@@ -93,6 +107,26 @@
     {
         await dialogService.Show<CreateStrecke>("Strecke erstellen").Result;
 
+        await loadData();
+    }
+
+    private async Task DeleteStrecke(Guid streckeId)
+    {
+        await streckenService.DeleteStreckeAsync(new DeleteStreckeRequest()
+        {
+            StreckeId = streckeId
+        });
+        
+        await loadData();
+    }
+
+    private async Task DeleteKonfiguration(Guid konfigurationId)
+    {
+        await streckenService.DeleteKonfigurationAsync(new DeleteKonfigurationRequest()
+        {
+            KonfigurationId = konfigurationId
+        });
+        
         await loadData();
     }
 
