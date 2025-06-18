@@ -1,7 +1,9 @@
 ﻿@page "/fahren"
 @using Streckenbuch.Client.Components.Fahren
+@using Streckenbuch.Client.Services
 @inject FahrenService.FahrenServiceClient fahrenService
 @inject IDialogService dialogService
+@inject ScreenWakeLockService screenWakeLockService
 @layout FahrenLayout
 @implements IDisposable
 
@@ -14,12 +16,13 @@
     public FahrenLayout Layout { get; set; } = null!;
 
     private List<IBaseEntry> List = new List<IBaseEntry>();
+    private WakeLockSentinel? lockSentinel = null;
 
-    protected override void OnInitialized()
+    protected async override Task OnInitializedAsync()
     {
         Layout.SelectRoute += SelectRoute;
 
-        base.OnInitialized();
+        lockSentinel = await screenWakeLockService.RequestWakeLockAsync();
     }
 
     private void SelectRoute(object? source, EventArgs eventArgs)
@@ -38,10 +41,14 @@
             await InvokeAsync(StateHasChanged);
         });
     }
-
-
+    
     public void Dispose()
     {
         Layout.SelectRoute -= SelectRoute;
+
+        if (lockSentinel is not null)
+        {
+            screenWakeLockService.ReleaseWakeLockAsync(lockSentinel).ConfigureAwait(false);
+        }
     }
 }
