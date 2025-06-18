@@ -29,6 +29,7 @@
             Strecken
         </MudTh>
         <MudTh/>
+        <MudTh/>
     </HeaderContent>
     <RowTemplate>
         <MudTd>
@@ -42,6 +43,9 @@
         </MudTd>
         <MudTd>
             <MudButton Color="Color.Tertiary" OnClick="@(() => editStrecken(context))">Strecken anpassen</MudButton>
+        </MudTd>
+        <MudTd>
+            <MudButton Color="Color.Warning" OnClick="@(() => EditSignal(context))">Editieren</MudButton>
         </MudTd>
         <MudTd>
             <MudButton Color="Color.Error" OnClick="@(() => DeleteSignal(context.SignalId))">Löschen</MudButton>
@@ -128,14 +132,14 @@
 
     private async Task createSignal()
     {
-        DialogParameters<CreateSignal> parameters = new DialogParameters<CreateSignal>()
+        DialogParameters<CreateOrEditSignal> parameters = new DialogParameters<CreateOrEditSignal>()
         {
             {
                 x => x.Vorschlag, selectedBetriebspunkt
             }
         };
 
-        await dialogService.Show<CreateSignal>("Signal erstellen", parameters).Result;
+        await dialogService.Show<CreateOrEditSignal>("Signal erstellen", parameters).Result;
 
         await LoadData();
     }
@@ -148,6 +152,18 @@
         });
 
         await LoadData();
+    }
+
+    private async Task EditSignal(SignalProto signal)
+    {
+        DialogParameters<CreateOrEditSignal> parameters = new DialogParameters<CreateOrEditSignal>()
+        {
+            {
+                x => x.SignalToEdit, signal
+            }
+        };
+
+        await dialogService.Show<CreateOrEditSignal>("Signal bearbeiten", parameters).Result;
     }
 
 }

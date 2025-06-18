@@ -12,7 +12,8 @@
                     <MudAutocomplete Label="Betriebspunkt" T="BetriebspunktProto" For="@(() => model.Betriebspunkt)"
                                      Value="model.Betriebspunkt" ValueChanged="changedBetriebspunkt"
                                      SearchFunc="SearchBetriebspunkte"
-                                     ToStringFunc="@((e) => e.Name)"></MudAutocomplete>
+                                     ToStringFunc="@((e) => e.Name)"
+                                     Disabled="@(SignalToEdit is not null)"></MudAutocomplete>
                     <MudSelect Label="Signal Typ" For="@(() => model.Typ)" @bind-Value="model.Typ">
                         <MudSelectItem Value="SignalTyp.Hauptsignal">
                             reines Hauptsignal
@@ -55,7 +56,7 @@
                     </MudCard>
                 </MudCardContent>
                 <MudCardActions>
-                    <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary">Create
+                    <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary">Submit
                     </MudButton>
                     <MudButton ButtonType="ButtonType.Button" Variant="Variant.Filled" Color="Color.Secondary"
                                OnClick="Cancel">Cancel
@@ -74,6 +75,9 @@
 
     [Parameter]
     public BetriebspunktProto? Vorschlag { get; set; }
+    
+    [Parameter]
+    public SignalProto? SignalToEdit { get; set; }
 
     private LocationPicker locationPicker = null!;
     private CreateSignalForm model = new CreateSignalForm();
@@ -101,6 +105,12 @@
         if (Vorschlag is not null)
         {
             model.Betriebspunkt = Vorschlag;
+        } else if (SignalToEdit is not null)
+        {
+            model.Betriebspunkt = betriebspunkte.Single(x => x.Id.Equals(SignalToEdit.BetriebspunktId));
+            model.Name = SignalToEdit.Name;
+            model.Seite = (SignalSeite)SignalToEdit.SignalSeite;
+            model.Typ = (SignalTyp)SignalToEdit.SignalTyp;
         }
     }
 
@@ -141,17 +151,34 @@
     {
         var markerPosition = await locationPicker.GetCenter();
 
-        await signalService.CreateSignalAsync(new CreateSignalRequest()
+        if (SignalToEdit is null)
         {
-            BetriebspunktId = model.Betriebspunkt!.Id,
-            Name = model.Name,
-            SignalSeite = (int)model.Seite,
-            SignalTyp = (int)model.Typ,
-            Location = new Shared.Types.LocationProto()
+            await signalService.CreateSignalAsync(new CreateSignalRequest()
             {
-                Longitude = markerPosition.Lng, Latitude = markerPosition.Lat
-            }
-        });
+                BetriebspunktId = model.Betriebspunkt!.Id,
+                Name = model.Name,
+                SignalSeite = (int)model.Seite,
+                SignalTyp = (int)model.Typ,
+                Location = new Shared.Types.LocationProto()
+                {
+                    Longitude = markerPosition.Lng, Latitude = markerPosition.Lat
+                }
+            });
+        }
+        else
+        {
+            await signalService.EditSignalAsync(new EditSignalRequest()
+            {
+                SignalId = SignalToEdit.SignalId,
+                Name = model.Name,
+                SignalSeite = (int)model.Seite,
+                SignalTyp = (int)model.Typ,
+                Location = new Shared.Types.LocationProto()
+                {
+                    Longitude = markerPosition.Lng, Latitude = markerPosition.Lat
+                }
+            });
+        }
 
         MudDialog.Close();
     }
