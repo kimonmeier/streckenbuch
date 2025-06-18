@@ -9,6 +9,7 @@ using Streckenbuch.Server.Helper;
 using Streckenbuch.Shared.Data;
 using Streckenbuch.Shared.Models;
 using Streckenbuch.Shared.Services;
+using System.Data;
 
 namespace Streckenbuch.Server.Services;
 
@@ -282,12 +283,39 @@ public class SignaleService : Streckenbuch.Shared.Services.SignaleService.Signal
         return new Empty();
     }
 
-    public override async Task<ListSignaleAnswer> ListSignaleByBetriebspunktAndStreckenkonfiguration(ListSignaleByBetriebspunktAndStreckenkonfigurationRequest request, ServerCallContext context)
+    public override async Task<ListSignaleAnswer> ListSignaleByBetriebspunktAndStreckenkonfiguration(ListSignaleByBetriebspunktAndStreckenkonfigurationRequest request,
+        ServerCallContext context)
     {
         ListSignaleAnswer answer = new ListSignaleAnswer();
         var list = await _signalStreckenZuordnungRepository.ListByBetriebspunktAndStrecke(request.BetriebspunktId, request.StreckenKonfigurationId);
         answer.Signale.Add(_mapper.Map<List<SignalProto>>(list.Select(x => x.Signal)));
-        
+
         return answer;
+    }
+
+    public override async Task<Empty> EditSignal(EditSignalRequest request, ServerCallContext context)
+    {
+        await context.GetAuthenticatedUser(_userManager);
+
+        using (var dbTransaction = _dbTransactionFactory.CreateTransaction())
+        {
+            var signal = await _signalRepository.FindByEntityAsync(request.SignalId);
+
+            if (signal is null)
+            {
+                throw new DataException("Signal not Found");
+            }
+
+            signal.Location = request.Location;
+            signal.Name = request.Name;
+            signal.Seite = (SignalSeite)request.SignalSeite;
+            signal.Typ = (SignalTyp)request.SignalTyp;
+
+            await _signalRepository.UpdateAsync(signal);
+            await dbTransaction.Commit(context.CancellationToken);
+        }
+
+
+        return new Empty();
     }
 }

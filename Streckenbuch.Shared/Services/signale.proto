@@ -13,6 +13,7 @@ service SignaleService {
   rpc ListSignaleByBetriebspunktAndStreckenkonfiguration (ListSignaleByBetriebspunktAndStreckenkonfigurationRequest) returns (ListSignaleAnswer);
   rpc CreateSignal (CreateSignalRequest) returns (google.protobuf.Empty);
   rpc DeleteSignal (DeleteSignalRequest) returns (google.protobuf.Empty);
+  rpc EditSignal (EditSignalRequest) returns (google.protobuf.Empty);
   rpc ListZuordnungBySignal (ListZuordnungBySignalRequest) returns (ListZuordnungBySignalAnswer);
   rpc CreateSignalZuordnung (CreateSignalZuordnungRequest) returns (google.protobuf.Empty);
   rpc DeleteSignalZuordnung (DeleteSignalZuordnungRequest) returns (google.protobuf.Empty);
@@ -72,6 +73,14 @@ message CreateSignalRequest {
 
 message DeleteSignalRequest {
   Types.GuidProto signalId = 1;
+}
+
+message EditSignalRequest {
+  Types.GuidProto signalId = 1;
+  int32 signalTyp = 2;
+  int32 signalSeite = 3;
+  optional string name = 4;
+  Types.LocationProto location = 5;  
 }
 
 message ListSignaleAnswer {
