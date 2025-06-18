@@ -12,6 +12,7 @@ builder.Services.AddAuthorizationCore();
 builder.Services.AddCascadingAuthenticationState();
 builder.Services.AddSingleton<AuthenticationStateProvider, PersistentAuthenticationStateProvider>();
 builder.Services.AddSingleton<FahrenPositionService>();
+builder.Services.AddSingleton<ScreenWakeLockService>();
 builder.Services.AddMudServices();
 builder.Services.AddMudPopoverService();
 builder.Services.AddClientMapping();
