@@ -24,6 +24,7 @@ public class LinieTrainConfiguration : IEntityTypeConfiguration<LinieTrain>
             .HasForeignKey<LinieTrain>(x => x.LinieId);
 
         builder
-            .HasIndex(x => x.TrainNumber);
+            .HasIndex(x => x.TrainNumber)
+            .IsUnique();
     }
 }
