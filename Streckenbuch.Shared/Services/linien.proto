@@ -25,8 +25,7 @@ message GetTrainNumberLinkResponse {
 
 message ChangeTrainNumberLinkRequest {
 	Types.GuidProto linieId = 1;
-	optional Types.GuidProto linieTrainId = 2;
-	int32 trainNumber = 3;
+	int32 trainNumber = 2;
 }
 
 message GetAllLinienResponse {
