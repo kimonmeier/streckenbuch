@@ -6,7 +6,7 @@ using System.Text.Json;
 
 namespace Streckenbuch.Client.States;
 
-public class ContinuousConnectionState
+public class ContinuousConnectionState : IDisposable
 {
     private readonly FahrenService.FahrenServiceClient _fahrenServiceClient;
     private readonly Guid _id;
@@ -91,5 +91,10 @@ public class ContinuousConnectionState
             
             _sender.Send(deserializedEvent);
         }
+    }
+
+    public void Dispose()
+    {
+        UnregisterTrain().ConfigureAwait(false);
     }
 }

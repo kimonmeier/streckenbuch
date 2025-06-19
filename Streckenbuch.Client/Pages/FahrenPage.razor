@@ -5,8 +5,6 @@
 @inject FahrenService.FahrenServiceClient FahrenService
 @inject IDialogService DialogService
 @inject ScreenWakeLockService ScreenWakeLockService
-@inject ContinuousConnectionState ContinuousConnectionState
-@inject IJSRuntime Js
 @layout FahrenLayout
 @implements IDisposable
 
@@ -53,7 +51,5 @@
         {
             ScreenWakeLockService.ReleaseWakeLockAsync(_lockSentinel).ConfigureAwait(false);
         }
-
-        ContinuousConnectionState.UnregisterTrain().ConfigureAwait(false);
     }
 }
