@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using MudBlazor.Services;
 using Streckenbuch.Components.Account;
+using Streckenbuch.Miku;
 using Streckenbuch.Server;
 using Streckenbuch.Server.Background;
 using Streckenbuch.Server.Components;
@@ -47,6 +48,7 @@ builder.Services.AddCustomServices();
 
 builder.Services.AddSingleton((services) => services.GetRequiredService<IConfiguration>().GetSection("Mail")?.Get<MailConfiguration>() ?? new MailConfiguration());
 builder.Services.AddSingleton((services) => services.GetRequiredService<IConfiguration>().GetSection("Website")?.Get<WebsiteConfiguration>() ?? new WebsiteConfiguration());
+builder.Services.AddSingleton(services => new MikuApi(services.GetRequiredService<WebsiteConfiguration>().MikuLink!));
 
 builder.Services.AddSingleton<ContinuousConnectionState>();
 builder.Services.AddHostedService<UpdateBackgroundInformation>();
