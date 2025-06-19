@@ -25,7 +25,18 @@ public class FahrenService : Streckenbuch.Shared.Services.FahrenService.FahrenSe
         _mapper = mapper;
         _continuousConnection = continuousConnection;
     }
-    
+
+    public override Task<FahrenResponse> FahrenByTrainNumber(FahrenRequestByTrainNumber request, ServerCallContext context)
+    {
+        List<FahrenTransferEntry> entries = _fahrenRepository.ListEntriesByLinieTrain(request.LinieTrainId).ToList();
+        
+        RemoveDuplicates(entries);
+        
+        FahrenResponse response = new();
+        response.Entries.AddRange(_mapper.Map<List<FahrenEntry>>(entries));
+        return Task.FromResult(response);
+    }
+
     public override Task<FahrenResponse> FahrenByLinie(FahrenRequestByLinie request, ServerCallContext context)
     {
         List<FahrenTransferEntry> entries = _fahrenRepository.ListEntriesByLinie(request.LinieId).ToList();
@@ -91,6 +102,13 @@ public class FahrenService : Streckenbuch.Shared.Services.FahrenService.FahrenSe
     public override Task<Empty> UnregisterOnTrain(UnregisterOnTrainRequest request, ServerCallContext context)
     {
         _continuousConnection.UnregisterTrain(request.ClientId);
+        
+        return Task.FromResult(new Empty());
+    }
+
+    public override Task<Empty> DisconnectClient(DisconnectClientRequest request, ServerCallContext context)
+    {
+        _continuousConnection.DisconnectTrainOperator(request.ClientId);
         
         return Task.FromResult(new Empty());
     }

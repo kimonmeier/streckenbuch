@@ -3,6 +3,7 @@ using Google.Protobuf.WellKnownTypes;
 using Grpc.Core;
 using Microsoft.AspNetCore.Identity;
 using Streckenbuch.Server.Data.Entities;
+using Streckenbuch.Server.Data.Entities.Linien;
 using Streckenbuch.Server.Data.Repositories;
 using Streckenbuch.Server.Helper;
 using Streckenbuch.Shared.Data;
@@ -19,14 +20,17 @@ public class LinienService : Streckenbuch.Shared.Services.LinienService.LinienSe
     private readonly LinienRepository _linienRepository;
     private readonly LinienKonfigurationRepository _linienKonfigurationRepository;
     private readonly UserManager<ApplicationUser> _userManager;
+    private readonly LinieTrainRepository _linieTrainRepository;
 
-    public LinienService(IMapper mapper, LinienRepository linienRepository, LinienKonfigurationRepository linienKonfigurationRepository, DbTransactionFactory dbTransactionFactory, UserManager<ApplicationUser> userManager)
+    public LinienService(IMapper mapper, LinienRepository linienRepository, LinienKonfigurationRepository linienKonfigurationRepository, DbTransactionFactory dbTransactionFactory,
+        UserManager<ApplicationUser> userManager, LinieTrainRepository linieTrainRepository)
     {
         _mapper = mapper;
         _linienRepository = linienRepository;
         _linienKonfigurationRepository = linienKonfigurationRepository;
         _dbTransactionFactory = dbTransactionFactory;
         _userManager = userManager;
+        _linieTrainRepository = linieTrainRepository;
     }
 
     public override async Task<Empty> EditStreckenZuordnung(EditStreckenZuordnungRequest request, ServerCallContext context)
@@ -55,7 +59,9 @@ public class LinienService : Streckenbuch.Shared.Services.LinienService.LinienSe
             }
 
             await dbTransaction.Commit(context.CancellationToken);
-        };
+        }
+
+        ;
 
         return new Empty();
     }
@@ -68,13 +74,12 @@ public class LinienService : Streckenbuch.Shared.Services.LinienService.LinienSe
         {
             await _linienRepository.AddAsync(new Data.Entities.Linien.Linie()
             {
-                Nummer = request.Nummer,
-                Typ = (LinienTyp)request.Typ,
-                VonBetriebspunktId = request.VonBetriebspunktId,
-                BisBetriebspunktId = request.BisBetriebspunktId,
+                Nummer = request.Nummer, Typ = (LinienTyp)request.Typ, VonBetriebspunktId = request.VonBetriebspunktId, BisBetriebspunktId = request.BisBetriebspunktId,
             });
             await dbTransaction.Commit(context.CancellationToken);
-        };
+        }
+
+        ;
 
         return new Empty();
     }
@@ -86,5 +91,56 @@ public class LinienService : Streckenbuch.Shared.Services.LinienService.LinienSe
         response.Linien.Add(_mapper.Map<List<LinienProto>>(list));
 
         return response;
+    }
+
+    public override async Task<GetTrainNumberLinkResponse> GetTrainNumberLinked(GetTrainNumberLinkRequest request, ServerCallContext context)
+    {
+        var linieTrain = await _linieTrainRepository.FindByTrainNumberAsync(request.TrainNumber);
+
+        if (linieTrain is null)
+        {
+            return new GetTrainNumberLinkResponse()
+            {
+                LinieId = Guid.Empty, TrainNumber = -1, LinieTrainId = Guid.Empty
+            };
+        }
+
+        return new GetTrainNumberLinkResponse()
+        {
+            LinieTrainId = linieTrain.Id, LinieId = linieTrain.LinieId, TrainNumber = request.TrainNumber
+        };
+    }
+
+    public override async Task<GetTrainNumberLinkResponse> ChangeTrainNumberLink(ChangeTrainNumberLinkRequest request, ServerCallContext context)
+    {
+        await context.GetAuthenticatedUser(_userManager);
+
+        using (var dbTransaction = _dbTransactionFactory.CreateTransaction())
+        {
+            var linieTrain = await _linieTrainRepository.FindByTrainNumberAsync(request.TrainNumber);
+
+            if (linieTrain is null)
+            {
+                linieTrain = new LinieTrain()
+                {
+                    TrainNumber = request.TrainNumber,
+                    LinieId = request.LinieId
+                };
+
+                await _linieTrainRepository.AddAsync(linieTrain);
+            }
+            else
+            {
+                linieTrain.LinieId = request.LinieId;
+                await _linieTrainRepository.UpdateAsync(linieTrain);
+            }
+            
+            await dbTransaction.Commit(context.CancellationToken);
+
+            return new GetTrainNumberLinkResponse()
+            {
+                LinieId = request.LinieId, TrainNumber = request.TrainNumber, LinieTrainId = linieTrain.Id
+            };
+        }
     }
 }

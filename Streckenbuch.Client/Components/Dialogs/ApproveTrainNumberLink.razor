@@ -1,0 +1,99 @@
+﻿@inject LinienService.LinienServiceClient LinienService
+@inject BetriebspunkteService.BetriebspunkteServiceClient BetriebspunkteService
+
+<MudCard>
+    @if (TrainNumberLink.TrainNumber == -1)
+    {
+        <MudCardHeader>Zugnummer unbekannt</MudCardHeader>
+        <MudCardContent>
+            <MudText Typo="Typo.caption">Zugnummer wurde nicht gefunden, bitte Linie auswählen!</MudText>
+            <MudSelect T="LinienProto" ValueChanged="proto => TrainNumberLink.LinieId = proto.Id" Label="Linie">
+                @foreach (var item in _linien)
+                {
+                    <MudSelectItem Value="item">
+                        @(GetTyp((LinienTyp)item.Typ)) - @item.Nummer von @(_betriebspunkte.Single(x => ((Guid)x.Id).Equals(item.VonBetriebspunktId)).Name) bis @(_betriebspunkte.Single(x => ((Guid)x.Id).Equals(item.BisBetriebspunktId)).Name)
+                    </MudSelectItem>
+                }
+            </MudSelect>
+        </MudCardContent>
+    }
+    else
+    {
+        <MudCardHeader>Zugnummer gefunden</MudCardHeader>
+        <MudCardContent>
+            <MudText Typo="Typo.caption">Zugnummer wurde gefunden, bitte Linie bestätigen!</MudText>
+            <MudSelect T="LinienProto" Value="_linien.Single(x => x.Id.Equals(TrainNumberLink.LinieId))" ValueChanged="proto => TrainNumberLink.LinieId = proto.Id" Label="Linie">
+                @foreach (var item in _linien)
+                {
+                    <MudSelectItem Value="item">
+                        @(GetTyp((LinienTyp)item.Typ)) - @item.Nummer von @(_betriebspunkte.Single(x => ((Guid)x.Id).Equals(item.VonBetriebspunktId)).Name) bis @(_betriebspunkte.Single(x => ((Guid)x.Id).Equals(item.BisBetriebspunktId)).Name)
+                    </MudSelectItem>
+                }
+            </MudSelect>
+        </MudCardContent>
+    }
+    <MudCardActions>
+        <MudButtonGroup>
+            <MudButton Color="Color.Primary" OnClick="OnSubmitClicked">Submit</MudButton>
+        </MudButtonGroup>
+    </MudCardActions>
+</MudCard>
+
+
+@code {
+
+    [CascadingParameter]
+    private MudDialogInstance MudDialog { get; set; } = null!;
+
+    [Parameter]
+    public GetTrainNumberLinkResponse TrainNumberLink { get; set; } = null!;
+    
+    [Parameter]
+    public int TrainNumber { get; set; }
+
+    
+    private List<LinienProto> _linien = new List<LinienProto>();
+    private List<BetriebspunktProto> _betriebspunkte = new List<BetriebspunktProto>();
+    
+    protected async override Task OnInitializedAsync()
+    {
+        _linien = (await LinienService.GetAllLinienAsync(new Empty())).Linien.ToList();
+        _betriebspunkte = (await BetriebspunkteService.ListAllBetriebspunkteAsync(new Empty())).Betriebspunkte.ToList();
+    }
+
+    private string GetTyp(LinienTyp typ)
+    {
+        switch (typ)
+        {
+            case LinienTyp.SBahn:
+                return "S-Bahn";
+            case LinienTyp.RegioExpress:
+                return "RE";
+            case LinienTyp.InterRegio:
+                return "IR";
+            case LinienTyp.InterCity:
+                return "IC";
+            case LinienTyp.EuroCity:
+                return "EC";
+            case LinienTyp.NightJet:
+                return "NJ";
+            case LinienTyp.ICE:
+                return "ICE";
+            case LinienTyp.TGV:
+                return "TGV";
+            default:
+                return string.Empty;
+        }
+    }
+
+    private async Task OnSubmitClicked()
+    {
+        var response = await LinienService.ChangeTrainNumberLinkAsync(new ChangeTrainNumberLinkRequest()
+        {
+            TrainNumber = TrainNumber, LinieId = TrainNumberLink.LinieId
+        });
+        
+        MudDialog.Close(response.LinieTrainId);
+    }
+
+}

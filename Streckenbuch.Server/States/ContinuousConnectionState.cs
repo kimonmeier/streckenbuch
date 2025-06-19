@@ -28,18 +28,20 @@ public class ContinuousConnectionState
         {
             return;
         }
-
-        throw new Exception("Something went wrong");
+        
+        UnregisterTrain(clientId);
+        RegisterTrain(clientId, trainNumber);
     }
 
     public void UnregisterTrain(Guid clientId)
     {
-        if (_registeredTrains.TryRemove(clientId, out _))
-        {
-            return;
-        }
+        _registeredTrains.TryRemove(clientId, out _);
+    }
 
-        throw new Exception("Something went wrong");
+    public void DisconnectTrainOperator(Guid clientId)
+    {
+        _messageQeue.Remove(clientId, out _);
+        _registeredTrains.Remove(clientId, out _);
     }
 
     public void EnqueueMessageTrain(int trainNumber, IRequest<Unit> request)
