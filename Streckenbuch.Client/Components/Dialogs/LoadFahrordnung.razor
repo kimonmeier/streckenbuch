@@ -1,6 +1,7 @@
 ﻿@using Google.Protobuf.Collections
 @using Streckenbuch.Client.Components.Fahren
 @using Streckenbuch.Shared.Types
+@using Streckenbuch.Client.States
 @using System.Text
 @inject StreckenService.StreckenServiceClient StreckenService
 @inject LinienService.LinienServiceClient LinienService
@@ -8,6 +9,7 @@
 @inject FahrenService.FahrenServiceClient FahrenService
 @inject IMapper Mapper
 @inject IDialogService DialogService
+@inject ContinuousConnectionState ConnectionState
 
 <MudItem>
     <MudCard>
@@ -173,11 +175,11 @@
 
     private async Task<List<IBaseEntry>> RequestEntriesByTrainNumber()
     {
+        var selectedTrainNumber = _selectedTrainNumber!.Value;
         var trainNumberLinked = await LinienService.GetTrainNumberLinkedAsync(new GetTrainNumberLinkRequest()
         {
-            TrainNumber = _selectedTrainNumber!.Value
+            TrainNumber = selectedTrainNumber
         });
-
 
         var dialogParameters = new DialogParameters<ApproveTrainNumberLink>()
         {
@@ -185,7 +187,7 @@
                 x => x.TrainNumberLink, trainNumberLinked
             },
             {
-                x => x.TrainNumber, _selectedTrainNumber.Value
+                x => x.TrainNumber, selectedTrainNumber
             }
         };
 
@@ -199,6 +201,8 @@
 
         var response = await FahrenService.FahrenByTrainNumberAsync(requestByTrainNumber);
 
+        await ConnectionState.RegisterTrain(selectedTrainNumber);
+        
         return Mapper.Map<List<IBaseEntry>>(response.Entries);
     }
 

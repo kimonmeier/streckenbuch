@@ -11,6 +11,7 @@ public class ContinuousConnectionState
     private readonly FahrenService.FahrenServiceClient _fahrenServiceClient;
     private readonly Guid _id;
     private readonly ISender _sender;
+    private int? _registeredTrainNumber;
 
     public ContinuousConnectionState(FahrenService.FahrenServiceClient fahrenServiceClient, ISender sender)
     {
@@ -43,19 +44,37 @@ public class ContinuousConnectionState
 
     public async Task RegisterTrain(int trainNumber)
     {
+        if (_registeredTrainNumber is not null)
+        {
+            await UnregisterTrain(_registeredTrainNumber.Value);
+        }
+        
         await _fahrenServiceClient.RegisterOnTrainAsync(new RegisterOnTrainRequest()
         {
             ClientId = _id,
             TrainNumber = trainNumber
         });
+        _registeredTrainNumber = trainNumber;
     }
 
-    public async Task UnregisterTrain(int trainNumber)
+    public async Task UnregisterTrain()
+    {
+        if (_registeredTrainNumber is null)
+        {
+            return;
+        }
+
+        await UnregisterTrain(_registeredTrainNumber.Value);
+    }
+    
+    private async Task UnregisterTrain(int trainNumber)
     {
         await _fahrenServiceClient.UnregisterOnTrainAsync(new UnregisterOnTrainRequest()
         {
             ClientId = _id
         });
+
+        _registeredTrainNumber = null;
     }
     
     private void ProcessMessages(List<Message> messages)

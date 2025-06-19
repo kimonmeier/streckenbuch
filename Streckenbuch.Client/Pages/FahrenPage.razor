@@ -1,35 +1,40 @@
 ﻿@page "/fahren"
 @using Streckenbuch.Client.Components.Fahren
 @using Streckenbuch.Client.Services
-@inject FahrenService.FahrenServiceClient fahrenService
-@inject IDialogService dialogService
-@inject ScreenWakeLockService screenWakeLockService
+@using Streckenbuch.Client.States
+@inject FahrenService.FahrenServiceClient FahrenService
+@inject IDialogService DialogService
+@inject ScreenWakeLockService ScreenWakeLockService
+@inject ContinuousConnectionState ContinuousConnectionState
+@inject IJSRuntime Js
 @layout FahrenLayout
 @implements IDisposable
 
+<NavigationLock OnBeforeInternalNavigation=""></NavigationLock>
+
 <PageTitle>Fahren</PageTitle>
 
-<FahrenTimeLine FahrplanEntries="List"></FahrenTimeLine>
+<FahrenTimeLine FahrplanEntries="_list"></FahrenTimeLine>
 
 @code {
     [CascadingParameter]
     public FahrenLayout Layout { get; set; } = null!;
 
-    private List<IBaseEntry> List = new List<IBaseEntry>();
-    private WakeLockSentinel? lockSentinel = null;
+    private List<IBaseEntry> _list = new List<IBaseEntry>();
+    private WakeLockSentinel? _lockSentinel = null;
 
     protected async override Task OnInitializedAsync()
     {
         Layout.SelectRoute += SelectRoute;
 
-        lockSentinel = await screenWakeLockService.RequestWakeLockAsync();
+        _lockSentinel = await ScreenWakeLockService.RequestWakeLockAsync();
     }
 
     private void SelectRoute(object? source, EventArgs eventArgs)
     {
         Task.Run(async () =>
         {
-            var dialog = dialogService.Show<LoadFahrordnung>();
+            var dialog = DialogService.Show<LoadFahrordnung>();
             var result = await dialog.Result;
 
             if (result?.Data is not List<IBaseEntry> list)
@@ -37,7 +42,7 @@
                 throw new ArgumentException("Something is wrong");
             }
 
-            List = list;
+            _list = list;
             await InvokeAsync(StateHasChanged);
         });
     }
@@ -46,9 +51,11 @@
     {
         Layout.SelectRoute -= SelectRoute;
 
-        if (lockSentinel is not null)
+        if (_lockSentinel is not null)
         {
-            screenWakeLockService.ReleaseWakeLockAsync(lockSentinel).ConfigureAwait(false);
+            ScreenWakeLockService.ReleaseWakeLockAsync(_lockSentinel).ConfigureAwait(false);
         }
+
+        ContinuousConnectionState.UnregisterTrain().ConfigureAwait(false);
     }
 }
