@@ -17,4 +17,6 @@ public class Betriebspunkt : IEntity
     public string? Kommentar { get; set; }
 
     public BetriebspunktTyp Typ { get; set; }
+    
+    public int MikuId { get; set; }
 }
