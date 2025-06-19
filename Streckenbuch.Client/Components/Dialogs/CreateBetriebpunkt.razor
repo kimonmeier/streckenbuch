@@ -23,6 +23,8 @@
                             Haltestelle
                         </MudSelectItem>
                     </MudSelect>
+                    <MudTextField Label="Miku" Class="mt-3"
+                                  @bind-Value="model.MikuId" For="@(() => model.MikuId)"></MudTextField>
                     <MudCard>
                         <MudCardHeader>
                             <MudText Typo="Typo.h6">Ort auswählen</MudText>
@@ -62,6 +64,9 @@
 
         [Required]
         public BetriebspunktTyp BetriebspunktTyp { get; set; } = BetriebspunktTyp.Bahnhof;
+        
+        [Required]
+        public int MikuId { get; set; }
     }
 
     private class Location
@@ -88,7 +93,8 @@
                 {
                     Longitude = markerPosition.Lng,
                     Latitude = markerPosition.Lat
-                }
+                },
+                MikuId = model.MikuId
             });
 
         MudDialog.Close();

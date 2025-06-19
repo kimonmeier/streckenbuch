@@ -20,6 +20,9 @@
             Kommentar
         </MudTh>
         <MudTh>
+            Miku
+        </MudTh>
+        <MudTh>
             Ort
         </MudTh>
     </HeaderContent>
@@ -29,6 +32,9 @@
         </MudTd>
         <MudTd>
             @context.Kommentar
+        </MudTd>
+        <MudTd>
+            @context.MikuId
         </MudTd>
         <MudTd>
             <MudButton Color="Color.Secondary" OnClick="@(() => openLocationOnMaps(context))">Zeige Ort</MudButton>
