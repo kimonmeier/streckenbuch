@@ -19,6 +19,18 @@ public class FahrenRepository
         _dbContext = dbContext;
     }
 
+    public List<FahrenTransferEntry> ListEntriesByLinieTrain(Guid linieTrainId)
+    {
+        var linieTrain = _dbContext.Set<LinieTrain>().Single(x => x.Id.Equals(linieTrainId));
+
+        if (linieTrain is null)
+        {
+            throw new Exception("Something bad happened");
+        }
+
+        return ListEntriesByLinie(linieTrain.LinieId);
+    }
+
     public List<FahrenTransferEntry> ListEntriesByLinie(Guid linieId)
     {
         List<FahrenTransferEntry> entries = new();
