@@ -1,11 +1,15 @@
 ﻿@using Google.Protobuf.Collections
 @using Streckenbuch.Client.Components.Fahren
+@using Streckenbuch.Shared.Types
+@using Streckenbuch.Client.States
 @using System.Text
 @inject StreckenService.StreckenServiceClient StreckenService
 @inject LinienService.LinienServiceClient LinienService
 @inject BetriebspunkteService.BetriebspunkteServiceClient BetriebspunkteService
 @inject FahrenService.FahrenServiceClient FahrenService
 @inject IMapper Mapper
+@inject IDialogService DialogService
+@inject ContinuousConnectionState ConnectionState
 
 <MudItem>
     <MudCard>
@@ -14,6 +18,10 @@
         </MudCardHeader>
         <MudCardContent>
             <MudTabs @bind-ActivePanelIndex="_currentActiveIndex">
+                <MudTabPanel Text="Zugnummer">
+                    <MudTextField InputMode="InputMode.numeric" MaxLength="5" Placeholder="17325" Clearable="true"
+                                  @bind-Value="_selectedTrainNumber"></MudTextField>
+                </MudTabPanel>
                 <MudTabPanel Text="Linie">
                     <MudSelect T="LinienProto" @bind-Value="_selectedLinie" Label="Linie">
                         @foreach (var item in _linien)
@@ -62,6 +70,7 @@
     private List<FahrenStreckenEntryModel> _fahrenStreckenEntries = new List<FahrenStreckenEntryModel>();
     private int _currentActiveIndex = 0;
     private LinienProto? _selectedLinie;
+    private int? _selectedTrainNumber = null;
 
     private string? _errorMessage;
 
@@ -112,6 +121,10 @@
         List<IBaseEntry> entries;
         if (_currentActiveIndex == 0)
         {
+            entries = await RequestEntriesByTrainNumber();
+        }
+        else if (_currentActiveIndex == 1)
+        {
             entries = await RequestEntriesByLinie();
         }
         else
@@ -160,16 +173,54 @@
         return Mapper.Map<List<IBaseEntry>>(response.Entries);
     }
 
+    private async Task<List<IBaseEntry>> RequestEntriesByTrainNumber()
+    {
+        var selectedTrainNumber = _selectedTrainNumber!.Value;
+        var trainNumberLinked = await LinienService.GetTrainNumberLinkedAsync(new GetTrainNumberLinkRequest()
+        {
+            TrainNumber = selectedTrainNumber
+        });
+
+        var dialogParameters = new DialogParameters<ApproveTrainNumberLink>()
+        {
+            {
+                x => x.TrainNumberLink, trainNumberLinked
+            },
+            {
+                x => x.TrainNumber, selectedTrainNumber
+            }
+        };
+
+        var result = await DialogService.Show<ApproveTrainNumberLink>("Zugnummer", dialogParameters).Result;
+
+        var linieTrainId = result.Data as GuidProto;
+        FahrenRequestByTrainNumber requestByTrainNumber = new FahrenRequestByTrainNumber()
+        {
+            LinieTrainId = linieTrainId
+        };
+
+        var response = await FahrenService.FahrenByTrainNumberAsync(requestByTrainNumber);
+
+        await ConnectionState.RegisterTrain(selectedTrainNumber);
+        
+        return Mapper.Map<List<IBaseEntry>>(response.Entries);
+    }
+
     private bool Validate()
     {
         StringBuilder builder = new();
         if (_currentActiveIndex == 0)
         {
-            validateLinie(builder);
+            ValidateTrainNumber(builder);
+        }
+        else if (_currentActiveIndex == 1)
+        {
+         
+            ValidateLinie(builder);   
         }
         else
         {
-            validateStrecken(builder);
+            ValidateStrecken(builder);
         }
 
         _errorMessage = builder.ToString();
@@ -177,7 +228,7 @@
         return string.IsNullOrEmpty(_errorMessage);
     }
 
-    private void validateStrecken(StringBuilder builder)
+    private void ValidateStrecken(StringBuilder builder)
     {
         if (!_fahrenStreckenEntries.Any())
         {
@@ -208,7 +259,7 @@
         }
     }
 
-    private void validateLinie(StringBuilder builder)
+    private void ValidateLinie(StringBuilder builder)
     {
         if (_selectedLinie is not null)
         {
@@ -216,6 +267,16 @@
         }
 
         builder.AppendLine("Es wurde keine Linie ausgewählt!");
+    }
+
+    private void ValidateTrainNumber(StringBuilder builder)
+    {
+        if (_selectedTrainNumber.HasValue)
+        {
+            return;
+        }
+
+        builder.AppendLine("Es wurde kein Zugnummer eingegeben!");
     }
 
     private void Cancel()

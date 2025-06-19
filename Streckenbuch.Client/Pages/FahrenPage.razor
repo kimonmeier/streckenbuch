@@ -1,35 +1,51 @@
 ﻿@page "/fahren"
+@using blazejewicz.Blazor.BeforeUnload
 @using Streckenbuch.Client.Components.Fahren
 @using Streckenbuch.Client.Services
-@inject FahrenService.FahrenServiceClient fahrenService
-@inject IDialogService dialogService
-@inject ScreenWakeLockService screenWakeLockService
+@using Streckenbuch.Client.States
+@inject FahrenService.FahrenServiceClient FahrenService
+@inject IDialogService DialogService
+@inject ScreenWakeLockService ScreenWakeLockService
+@inject ContinuousConnectionState ConnectionState
+@inject BeforeUnload BeforeUnload
 @layout FahrenLayout
 @implements IDisposable
 
 <PageTitle>Fahren</PageTitle>
 
-<FahrenTimeLine FahrplanEntries="List"></FahrenTimeLine>
+<FahrenTimeLine FahrplanEntries="_list"></FahrenTimeLine>
 
 @code {
     [CascadingParameter]
     public FahrenLayout Layout { get; set; } = null!;
 
-    private List<IBaseEntry> List = new List<IBaseEntry>();
-    private WakeLockSentinel? lockSentinel = null;
+    private List<IBaseEntry> _list = new List<IBaseEntry>();
+    private WakeLockSentinel? _lockSentinel = null;
 
     protected async override Task OnInitializedAsync()
     {
+        BeforeUnload.BeforeUnloadHandler += BeforeUnloadOnBeforeUnloadHandler;
+        
         Layout.SelectRoute += SelectRoute;
 
-        lockSentinel = await screenWakeLockService.RequestWakeLockAsync();
+        _lockSentinel = await ScreenWakeLockService.RequestWakeLockAsync();
+    }
+
+    private void BeforeUnloadOnBeforeUnloadHandler(object? sender, BeforeUnloadArgs e)
+    {
+        Layout.SelectRoute -= SelectRoute;
+
+        if (_lockSentinel is not null)
+        {
+            ScreenWakeLockService.ReleaseWakeLockAsync(_lockSentinel).ConfigureAwait(false);
+        }
     }
 
     private void SelectRoute(object? source, EventArgs eventArgs)
     {
         Task.Run(async () =>
         {
-            var dialog = dialogService.Show<LoadFahrordnung>();
+            var dialog = DialogService.Show<LoadFahrordnung>();
             var result = await dialog.Result;
 
             if (result?.Data is not List<IBaseEntry> list)
@@ -37,18 +53,16 @@
                 throw new ArgumentException("Something is wrong");
             }
 
-            List = list;
+            _list = list;
             await InvokeAsync(StateHasChanged);
         });
     }
     
     public void Dispose()
-    {
-        Layout.SelectRoute -= SelectRoute;
+    {        
+        BeforeUnload.BeforeUnloadHandler -= BeforeUnloadOnBeforeUnloadHandler;
 
-        if (lockSentinel is not null)
-        {
-            screenWakeLockService.ReleaseWakeLockAsync(lockSentinel).ConfigureAwait(false);
-        }
+        BeforeUnloadOnBeforeUnloadHandler(null, null!);
+        ConnectionState.UnregisterTrain().ConfigureAwait(false);
     }
 }

@@ -38,6 +38,7 @@ public static class ConfigureServices
         services.AddTransient<FahrenRepository>();
         services.AddTransient<LinienRepository>();
         services.AddTransient<LinienKonfigurationRepository>();
+        services.AddTransient<LinieTrainRepository>();
     }
 
     public static async Task CreateRoles(this IServiceProvider provider)

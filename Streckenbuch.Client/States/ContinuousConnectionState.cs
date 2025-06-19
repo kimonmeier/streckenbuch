@@ -1,4 +1,5 @@
-﻿using Grpc.Core;
+﻿using blazejewicz.Blazor.BeforeUnload;
+using Grpc.Core;
 using MediatR;
 using Streckenbuch.Shared;
 using Streckenbuch.Shared.Services;
@@ -11,12 +12,21 @@ public class ContinuousConnectionState
     private readonly FahrenService.FahrenServiceClient _fahrenServiceClient;
     private readonly Guid _id;
     private readonly ISender _sender;
+    private int? _registeredTrainNumber;
 
-    public ContinuousConnectionState(FahrenService.FahrenServiceClient fahrenServiceClient, ISender sender)
+    public ContinuousConnectionState(FahrenService.FahrenServiceClient fahrenServiceClient, ISender sender, BeforeUnload beforeUnload)
     {
         _fahrenServiceClient = fahrenServiceClient;
         _sender = sender;
         _id = Guid.NewGuid();
+        
+        beforeUnload.BeforeUnloadHandler += BeforeUnloadOnBeforeUnloadHandler;
+    }
+
+    private void BeforeUnloadOnBeforeUnloadHandler(object? sender, BeforeUnloadArgs e)
+    {
+        UnregisterTrain().ConfigureAwait(false);
+        _fahrenServiceClient.DisconnectClientAsync(new DisconnectClientRequest() { ClientId = _id }).ConfigureAwait(false);
     }
 
     public void StartBackgroundTask(CancellationToken cancellationToken)
@@ -43,19 +53,37 @@ public class ContinuousConnectionState
 
     public async Task RegisterTrain(int trainNumber)
     {
+        if (_registeredTrainNumber is not null)
+        {
+            await UnregisterTrain(_registeredTrainNumber.Value);
+        }
+        
         await _fahrenServiceClient.RegisterOnTrainAsync(new RegisterOnTrainRequest()
         {
             ClientId = _id,
             TrainNumber = trainNumber
         });
+        _registeredTrainNumber = trainNumber;
     }
 
-    public async Task UnregisterTrain(int trainNumber)
+    public async Task UnregisterTrain()
+    {
+        if (_registeredTrainNumber is null)
+        {
+            return;
+        }
+
+        await UnregisterTrain(_registeredTrainNumber.Value);
+    }
+    
+    private async Task UnregisterTrain(int trainNumber)
     {
         await _fahrenServiceClient.UnregisterOnTrainAsync(new UnregisterOnTrainRequest()
         {
             ClientId = _id
         });
+
+        _registeredTrainNumber = null;
     }
     
     private void ProcessMessages(List<Message> messages)
