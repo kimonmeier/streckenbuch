@@ -124,14 +124,17 @@ public class LinienService : Streckenbuch.Shared.Services.LinienService.LinienSe
                 linieTrain = new LinieTrain()
                 {
                     TrainNumber = request.TrainNumber,
+                    LinieId = request.LinieId
                 };
 
                 await _linieTrainRepository.AddAsync(linieTrain);
             }
-
-            linieTrain.LinieId = request.LinieId;
-
-            await _linieTrainRepository.UpdateAsync(linieTrain);
+            else
+            {
+                linieTrain.LinieId = request.LinieId;
+                await _linieTrainRepository.UpdateAsync(linieTrain);
+            }
+            
             await dbTransaction.Commit(context.CancellationToken);
 
             return new GetTrainNumberLinkResponse()
