@@ -13,6 +13,11 @@ service FahrenService {
 	rpc CaptureRealtimeMessages (CaptureMessage) returns (CaptureMessageResponse);
 	rpc RegisterOnTrain (RegisterOnTrainRequest) returns (google.protobuf.Empty);
 	rpc UnregisterOnTrain (UnregisterOnTrainRequest) returns (google.protobuf.Empty);
+	rpc DisconnectClient (DisconnectClientRequest) returns (google.protobuf.Empty);
+}
+
+message DisconnectClientRequest {
+	Types.GuidProto clientId = 1;
 }
 
 message RegisterOnTrainRequest {

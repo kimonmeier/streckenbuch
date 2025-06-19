@@ -1,4 +1,5 @@
-﻿using Grpc.Core;
+﻿using blazejewicz.Blazor.BeforeUnload;
+using Grpc.Core;
 using MediatR;
 using Streckenbuch.Shared;
 using Streckenbuch.Shared.Services;
@@ -6,18 +7,26 @@ using System.Text.Json;
 
 namespace Streckenbuch.Client.States;
 
-public class ContinuousConnectionState : IDisposable
+public class ContinuousConnectionState
 {
     private readonly FahrenService.FahrenServiceClient _fahrenServiceClient;
     private readonly Guid _id;
     private readonly ISender _sender;
     private int? _registeredTrainNumber;
 
-    public ContinuousConnectionState(FahrenService.FahrenServiceClient fahrenServiceClient, ISender sender)
+    public ContinuousConnectionState(FahrenService.FahrenServiceClient fahrenServiceClient, ISender sender, BeforeUnload beforeUnload)
     {
         _fahrenServiceClient = fahrenServiceClient;
         _sender = sender;
         _id = Guid.NewGuid();
+        
+        beforeUnload.BeforeUnloadHandler += BeforeUnloadOnBeforeUnloadHandler;
+    }
+
+    private void BeforeUnloadOnBeforeUnloadHandler(object? sender, BeforeUnloadArgs e)
+    {
+        UnregisterTrain().ConfigureAwait(false);
+        _fahrenServiceClient.DisconnectClientAsync(new DisconnectClientRequest() { ClientId = _id }).ConfigureAwait(false);
     }
 
     public void StartBackgroundTask(CancellationToken cancellationToken)
@@ -91,10 +100,5 @@ public class ContinuousConnectionState : IDisposable
             
             _sender.Send(deserializedEvent);
         }
-    }
-
-    public void Dispose()
-    {
-        UnregisterTrain().ConfigureAwait(false);
     }
 }

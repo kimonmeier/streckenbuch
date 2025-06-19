@@ -8,6 +8,7 @@ using Streckenbuch.Shared.Services;
 
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
 
+builder.Services.AddBeforeUnload();
 builder.Services.AddAuthorizationCore();
 builder.Services.AddCascadingAuthenticationState();
 builder.Services.AddSingleton<AuthenticationStateProvider, PersistentAuthenticationStateProvider>();

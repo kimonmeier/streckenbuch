@@ -106,6 +106,13 @@ public class FahrenService : Streckenbuch.Shared.Services.FahrenService.FahrenSe
         return Task.FromResult(new Empty());
     }
 
+    public override Task<Empty> DisconnectClient(DisconnectClientRequest request, ServerCallContext context)
+    {
+        _continuousConnection.DisconnectTrainOperator(request.ClientId);
+        
+        return Task.FromResult(new Empty());
+    }
+
     private List<FahrenTransferEntry> GetTrimmedEntries(FahrenRequestStrecke strecke)
     {
         var entries = _fahrenRepository.ListEntriesByStrecke(strecke.StreckenKonfigurationId);

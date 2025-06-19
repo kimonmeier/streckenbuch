@@ -1,10 +1,13 @@
 ﻿@page "/fahren"
+@using blazejewicz.Blazor.BeforeUnload
 @using Streckenbuch.Client.Components.Fahren
 @using Streckenbuch.Client.Services
 @using Streckenbuch.Client.States
 @inject FahrenService.FahrenServiceClient FahrenService
 @inject IDialogService DialogService
 @inject ScreenWakeLockService ScreenWakeLockService
+@inject ContinuousConnectionState ConnectionState
+@inject BeforeUnload BeforeUnload
 @layout FahrenLayout
 @implements IDisposable
 
@@ -21,9 +24,21 @@
 
     protected async override Task OnInitializedAsync()
     {
+        BeforeUnload.BeforeUnloadHandler += BeforeUnloadOnBeforeUnloadHandler;
+        
         Layout.SelectRoute += SelectRoute;
 
         _lockSentinel = await ScreenWakeLockService.RequestWakeLockAsync();
+    }
+
+    private void BeforeUnloadOnBeforeUnloadHandler(object? sender, BeforeUnloadArgs e)
+    {
+        Layout.SelectRoute -= SelectRoute;
+
+        if (_lockSentinel is not null)
+        {
+            ScreenWakeLockService.ReleaseWakeLockAsync(_lockSentinel).ConfigureAwait(false);
+        }
     }
 
     private void SelectRoute(object? source, EventArgs eventArgs)
@@ -44,12 +59,10 @@
     }
     
     public void Dispose()
-    {
-        Layout.SelectRoute -= SelectRoute;
+    {        
+        BeforeUnload.BeforeUnloadHandler -= BeforeUnloadOnBeforeUnloadHandler;
 
-        if (_lockSentinel is not null)
-        {
-            ScreenWakeLockService.ReleaseWakeLockAsync(_lockSentinel).ConfigureAwait(false);
-        }
+        BeforeUnloadOnBeforeUnloadHandler(null, null!);
+        ConnectionState.UnregisterTrain().ConfigureAwait(false);
     }
 }
