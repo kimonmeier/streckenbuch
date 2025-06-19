@@ -9,6 +9,7 @@ import "Types/location.proto";
 service FahrenService {
 	rpc FahrenByStrecken (FahrenRequestByStrecken) returns (FahrenResponse);
 	rpc FahrenByLinie (FahrenRequestByLinie) returns (FahrenResponse);
+	rpc FahrenByTrainNumber (FahrenRequestByTrainNumber) returns (FahrenResponse);
 	rpc CaptureRealtimeMessages (CaptureMessage) returns (CaptureMessageResponse);
 	rpc RegisterOnTrain (RegisterOnTrainRequest) returns (google.protobuf.Empty);
 	rpc UnregisterOnTrain (UnregisterOnTrainRequest) returns (google.protobuf.Empty);
@@ -55,6 +56,10 @@ message FahrenRequestStrecke {
 
 message FahrenRequestByLinie {
 	Types.GuidProto linieId = 1;
+}
+
+message FahrenRequestByTrainNumber {
+	Types.GuidProto linieTrainId = 1;
 }
 
 message FahrenResponse {

@@ -9,6 +9,24 @@ service LinienService {
 	rpc GetAllLinien(google.protobuf.Empty) returns (GetAllLinienResponse);
 	rpc CreateLinie(CreateLinieRequest) returns (google.protobuf.Empty);
 	rpc EditStreckenZuordnung(EditStreckenZuordnungRequest) returns (google.protobuf.Empty);
+	rpc GetTrainNumberLinked(GetTrainNumberLinkRequest) returns (GetTrainNumberLinkResponse);
+	rpc ChangeTrainNumberLink(ChangeTrainNumberLinkRequest) returns (GetTrainNumberLinkResponse);
+}
+
+message GetTrainNumberLinkRequest {
+	int32 trainNumber = 1;
+}
+
+message GetTrainNumberLinkResponse {
+	Types.GuidProto linieTrainId = 1;
+	Types.GuidProto linieId = 2;
+	int32 trainNumber = 3;
+}
+
+message ChangeTrainNumberLinkRequest {
+	Types.GuidProto linieId = 1;
+	optional Types.GuidProto linieTrainId = 2;
+	int32 trainNumber = 3;
 }
 
 message GetAllLinienResponse {
