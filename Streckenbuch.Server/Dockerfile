@@ -14,6 +14,7 @@ FROM mcr.microsoft.com/dotnet/sdk:9.0-noble AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
 COPY ["Streckenbuch.Server/Streckenbuch.Server.csproj", "Streckenbuch.Server/"]
+COPY ["Streckenbuch.Miku/Streckenbuch.Miku.csproj", "Streckenbuch.Miku/"]
 COPY ["Streckenbuch.Client/Streckenbuch.Client.csproj", "Streckenbuch.Client/"]
 COPY ["Streckenbuch.Shared/Streckenbuch.Shared.csproj", "Streckenbuch.Shared/"]
 RUN dotnet restore "./Streckenbuch.Server/Streckenbuch.Server.csproj"
