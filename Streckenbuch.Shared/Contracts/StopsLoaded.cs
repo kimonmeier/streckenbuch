@@ -1,6 +1,10 @@
-﻿namespace Streckenbuch.Shared.Contracts;
+﻿using System.Text.Json.Serialization;
+
+namespace Streckenbuch.Shared.Contracts;
 
 public class StopsLoaded : IRequest<Unit>
 {
-    public required List<Guid> BetriebspunkteId { get; set; }
+    [JsonPropertyName("betriebspunkteId")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.Never)]
+    public required List<Guid> BetriebspunkteId { get; set; } = new List<Guid>();
 }

@@ -90,15 +90,21 @@ public class ContinuousConnectionState
     {
         foreach (Message message in messages)
         {
-            Type? type = typeof(SharedAssemblyDefinition).Assembly.GetType(message.Type);
-            object? deserializedEvent = JsonSerializer.Deserialize(message.Data.ToByteArray(), type);
-
-            if (deserializedEvent is null)
+            try
             {
-                throw new Exception("Unknown message type");
+                Type? type = typeof(SharedAssemblyDefinition).Assembly.GetType(message.Type);
+                object? deserializedEvent = JsonSerializer.Deserialize(message.Data, type);
+
+                if (deserializedEvent is null)
+                {
+                    throw new Exception("Unknown message type");
+                }
+
+                _sender.Send(deserializedEvent);
+            } catch (Exception e)
+            {
+                Console.WriteLine(e);
             }
-            
-            _sender.Send(deserializedEvent);
         }
     }
 }

@@ -1,6 +1,8 @@
-﻿using Microsoft.JSInterop;
+﻿using MediatR;
+using Microsoft.JSInterop;
 using Streckenbuch.Client.Extensions;
 using Streckenbuch.Client.Models.Fahren;
+using Streckenbuch.Client.Models.Fahren.Betriebspunkt;
 using Streckenbuch.Shared.Models;
 
 namespace Streckenbuch.Client.Services;
@@ -13,6 +15,13 @@ public class FahrenPositionService
     private List<GeolocationPosition> _lastPositions = default!;
     private Action<Action> _beforeUpdateAction = default!;
     private readonly SemaphoreSlim _semaphoreSlim = new SemaphoreSlim(1, 1);
+    private readonly List<Guid> _stops = new List<Guid>();
+    private readonly ISender _sender;
+
+    public FahrenPositionService(ISender sender)
+    {
+        _sender = sender;
+    }
 
 
     public List<IBaseEntry> Initialize(List<IBaseEntry> fahrplanEntries, Action<Action> beforeUpdateAction)
@@ -75,6 +84,14 @@ public class FahrenPositionService
 
             throw;
         }
+    }
+
+    public void SetStops(List<Guid> betriebspunktId)
+    {
+        _stops.Clear();
+        _stops.AddRange(betriebspunktId);
+
+        _stops.RemoveAll(stopId => !_currentEntries.Where(x => x is IBetriebspunktEntry).Any(entry => (entry as IBetriebspunktEntry)!.Id.Equals(stopId)));
     }
 
     private bool HasValidEntries()

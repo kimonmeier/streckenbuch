@@ -20,8 +20,8 @@ public class LinieTrainConfiguration : IEntityTypeConfiguration<LinieTrain>
 
         builder
             .HasOne(x => x.Linie)
-            .WithOne()
-            .HasForeignKey<LinieTrain>(x => x.LinieId);
+            .WithMany()
+            .HasForeignKey(x => x.LinieId);
 
         builder
             .HasIndex(x => x.TrainNumber)

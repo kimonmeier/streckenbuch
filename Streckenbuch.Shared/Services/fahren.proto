@@ -39,12 +39,12 @@ message CaptureMessageResponse {
 
 message Message {
 	string type = 1;
-	bytes data = 2;
+	string data = 2;
 }
 
 message StartStreamResponse {
 	string dataType = 1;
-	bytes jsonData = 2;
+	string jsonData = 2;
 }
 
 message FahrenRequestByStrecken {
@@ -79,4 +79,5 @@ message FahrenEntry {
 	optional string kommentar = 5;
 	optional int32 signalTyp = 6;
 	optional int32 displaySeite = 7;
+	optional Types.GuidProto betriebspunktId = 8;
 }

@@ -43,6 +43,9 @@ public class BetriebspunktAusfall : IEquatable<BetriebspunktAusfall>
 {
     [JsonPropertyName("bpUic")]
     public int BetriebspunktId { get; set; }
+    
+    [JsonPropertyName("bezOff")]
+    public string Bezeichung { get; set; }
 
     public bool Equals(BetriebspunktAusfall? other)
     {
@@ -104,7 +107,7 @@ public class Fahrt : IEquatable<Fahrt>
     public Ersatz? Ersatz { get; set; }
 
     [JsonPropertyName("zuglaeufe")]
-    public List<Zuglauf> Zuglaeufe { get; } = new List<Zuglauf>();
+    public List<Zuglauf> Zuglaeufe { get; set; } = new List<Zuglauf>();
 
     public bool Equals(Fahrt? other)
     {
@@ -143,13 +146,13 @@ public class Haltestellen : IEquatable<Haltestellen>
     public string Bezeichnung { get; set; }
 
     [JsonPropertyName("flags")]
-    public List<Flags> Flags { get; } = new List<Flags>();
+    public List<Flags>? Flags { get; set; }
 
     [JsonPropertyName("abfahrtszeiten")]
-    public Zeiten Abfahrtszeiten { get; set; }
+    public Zeiten? Abfahrtszeiten { get; set; }
 
     [JsonPropertyName("ankunftszeiten")]
-    public Zeiten Ankunftszeiten { get; set; }
+    public Zeiten? Ankunftszeiten { get; set; }
 
     [JsonPropertyName("verspaetungsgrund")]
     public MehrsprachigerText? Verspaetungsgrund { get; set; }
@@ -166,9 +169,9 @@ public class Haltestellen : IEquatable<Haltestellen>
         return BetriebspunktId == other.BetriebspunktId &&
                Abkuerzung == other.Abkuerzung &&
                Bezeichnung == other.Bezeichnung &&
-               Flags.SequenceEqual(other.Flags) &&
-               Abfahrtszeiten.Equals(other.Abfahrtszeiten) &&
-               Ankunftszeiten.Equals(other.Ankunftszeiten) &&
+               ((Flags != null && other.Flags != null && Flags.SequenceEqual(other.Flags)) || Flags == other.Flags) &&
+               ((Abfahrtszeiten == null && other.Abfahrtszeiten == null) || (Abfahrtszeiten != null && Abfahrtszeiten.Equals(other.Abfahrtszeiten))) &&
+               ((Ankunftszeiten == null && other.Ankunftszeiten == null) || (Ankunftszeiten != null && Ankunftszeiten.Equals(other.Ankunftszeiten))) &&
                ((Verspaetungsgrund == null && other.Verspaetungsgrund == null) || (Verspaetungsgrund != null && Verspaetungsgrund.Equals(other.Verspaetungsgrund))) &&
                ((Ausfallgrund == null && other.Ausfallgrund == null) || (Ausfallgrund != null && Ausfallgrund.Equals(other.Ausfallgrund))) &&
                Ersatz == other.Ersatz;
@@ -181,7 +184,7 @@ public class FahrtenRoot : IEquatable<FahrtenRoot>
     public DateTime ServerZeit { get; set; }
 
     [JsonPropertyName("fahrten")]
-    public List<Fahrt> Fahrten { get; } = new List<Fahrt>();
+    public List<Fahrt> Fahrten { get; set; } = new List<Fahrt>();
 
     public bool Equals(FahrtenRoot? other)
     {
@@ -197,7 +200,7 @@ public class Zuglauf : IEquatable<Zuglauf>
     public FahrtId FahrtId { get; set; }
 
     [JsonPropertyName("haltestellen")]
-    public List<Haltestellen> Haltestellen { get; } = new List<Haltestellen>();
+    public List<Haltestellen> Haltestellen { get; set; } = new List<Haltestellen>();
 
     public bool Equals(Zuglauf? other)
     {

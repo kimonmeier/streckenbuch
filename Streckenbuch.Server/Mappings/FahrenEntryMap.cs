@@ -29,7 +29,8 @@ public class FahrenEntryMap : IMap<FahrenTransferEntry, FahrenEntry>, IMap<Betri
                 opt.MapFrom(src => src.NonStandardKommentar);
             })
             .ForMember(dest => dest.Name, opt => opt.Ignore())
-            .ForMember(dest => dest.BetriebspunktTyp, opt => opt.Ignore());
+            .ForMember(dest => dest.BetriebspunktTyp, opt => opt.Ignore())
+            .ForMember(dest => dest.BetriebspunktId, opt => opt.Ignore());
     }
 
     public void Mapping(IMappingExpression<Betriebspunkt, FahrenEntry> mapping)
@@ -44,6 +45,7 @@ public class FahrenEntryMap : IMap<FahrenTransferEntry, FahrenEntry>, IMap<Betri
             })
             .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.Name))
             .ForMember(dest => dest.Location, opt => opt.MapFrom(src => src.Location))
+            .ForMember(dest => dest.BetriebspunktId, opt => opt.MapFrom(src => src.Id))
             .ForMember(dest => dest.DisplaySeite, opt => opt.Ignore())
             .ForMember(dest => dest.SignalTyp, opt => opt.Ignore());
     }

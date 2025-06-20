@@ -16,11 +16,11 @@ public class ContinuousConnectionState
     private readonly ConcurrentDictionary<Guid, int> _registeredTrains = new();
     private readonly Dictionary<Guid, List<Haltestellen>> _processedHaltestellen = new Dictionary<Guid, List<Haltestellen>>();
 
-    private readonly BetriebspunkteRepository _betriebspunkteRepository;
+    private readonly IServiceProvider _serviceProvider;
 
-    public ContinuousConnectionState(BetriebspunkteRepository betriebspunkteRepository)
+    public ContinuousConnectionState(IServiceProvider serviceProvider)
     {
-        _betriebspunkteRepository = betriebspunkteRepository;
+        _serviceProvider = serviceProvider;
     }
 
     public IReadOnlyList<Guid> GetRegisteredClients()
@@ -79,7 +79,7 @@ public class ContinuousConnectionState
 
             Message message = new Message()
             {
-                Type = request.GetType().FullName, Data = ByteString.CopyFrom(JsonSerializer.SerializeToUtf8Bytes(request))
+                Type = request.GetType().FullName, Data = JsonSerializer.Serialize(request, request.GetType())
             };
 
             messages.Add(message);
@@ -90,13 +90,16 @@ public class ContinuousConnectionState
 
     public async Task ProcessMikuInformation(Guid clientId, List<Haltestellen> haltestellen)
     {
+        using var scope = _serviceProvider.CreateScope();
+        var betriebspunkteRepository = scope.ServiceProvider.GetRequiredService<BetriebspunkteRepository>();
+        
         if (!_processedHaltestellen.TryGetValue(clientId, out var oldHaltestellen))
         {
             _processedHaltestellen.Add(clientId, haltestellen);
 
             EnqueueMessageClient(clientId, new StopsLoaded()
             {
-                BetriebspunkteId = await _betriebspunkteRepository.ListIdsByMikuIds(haltestellen.Select(x => x.BetriebspunktId).ToList())
+                BetriebspunkteId = await betriebspunkteRepository.ListIdsByMikuIds(haltestellen.Select(x => x.BetriebspunktId).ToList())
             });
 
             return;
@@ -122,25 +125,25 @@ public class ContinuousConnectionState
 
         foreach (Haltestellen addedHaltestelle in added)
         {
-            await EnqueueStopAddedMessageAsync(clientId, addedHaltestelle);
+            await EnqueueStopAddedMessageAsync(clientId, addedHaltestelle, betriebspunkteRepository);
         }
 
         foreach (Haltestellen removedHaltestelle in removed)
         {
-            await HandleStopRemovedMessageAsync(clientId, removedHaltestelle);
+            await HandleStopRemovedMessageAsync(clientId, removedHaltestelle, betriebspunkteRepository);
         }
 
         foreach (Haltestellen changedHaltestellen in changed)
         {
-            await HandleChangedMessageAsync(clientId, changedHaltestellen, oldStops[changedHaltestellen.BetriebspunktId], haltestellen[haltestellen.IndexOf(changedHaltestellen) - 1]);
+            await HandleChangedMessageAsync(clientId, changedHaltestellen, oldStops[changedHaltestellen.BetriebspunktId], haltestellen[haltestellen.IndexOf(changedHaltestellen) - 1], betriebspunkteRepository);
         }
 
         _processedHaltestellen[clientId] = haltestellen;
     }
 
-    private async Task EnqueueStopAddedMessageAsync(Guid clientId, Haltestellen addedHaltestelle)
+    private async Task EnqueueStopAddedMessageAsync(Guid clientId, Haltestellen addedHaltestelle, BetriebspunkteRepository betriebspunkteRepository)
     {
-        var betriebspunktId = await _betriebspunkteRepository.GetIdByMikuId(addedHaltestelle.BetriebspunktId);
+        var betriebspunktId = await betriebspunkteRepository.GetIdByMikuId(addedHaltestelle.BetriebspunktId);
 
         EnqueueMessageClient(clientId, new StopAdded()
         {
@@ -148,9 +151,9 @@ public class ContinuousConnectionState
         });
     }
 
-    private async Task HandleStopRemovedMessageAsync(Guid clientId, Haltestellen removedHaltestelle)
+    private async Task HandleStopRemovedMessageAsync(Guid clientId, Haltestellen removedHaltestelle, BetriebspunkteRepository betriebspunkteRepository)
     {
-        var betriebspunktId = await _betriebspunkteRepository.GetIdByMikuId(removedHaltestelle.BetriebspunktId);
+        var betriebspunktId = await betriebspunkteRepository.GetIdByMikuId(removedHaltestelle.BetriebspunktId);
 
         EnqueueMessageClient(clientId, new StopRemoved()
         {
@@ -158,9 +161,9 @@ public class ContinuousConnectionState
         });
     }
 
-    private async Task HandleChangedMessageAsync(Guid clientId, Haltestellen changedHaltestelle, Haltestellen oldHaltestelle, Haltestellen previousHaltestelle)
+    private async Task HandleChangedMessageAsync(Guid clientId, Haltestellen changedHaltestelle, Haltestellen oldHaltestelle, Haltestellen previousHaltestelle, BetriebspunkteRepository betriebspunkteRepository)
     {
-        var betriebspunktId = await _betriebspunkteRepository.GetIdByMikuId(changedHaltestelle.BetriebspunktId);
+        var betriebspunktId = await betriebspunkteRepository.GetIdByMikuId(changedHaltestelle.BetriebspunktId);
 
         HandleStopCancellation(clientId, changedHaltestelle, oldHaltestelle, betriebspunktId);
         HandleStopDelay(clientId, changedHaltestelle, oldHaltestelle, betriebspunktId, previousHaltestelle);

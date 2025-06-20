@@ -5,6 +5,9 @@ namespace Streckenbuch.Client.Models.Fahren.Betriebspunkt;
 
 public class HaltestelleEntry : IBetriebspunktEntry
 {
+
+    public Guid Id { get; set; }
+    
     public EntryType Type => EntryType.Betriebspunkt;
 
     public BetriebspunktTyp BetriebspunktTyp => BetriebspunktTyp.Haltestelle;
