@@ -15,4 +15,9 @@ public class BetriebspunkteRepository : GenericRepository<Betriebspunkt>
     {
         return Entities.Join(mikuIds, x => x.MikuId, y => y, (x, y) => x.Id).ToListAsync();
     }
+
+    public async Task<Guid> GetIdByMikuId(int mikuId)
+    {
+        return (await Entities.FirstOrDefaultAsync(x => x.MikuId == mikuId))?.Id ?? Guid.Empty;
+    }
 }

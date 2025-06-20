@@ -1,7 +1,6 @@
-﻿namespace Streckenbuch.Miku.Models.Fahrten
+﻿namespace Streckenbuch.Miku.Models.Fahrten;
+
+public enum Flags
 {
-    public enum Flags
-    {
-        AUSFALL
-    }
+    AUSFALL
 }

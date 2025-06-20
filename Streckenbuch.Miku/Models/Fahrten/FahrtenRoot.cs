@@ -1,39 +1,19 @@
 ﻿using System.Text.Json.Serialization;
 
 namespace Streckenbuch.Miku.Models.Fahrten;
-
-public class Abfahrtszeiten : IEquatable<Abfahrtszeiten>
+public class Zeiten : IEquatable<Zeiten>
 {
     [JsonPropertyName("verspaetung")]
-    public int Verspaetung { get; set; }
+    public int? Verspaetung { get; set; }
 
     [JsonPropertyName("verspaetungPrefix")]
-    public string VerspaetungPrefix { get; set; }
+    public string? VerspaetungPrefix { get; set; }
     
     [JsonPropertyName("status")]
-    public string Status { get; set; }
+    [JsonConverter(typeof(JsonStringEnumConverter))]
+    public Flags? Status { get; set; }
 
-    public bool Equals(Abfahrtszeiten? other)
-    {
-        if (other is null) return false;
-        return Verspaetung == other.Verspaetung && 
-               VerspaetungPrefix == other.VerspaetungPrefix &&
-               Status == other.Status;
-    }
-}
-
-public class Ankunftszeiten : IEquatable<Ankunftszeiten>
-{
-    [JsonPropertyName("verspaetung")]
-    public int Verspaetung { get; set; }
-
-    [JsonPropertyName("verspaetungPrefix")]
-    public string VerspaetungPrefix { get; set; }
-    
-    [JsonPropertyName("status")]
-    public string Status { get; set; }
-
-    public bool Equals(Ankunftszeiten? other)
+    public bool Equals(Zeiten? other)
     {
         if (other is null) return false;
         return Verspaetung == other.Verspaetung &&
@@ -48,45 +28,26 @@ public class MehrsprachigerText : IEquatable<MehrsprachigerText>
     public string Id { get; set; }
 
     [JsonPropertyName("de")]
-    public string De { get; set; }
-
-    [JsonPropertyName("fr")]
-    public string Fr { get; set; }
-
-    [JsonPropertyName("it")]
-    public string It { get; set; }
+    public string Deutsch { get; set; }
 
     public bool Equals(MehrsprachigerText? other)
     {
         if (other is null) return false;
+
         return Id == other.Id &&
-               De == other.De &&
-               Fr == other.Fr &&
-               It == other.It;
+               Deutsch == other.Deutsch;
     }
 }
 
 public class BetriebspunktAusfall : IEquatable<BetriebspunktAusfall>
 {
     [JsonPropertyName("bpUic")]
-    public int BpUic { get; set; }
-
-    [JsonPropertyName("bezOff")]
-    public string BezOff { get; set; }
-
-    [JsonPropertyName("abk")]
-    public string Abk { get; set; }
-
-    [JsonPropertyName("qosBitfeld")]
-    public int QosBitfeld { get; set; }
+    public int BetriebspunktId { get; set; }
 
     public bool Equals(BetriebspunktAusfall? other)
     {
         if (other is null) return false;
-        return BpUic == other.BpUic &&
-               BezOff == other.BezOff &&
-               Abk == other.Abk &&
-               QosBitfeld == other.QosBitfeld;
+        return BetriebspunktId == other.BetriebspunktId;
     }
 }
 
@@ -185,10 +146,10 @@ public class Haltestellen : IEquatable<Haltestellen>
     public List<Flags> Flags { get; } = new List<Flags>();
 
     [JsonPropertyName("abfahrtszeiten")]
-    public Abfahrtszeiten Abfahrtszeiten { get; set; }
+    public Zeiten Abfahrtszeiten { get; set; }
 
     [JsonPropertyName("ankunftszeiten")]
-    public Ankunftszeiten Ankunftszeiten { get; set; }
+    public Zeiten Ankunftszeiten { get; set; }
 
     [JsonPropertyName("verspaetungsgrund")]
     public MehrsprachigerText? Verspaetungsgrund { get; set; }
