@@ -9,6 +9,15 @@
             <MudText Typo="Typo.subtitle1">@Entry.Kommentar</MudText>
         }
     </ItemOpposite>
+    <ItemContent>
+        @if (@Entry.Stop)
+        {
+            <MudText Color="Color.Tertiary">Anhalten</MudText>       
+        } else if (@Entry.StopSpecial)
+        {
+            <MudText Color="Color.Error">Ausserplanmässig Anhalten</MudText>      
+        }
+    </ItemContent>
 </MudTimelineItem>
 
 

@@ -17,4 +17,8 @@ public class HaltestelleEntry : IBetriebspunktEntry
     public string Name { get; set; }
 
     public string? Kommentar { get; set; }
+    
+    public bool Stop { get; set; }
+    
+    public bool StopSpecial { get; set; }
 }

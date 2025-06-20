@@ -47,6 +47,8 @@ else
                 EnableHighAccuracy = true, MaximumAge = TimeSpan.Zero.TotalMilliseconds, Timeout = TimeSpan.FromSeconds(10).TotalMilliseconds
             }
         );
+
+        fahrenPositionService.DataChanged += (sender, args) => this.InvokeAsync(StateHasChanged);
     }
 
     protected override void OnParametersSet()
@@ -66,6 +68,11 @@ else
 
     private void MoveDown(Action executeAfterUpdate)
     {
+        if (_hasToMoveDown)
+        {
+            return;
+        }
+        
         // Add Transition before
         _hasToMoveDown = true;
 
@@ -73,7 +80,7 @@ else
         
         Task.Run(async () =>
         {
-            await Task.Delay(TimeSpan.FromSeconds(1.5));
+            await Task.Delay(TimeSpan.FromSeconds(2.1));
 
             executeAfterUpdate();
             _hasToMoveDown = false;

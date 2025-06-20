@@ -15,4 +15,8 @@ public class BahnhofEntry : IBetriebspunktEntry
     public BetriebspunktTyp BetriebspunktTyp => BetriebspunktTyp.Bahnhof;
 
     public string Name { get; set; }
+    
+    public bool Stop { get; set; }
+    
+    public bool StopSpecial { get; set; }
 }
