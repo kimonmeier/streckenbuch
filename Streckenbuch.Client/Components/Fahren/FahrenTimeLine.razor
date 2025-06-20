@@ -2,8 +2,8 @@
 @using Streckenbuch.Client.Services
 
 @implements IDisposable
-@inject IGeolocationService geolocationService
-@inject FahrenPositionService fahrenPositionService
+@inject IGeolocationService GeolocationService
+@inject FahrenPositionService FahrenPositionService
 
 
 @if (!_displayedEntries.Any())
@@ -13,7 +13,7 @@
 else
 {
     <div class="flex h-full w-full items-end justify-end overflow-hidden">
-        <MudButton OnClick="() => fahrenPositionService.SkipPosition()">Skip</MudButton>
+        <MudButton OnClick="() => FahrenPositionService.SkipPosition()">Skip</MudButton>
         <MudTimeline Class="w-full" TimelineOrientation="TimelineOrientation.Vertical"
                      TimelinePosition="TimelinePosition.Alternate">
             @foreach (var entry in _displayedEntries)
@@ -37,18 +37,18 @@ else
 
     protected async override Task OnInitializedAsync()
     {
-        _watchTaskId = await geolocationService.WatchPositionAsync(UpdatePosition,
+        _watchTaskId = await GeolocationService.WatchPositionAsync(UpdatePosition,
             (error) =>
             {
                 Console.WriteLine("Error occured during watch position {0}", error.Message);
             },
             new PositionOptions()
             {
-                EnableHighAccuracy = true, MaximumAge = TimeSpan.Zero.TotalMilliseconds, Timeout = TimeSpan.FromSeconds(10).TotalMilliseconds
+                EnableHighAccuracy = true, MaximumAge = TimeSpan.FromSeconds(10).TotalMilliseconds, Timeout = TimeSpan.FromSeconds(10).TotalMilliseconds
             }
         );
 
-        fahrenPositionService.DataChanged += (sender, args) => this.InvokeAsync(StateHasChanged);
+        FahrenPositionService.DataChanged += (sender, args) => this.InvokeAsync(StateHasChanged);
     }
 
     protected override void OnParametersSet()
@@ -58,7 +58,7 @@ else
             return;
         }
 
-        _displayedEntries = fahrenPositionService.Initialize(FahrplanEntries, MoveDown);
+        _displayedEntries = FahrenPositionService.Initialize(FahrplanEntries, MoveDown);
     }
 
     private void OnEntryClick(IBaseEntry entry)
@@ -96,14 +96,14 @@ else
             return;
         }
 
-        fahrenPositionService.UpdatePosition(position).ConfigureAwait(false);
+        FahrenPositionService.UpdatePosition(position).ConfigureAwait(false);
     }
 
     public void Dispose()
     {
         if (_watchTaskId is not null)
         {
-            geolocationService.ClearWatchAsync(_watchTaskId.Value).ConfigureAwait(false);
+            GeolocationService.ClearWatchAsync(_watchTaskId.Value).ConfigureAwait(false);
         }
     }
 
