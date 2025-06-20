@@ -1,4 +1,5 @@
-﻿using Microsoft.JSInterop;
+﻿using MediatR;
+using Microsoft.JSInterop;
 using Moq;
 using Newtonsoft.Json;
 using Streckenbuch.Client.Components.Fahren;
@@ -27,9 +28,10 @@ public class FahrenPositionServiceTest
     [Fact]
     public void SouldNotMove()
     {
-        var mock = new Mock<TestInterface>();
+        Mock<TestInterface> mock = new Mock<TestInterface>();
+        Mock<ISender> sender = new Mock<ISender>();
 
-        FahrenPositionService positionService = new FahrenPositionService();
+        FahrenPositionService positionService = new FahrenPositionService(sender.Object);
         positionService.Initialize(TimeLineEntries, (action) =>
         {
             mock.Object.DoSomething();
@@ -52,8 +54,9 @@ public class FahrenPositionServiceTest
     public async Task ShouldMoveOnePositionWithMultipleUpdatesInOneCycle()
     {
         Mock<TestInterface> mock = new Mock<TestInterface>();
+        Mock<ISender> sender = new Mock<ISender>();
 
-        FahrenPositionService positionService = new FahrenPositionService();
+        FahrenPositionService positionService = new FahrenPositionService(sender.Object);
         positionService.Initialize(TimeLineEntries, (action) =>
         {
             _ = Task.Run(async () =>
@@ -83,8 +86,9 @@ public class FahrenPositionServiceTest
     public async Task ShouldMoveOnlyOnePositionWhenSpammedWithUpdates()
     {
         Mock<TestInterface> mock = new Mock<TestInterface>();
+        Mock<ISender> sender = new Mock<ISender>();
 
-        FahrenPositionService positionService = new FahrenPositionService();
+        FahrenPositionService positionService = new FahrenPositionService(sender.Object);
         positionService.Initialize(TimeLineEntries, (action) =>
         {
             mock.Object.DoSomething();
@@ -109,8 +113,9 @@ public class FahrenPositionServiceTest
     public async Task ShouldMoveOnePosition()
     {
         Mock<TestInterface> mock = new Mock<TestInterface>();
+        Mock<ISender> sender = new Mock<ISender>();
 
-        FahrenPositionService positionService = new FahrenPositionService();
+        FahrenPositionService positionService = new FahrenPositionService(sender.Object);
         positionService.Initialize(TimeLineEntries, (action) =>
         {
             mock.Object.DoSomething();
@@ -133,8 +138,9 @@ public class FahrenPositionServiceTest
     public void ShouldNotMoveAwayFromLastTimelineEntry()
     {
         var mock = new Mock<TestInterface>();
+        Mock<ISender> sender = new Mock<ISender>();
 
-        FahrenPositionService positionService = new FahrenPositionService();
+        FahrenPositionService positionService = new FahrenPositionService(sender.Object);
         positionService.Initialize(TimeLineEntries, (action) =>
         {
             mock.Object.DoSomething();

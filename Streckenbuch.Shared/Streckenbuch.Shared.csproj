@@ -44,8 +44,4 @@
       <Protobuf Include="Services\strecken.proto" />
       <Protobuf Include="Types\location.proto" />
     </ItemGroup>
-
-    <ItemGroup>
-      <Folder Include="Contracts\" />
-    </ItemGroup>
 </Project>

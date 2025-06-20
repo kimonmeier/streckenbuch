@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
+    <TargetFramework>net9.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
@@ -22,6 +22,7 @@
     <PackageReference Include="BCrypt.Net-Next" Version="4.0.3" />
     <PackageReference Include="Blazor.Geolocation.WebAssembly" Version="8.0.0" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite.NetTopologySuite" Version="8.0.8" />
+    <ProjectReference Include="../Streckenbuch.Miku/Streckenbuch.Miku.csproj" />
     <ProjectReference Include="..\Streckenbuch.Client\Streckenbuch.Client.csproj" />
     <ProjectReference Include="..\Streckenbuch.Shared\Streckenbuch.Shared.csproj" />
     <PackageReference Include="AutoMapper" Version="13.0.1" />

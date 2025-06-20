@@ -22,6 +22,7 @@ message CreateBetriebspunktReqeust {
 	optional string kommentar = 2;
 	Types.LocationProto location = 3;
 	int32 typ = 4;
+	int32 mikuId = 5;
 }
 
 message ListBetriebspunkteAnswer {
@@ -33,4 +34,5 @@ message BetriebspunktProto {
 	string name = 2;
 	optional string kommentar = 3;
 	Types.LocationProto location = 4;
+	int32 mikuId = 5;
 }

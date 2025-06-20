@@ -41,5 +41,8 @@ public class BetriebspunktConfiguration : IEntityTypeConfiguration<Betriebspunkt
         builder
             .Property(x => x.Name)
             .HasMaxLength(64);
+
+        builder
+            .HasIndex(x => x.MikuId);
     }
 }

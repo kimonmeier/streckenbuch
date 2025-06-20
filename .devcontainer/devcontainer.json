@@ -12,18 +12,23 @@
   },
 
   // Use 'forwardPorts' to make a list of ports inside the container available locally.
-  "forwardPorts": [5000],
-  // "portsAttributes": {
-  //   "5001": {
-  //     "protocol": "https"
-  //   }
-  // }
+  "forwardPorts": [7175],
+  "portsAttributes": {
+     "7175": {
+       "protocol": "https"
+     }
+  },
 
   // Use 'postCreateCommand' to run commands after the container is created.
   "postCreateCommand": "dotnet restore",
 
   // Configure tool-specific properties.
   "customizations": {
+    "jetbrains": {
+      "settings": {
+        "Git4Idea:app:Git-Application-Settings.use_credential_helper": true
+      }
+    },
     // Configure properties specific to VS Code.
     "vscode": {
       // Add the IDs of extensions you want installed when the container is created.

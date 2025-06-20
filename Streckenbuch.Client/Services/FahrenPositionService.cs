@@ -1,18 +1,29 @@
-﻿using Microsoft.JSInterop;
+﻿using MediatR;
+using Microsoft.JSInterop;
 using Streckenbuch.Client.Extensions;
 using Streckenbuch.Client.Models.Fahren;
+using Streckenbuch.Client.Models.Fahren.Betriebspunkt;
 using Streckenbuch.Shared.Models;
 
 namespace Streckenbuch.Client.Services;
 
 public class FahrenPositionService
 {
+    public event EventHandler DataChanged;
+
     private const double AccuracyFactor = 1.50;
 
     private List<IBaseEntry> _currentEntries = default!;
     private List<GeolocationPosition> _lastPositions = default!;
     private Action<Action> _beforeUpdateAction = default!;
     private readonly SemaphoreSlim _semaphoreSlim = new SemaphoreSlim(1, 1);
+    private readonly List<Guid> _stops = new List<Guid>();
+    private readonly ISender _sender;
+
+    public FahrenPositionService(ISender sender)
+    {
+        _sender = sender;
+    }
 
 
     public List<IBaseEntry> Initialize(List<IBaseEntry> fahrplanEntries, Action<Action> beforeUpdateAction)
@@ -42,6 +53,7 @@ public class FahrenPositionService
             if (!HasValidEntries())
             {
                 _semaphoreSlim.Release();
+
                 return;
             }
 
@@ -50,20 +62,23 @@ public class FahrenPositionService
                 HandleFirstPosition(newPosition);
 
                 _semaphoreSlim.Release();
+
                 return;
             }
 
             if (IsWithinAccuracyThreshold(newPosition))
             {
                 _semaphoreSlim.Release();
+
                 return;
             }
 
             if (!HasPassedLastEntry(newPosition, _currentEntries.Last(), _lastPositions))
             {
                 _lastPositions.Add(newPosition);
-                
+
                 _semaphoreSlim.Release();
+
                 return;
             }
 
@@ -75,6 +90,84 @@ public class FahrenPositionService
 
             throw;
         }
+    }
+
+    public void SetStops(List<Guid> betriebspunktId)
+    {
+        ResetStopsForCurrentEntries();
+        UpdateStopsWithCurrentEntries(betriebspunktId);
+
+        OnDataChanged();
+    }
+
+
+    public void AddSpecialStop(Guid betriebspunktId)
+    {
+        IBetriebspunktEntry? entry = (IBetriebspunktEntry?)_currentEntries.SingleOrDefault(x => x is IBetriebspunktEntry bEntry && bEntry.Id == betriebspunktId);
+        if (entry is null)
+        {
+            return;
+        }
+
+        switch (entry)
+        {
+            case BahnhofEntry bahnhofEntry:
+                bahnhofEntry.StopSpecial = true;
+
+                break;
+            case HaltestelleEntry haltestelleEntry:
+                haltestelleEntry.StopSpecial = true;
+
+                break;
+        }
+        
+        OnDataChanged();
+    }
+
+    private void UpdateStopsWithCurrentEntries(List<Guid> betriebspunktId)
+    {
+        _stops.AddRange(betriebspunktId);
+
+        // Remove all stops that are already passed
+        _stops.RemoveAll(stopId => !_currentEntries.Where(x => x is IBetriebspunktEntry).Any(entry => (entry as IBetriebspunktEntry)!.Id.Equals(stopId)));
+
+        foreach (IBaseEntry entry in _currentEntries.Where(x => x is IBetriebspunktEntry bEntry && _stops.Contains(bEntry.Id)))
+        {
+            switch (entry)
+            {
+                case BahnhofEntry bahnhofEntry:
+                    bahnhofEntry.Stop = true;
+
+                    break;
+                case HaltestelleEntry haltestelleEntry:
+                    haltestelleEntry.Stop = true;
+
+                    break;
+            }
+
+        }
+    }
+
+    private void ResetStopsForCurrentEntries()
+    {
+
+        foreach (IBaseEntry entry in _currentEntries.Where(x => x is IBetriebspunktEntry bEntry))
+        {
+            switch (entry)
+            {
+                case BahnhofEntry bahnhofEntry:
+                    bahnhofEntry.Stop = false;
+
+                    break;
+                case HaltestelleEntry haltestelleEntry:
+                    haltestelleEntry.Stop = false;
+
+                    break;
+            }
+
+        }
+
+        _stops.Clear();
     }
 
     private bool HasValidEntries()
@@ -99,6 +192,8 @@ public class FahrenPositionService
 
         RemoveEntriesUntilBetriebspunkt(closestBetriebspunkt);
 
+        OnDataChanged();
+        
         return true;
     }
 
@@ -158,5 +253,10 @@ public class FahrenPositionService
         }
 
         return false;
+    }
+
+    protected virtual void OnDataChanged()
+    {
+        DataChanged?.Invoke(this, EventArgs.Empty);
     }
 }

@@ -113,8 +113,6 @@ public class LinienService : Streckenbuch.Shared.Services.LinienService.LinienSe
 
     public override async Task<GetTrainNumberLinkResponse> ChangeTrainNumberLink(ChangeTrainNumberLinkRequest request, ServerCallContext context)
     {
-        await context.GetAuthenticatedUser(_userManager);
-
         using (var dbTransaction = _dbTransactionFactory.CreateTransaction())
         {
             var linieTrain = await _linieTrainRepository.FindByTrainNumberAsync(request.TrainNumber);

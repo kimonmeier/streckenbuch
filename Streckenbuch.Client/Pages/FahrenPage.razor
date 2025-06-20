@@ -8,6 +8,7 @@
 @inject ScreenWakeLockService ScreenWakeLockService
 @inject ContinuousConnectionState ConnectionState
 @inject BeforeUnload BeforeUnload
+@inject AudioState AudioState
 @layout FahrenLayout
 @implements IDisposable
 
@@ -29,6 +30,8 @@
         Layout.SelectRoute += SelectRoute;
 
         _lockSentinel = await ScreenWakeLockService.RequestWakeLockAsync();
+        
+        await AudioState.SayText("Audio-System initialisiert!");
     }
 
     private void BeforeUnloadOnBeforeUnloadHandler(object? sender, BeforeUnloadArgs e)

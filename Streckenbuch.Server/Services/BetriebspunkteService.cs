@@ -49,6 +49,7 @@ public class BetriebspunkteService : Streckenbuch.Shared.Services.Betriebspunkte
                 Kommentar = request.Kommentar,
                 Location = request.Location,
                 Typ = (BetriebspunktTyp)request.Typ,
+                MikuId = request.MikuId,
             });
             await dbTransaction.Commit(context.CancellationToken);
         };

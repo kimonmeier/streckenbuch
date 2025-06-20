@@ -1,19 +1,26 @@
 using GoogleMapsComponents;
+using Howler.Blazor.Components;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using MudBlazor.Services;
 using Streckenbuch.Client;
 using Streckenbuch.Client.Services;
+using Streckenbuch.Client.States;
 using Streckenbuch.Shared.Services;
 
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
 
 builder.Services.AddBeforeUnload();
+builder.Services.AddSpeechSynthesisServices();
 builder.Services.AddAuthorizationCore();
 builder.Services.AddCascadingAuthenticationState();
+builder.Services.AddScoped<IHowl, Howl>();
+builder.Services.AddScoped<IHowlGlobal, HowlGlobal>();
 builder.Services.AddSingleton<AuthenticationStateProvider, PersistentAuthenticationStateProvider>();
 builder.Services.AddSingleton<FahrenPositionService>();
+builder.Services.AddSingleton<AudioState>();
 builder.Services.AddSingleton<ScreenWakeLockService>();
+builder.Services.AddSingleton<DataState>();
 builder.Services.AddMudServices();
 builder.Services.AddMudPopoverService();
 builder.Services.AddClientMapping();

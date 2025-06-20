@@ -219,6 +219,9 @@ namespace Streckenbuch.Server.Data.Migrations
                         .HasMaxLength(1024)
                         .HasColumnType("TEXT");
 
+                    b.Property<int>("MikuId")
+                        .HasColumnType("INTEGER");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(64)
@@ -228,6 +231,8 @@ namespace Streckenbuch.Server.Data.Migrations
                         .HasColumnType("INTEGER");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("MikuId");
 
                     b.ToTable("Betriebspunkt", (string)null);
                 });
@@ -300,8 +305,7 @@ namespace Streckenbuch.Server.Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("LinieId")
-                        .IsUnique();
+                    b.HasIndex("LinieId");
 
                     b.HasIndex("TrainNumber")
                         .IsUnique();
@@ -632,8 +636,8 @@ namespace Streckenbuch.Server.Data.Migrations
             modelBuilder.Entity("Streckenbuch.Server.Data.Entities.Linien.LinieTrain", b =>
                 {
                     b.HasOne("Streckenbuch.Server.Data.Entities.Linien.Linie", "Linie")
-                        .WithOne()
-                        .HasForeignKey("Streckenbuch.Server.Data.Entities.Linien.LinieTrain", "LinieId")
+                        .WithMany()
+                        .HasForeignKey("LinieId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
