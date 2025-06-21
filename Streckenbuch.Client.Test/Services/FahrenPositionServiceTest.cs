@@ -3,6 +3,7 @@ using Microsoft.JSInterop;
 using Moq;
 using Newtonsoft.Json;
 using Streckenbuch.Client.Components.Fahren;
+using Streckenbuch.Client.Events.ApproachingStop;
 using Streckenbuch.Client.Models.Fahren;
 using Streckenbuch.Client.Models.Fahren.Betriebspunkt;
 using Streckenbuch.Client.Models.Fahren.Signal;
@@ -132,6 +133,37 @@ public class FahrenPositionServiceTest
         }
 
         mock.Verify(s => s.DoSomething(), Times.Exactly(2));
+    }
+    
+    [Fact]
+    public async Task ShouldMoveFourPositionAndAnnounce()
+    {
+        Mock<TestInterface> mock = new Mock<TestInterface>();
+        Mock<ISender> sender = new Mock<ISender>();
+
+        FahrenPositionService positionService = new FahrenPositionService(sender.Object);
+        positionService.Initialize(TimeLineEntries, (action) =>
+        {
+            mock.Object.DoSomething();
+            action();
+        });
+        positionService.SetStops(new List<Guid>()
+        {
+            Guid.AllBitsSet
+        });
+
+        mock.Verify(s => s.DoSomething(), Times.Never());
+        sender.Verify(s => s.Send(It.IsAny<ApproachingStopEvent>(), CancellationToken.None), Times.Never());
+
+        IEnumerable<GeolocationPosition> positions = Positions.Take(80);
+
+        foreach(GeolocationPosition pos in positions)
+        {
+            await positionService.UpdatePosition(pos);
+        }
+
+        mock.Verify(s => s.DoSomething(), Times.Exactly(4));
+        sender.Verify(s => s.Send(It.IsAny<ApproachingStopEvent>(), CancellationToken.None), Times.Once);
     }
 
     [Fact]
@@ -535,7 +567,7 @@ public class FahrenPositionServiceTest
 
     public static List<IBaseEntry> TimeLineEntries => new List<IBaseEntry>()
     {
-        { new BahnhofEntry() { Location = new NetTopologySuite.Geometries.Coordinate(47.3916525103458, 8.1696260844281), Name = "Lenzburg" } },
+        { new BahnhofEntry() { Id = Guid.AllBitsSet, Location = new NetTopologySuite.Geometries.Coordinate(47.3916525103458, 8.1696260844281), Name = "Lenzburg" } },
         { new KombiniertSignalEntry() { Location = new NetTopologySuite.Geometries.Coordinate(47.3951799713142, 8.15822796604049), SignalSeite = Shared.Models.DisplaySeite.Einfahrt } },
         { new KombiniertSignalEntry() { Location = new NetTopologySuite.Geometries.Coordinate(47.4042555578771, 8.13428282621334), SignalSeite = Shared.Models.DisplaySeite.Ausfahrt } },
         { new KombiniertSignalEntry() { Location = new NetTopologySuite.Geometries.Coordinate(47.4035723847273, 8.12776686256773), SignalSeite = Shared.Models.DisplaySeite.Ausfahrt_Abschnitt } },

@@ -131,7 +131,7 @@ public sealed class FahrenPositionService
 
     private void CheckForStationAnnouncement(GeolocationPosition currentPosition)
     {
-        IBetriebspunktEntry? nextStop = (IBetriebspunktEntry?) _currentEntries.FirstOrDefault(x => x is IBetriebspunktEntry bEntry && _stops.Contains(bEntry.Id));
+        IBetriebspunktEntry? nextStop = (IBetriebspunktEntry?) _currentEntries.Where(x => x is IBetriebspunktEntry bEntry && _stops.Contains(bEntry.Id)).MinBy(x => x.Location.GetDistanzInMeters(currentPosition));
 
         if (nextStop is null)
         {
@@ -228,9 +228,9 @@ public sealed class FahrenPositionService
         return true;
     }
 
-    private IBaseEntry? FindClosestBetriebspunkt(GeolocationPosition position)
+    private IBetriebspunktEntry? FindClosestBetriebspunkt(GeolocationPosition position)
     {
-        return _currentEntries
+        return (IBetriebspunktEntry?) _currentEntries
             .Where(x => x.Type == EntryType.Betriebspunkt)
             .MinBy(x => x.Location.GetDistanzInMeters(position));
     }
