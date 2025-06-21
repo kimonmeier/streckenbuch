@@ -29,11 +29,7 @@
         _mapOptions = new MapOptions()
             {
                 Zoom = ZoomLevel,
-                Center = new LatLngLiteral()
-                {
-                    Lat = 47.3525145,
-                    Lng = 7.9067247
-                },
+                Center = new LatLngLiteral(47.3525145, 7.9067247),
                 MapTypeId = MapTypeId.Roadmap
             };
     }
@@ -52,7 +48,7 @@
             return;
         }
 
-        await _map.InteropObject.SetCenter(response.Results!.First()!.Geometry!.Location!);
+        await _map.InteropObject.SetCenter(response.Results!.First()!.Geometry!.Location.GetValueOrDefault());
 
         StateHasChanged();
     }
