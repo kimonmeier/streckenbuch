@@ -1,5 +1,6 @@
 ﻿using MediatR;
 using Microsoft.JSInterop;
+using Streckenbuch.Client.Events.ApproachingStop;
 using Streckenbuch.Client.Extensions;
 using Streckenbuch.Client.Models.Fahren;
 using Streckenbuch.Client.Models.Fahren.Betriebspunkt;
@@ -7,9 +8,9 @@ using Streckenbuch.Shared.Models;
 
 namespace Streckenbuch.Client.Services;
 
-public class FahrenPositionService
+public sealed class FahrenPositionService
 {
-    public event EventHandler DataChanged;
+    public event EventHandler? DataChanged;
 
     private const double AccuracyFactor = 1.50;
 
@@ -18,6 +19,7 @@ public class FahrenPositionService
     private Action<Action> _beforeUpdateAction = default!;
     private readonly SemaphoreSlim _semaphoreSlim = new SemaphoreSlim(1, 1);
     private readonly List<Guid> _stops = new List<Guid>();
+    private readonly List<Guid> _stopsAnnounced = new List<Guid>();
     private readonly ISender _sender;
 
     public FahrenPositionService(ISender sender)
@@ -72,6 +74,8 @@ public class FahrenPositionService
 
                 return;
             }
+            
+            CheckForStationAnnouncement(newPosition);
 
             if (!HasPassedLastEntry(newPosition, _currentEntries.Last(), _lastPositions))
             {
@@ -124,6 +128,27 @@ public class FahrenPositionService
         OnDataChanged();
     }
 
+    private void CheckForStationAnnouncement(GeolocationPosition currentPosition)
+    {
+        IBetriebspunktEntry nextStop = (IBetriebspunktEntry) _currentEntries.First(x => x is IBetriebspunktEntry bEntry && _stops.Contains(bEntry.Id));
+
+        if (nextStop.Location.GetDistanzInMeters(currentPosition) > 1000)
+        {
+            return;
+        }
+        
+        if (_stopsAnnounced.Contains(nextStop.Id))
+        {
+            return;
+        }
+
+        _stopsAnnounced.Add(nextStop.Id);
+        _sender.Send(new ApproachingStopEvent()
+        {
+            BetriebspunktId = nextStop.Id,
+        }).ConfigureAwait(false);
+    }
+
     private void UpdateStopsWithCurrentEntries(List<Guid> betriebspunktId)
     {
         _stops.AddRange(betriebspunktId);
@@ -150,7 +175,6 @@ public class FahrenPositionService
 
     private void ResetStopsForCurrentEntries()
     {
-
         foreach (IBaseEntry entry in _currentEntries.Where(x => x is IBetriebspunktEntry bEntry))
         {
             switch (entry)
@@ -168,6 +192,7 @@ public class FahrenPositionService
         }
 
         _stops.Clear();
+        _stopsAnnounced.Clear();
     }
 
     private bool HasValidEntries()
@@ -255,7 +280,7 @@ public class FahrenPositionService
         return false;
     }
 
-    protected virtual void OnDataChanged()
+    private void OnDataChanged()
     {
         DataChanged?.Invoke(this, EventArgs.Empty);
     }
