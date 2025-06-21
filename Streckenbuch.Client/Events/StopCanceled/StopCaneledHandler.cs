@@ -16,7 +16,7 @@ public class StopCaneledHandler : IRequestHandler<Shared.Contracts.StopCanceled,
 
     public async Task<Unit> Handle(Shared.Contracts.StopCanceled request, CancellationToken cancellationToken)
     {
-        var betriebspunkt = _dataState.Betriebspunkte.SingleOrDefault(x => x.Id == request.BetriebspunktId);
+        var betriebspunkt = await _dataState.FetchBetriebspunkt(request.BetriebspunktId);
 
         if (betriebspunkt is null)
         {

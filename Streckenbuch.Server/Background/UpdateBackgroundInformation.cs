@@ -20,7 +20,7 @@ public class UpdateBackgroundInformation : BackgroundService
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        using PeriodicTimer timer = new PeriodicTimer(TimeSpan.FromSeconds(5));
+        using PeriodicTimer timer = new PeriodicTimer(TimeSpan.FromSeconds(30));
 
         while (!stoppingToken.IsCancellationRequested)
         {
@@ -43,9 +43,15 @@ public class UpdateBackgroundInformation : BackgroundService
     
     private async Task UpdateInformationForTrain(Guid clientId, int trainNumber)
     {
-        var fahrtInformation = await _mikuApi.Fahrt.ListByTrainNumber(trainNumber);
-        
-        await _continuousConnectionState.ProcessMikuInformation(clientId, fahrtInformation.Haltestellen);
+        try
+        {
+            var fahrtInformation = await _mikuApi.Fahrt.ListByTrainNumber(trainNumber);
+
+            await _continuousConnectionState.ProcessMikuInformation(clientId, fahrtInformation.Haltestellen);
+        } catch (Exception e)
+        {
+            _logger.LogError(e, "Error while updating background information for train {0}", trainNumber);
+        }
     }
 
 }

@@ -135,7 +135,14 @@ public class ContinuousConnectionState
 
         foreach (Haltestellen changedHaltestellen in changed)
         {
-            await HandleChangedMessageAsync(clientId, changedHaltestellen, oldStops[changedHaltestellen.BetriebspunktId], haltestellen[haltestellen.IndexOf(changedHaltestellen) - 1], betriebspunkteRepository);
+            Haltestellen? previousHaltestelle = null;
+            var index = haltestellen.IndexOf(changedHaltestellen);
+            if (index != 0)
+            {
+                previousHaltestelle = haltestellen[haltestellen.IndexOf(changedHaltestellen) - 1];
+            }
+            
+            await HandleChangedMessageAsync(clientId, changedHaltestellen, oldStops[changedHaltestellen.BetriebspunktId], previousHaltestelle, betriebspunkteRepository);
         }
 
         _processedHaltestellen[clientId] = haltestellen;
@@ -161,7 +168,7 @@ public class ContinuousConnectionState
         });
     }
 
-    private async Task HandleChangedMessageAsync(Guid clientId, Haltestellen changedHaltestelle, Haltestellen oldHaltestelle, Haltestellen previousHaltestelle, BetriebspunkteRepository betriebspunkteRepository)
+    private async Task HandleChangedMessageAsync(Guid clientId, Haltestellen changedHaltestelle, Haltestellen oldHaltestelle, Haltestellen? previousHaltestelle, BetriebspunkteRepository betriebspunkteRepository)
     {
         var betriebspunktId = await betriebspunkteRepository.GetIdByMikuId(changedHaltestelle.BetriebspunktId);
 
@@ -185,14 +192,14 @@ public class ContinuousConnectionState
         });
     }
     
-    private void HandleStopDelay(Guid clientId, Haltestellen changedHaltestelle, Haltestellen oldHaltestelle, Guid betriebspunktId, Haltestellen previousHaltestelle)
+    private void HandleStopDelay(Guid clientId, Haltestellen changedHaltestelle, Haltestellen oldHaltestelle, Guid betriebspunktId, Haltestellen? previousHaltestelle)
     {
         if (changedHaltestelle.Verspaetungsgrund is null)
         {
             return;
         }
 
-        if (previousHaltestelle.Verspaetungsgrund is not null)
+        if (previousHaltestelle?.Verspaetungsgrund is not null)
         {
             return;
         }
@@ -220,16 +227,22 @@ public class ContinuousConnectionState
         static bool HasSignificantIncrease(int? newDelay, int? oldDelay) =>
             newDelay.HasValue && ((!oldDelay.HasValue && newDelay.Value > 3) || (oldDelay.HasValue && newDelay.Value > oldDelay.Value + 2));
 
-        if (HasSignificantIncrease(changed.Ankunftszeiten.Verspaetung, old.Ankunftszeiten.Verspaetung)
-            || (isNewDelayReason && changed.Ankunftszeiten.Verspaetung.HasValue))
+        if (changed.Ankunftszeiten is not null && old.Ankunftszeiten is not null)
         {
-            return changed.Ankunftszeiten.Verspaetung;
+            if (HasSignificantIncrease(changed.Ankunftszeiten.Verspaetung, old.Ankunftszeiten.Verspaetung)
+                || (isNewDelayReason && changed.Ankunftszeiten.Verspaetung.HasValue))
+            {
+                return changed.Ankunftszeiten.Verspaetung;
+            }
         }
 
-        if (HasSignificantIncrease(changed.Abfahrtszeiten.Verspaetung, old.Abfahrtszeiten.Verspaetung)
-            || (isNewDelayReason && changed.Abfahrtszeiten.Verspaetung.HasValue))
+        if (changed.Abfahrtszeiten is not null && old.Abfahrtszeiten is not null)
         {
-            return changed.Abfahrtszeiten.Verspaetung;
+            if (HasSignificantIncrease(changed.Abfahrtszeiten.Verspaetung, old.Abfahrtszeiten.Verspaetung)
+                || (isNewDelayReason && changed.Abfahrtszeiten.Verspaetung.HasValue))
+            {
+                return changed.Abfahrtszeiten.Verspaetung;
+            }
         }
 
         return null;

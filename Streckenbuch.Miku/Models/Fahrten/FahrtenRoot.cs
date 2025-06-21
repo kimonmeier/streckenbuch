@@ -146,7 +146,7 @@ public class Haltestellen : IEquatable<Haltestellen>
     public string Bezeichnung { get; set; }
 
     [JsonPropertyName("flags")]
-    public List<Flags>? Flags { get; set; }
+    public List<string>? Flags { get; set; }
 
     [JsonPropertyName("abfahrtszeiten")]
     public Zeiten? Abfahrtszeiten { get; set; }

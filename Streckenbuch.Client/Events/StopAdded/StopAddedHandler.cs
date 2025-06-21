@@ -19,7 +19,7 @@ public class StopAddedHandler : IRequestHandler<Shared.Contracts.StopAdded, Unit
 
     public async Task<Unit> Handle(Shared.Contracts.StopAdded request, CancellationToken cancellationToken)
     {
-        var betriebspunkt = _dataState.Betriebspunkte.SingleOrDefault(x => x.Id == request.BetriebspunktId);
+        var betriebspunkt = await _dataState.FetchBetriebspunkt(request.BetriebspunktId);
 
         if (betriebspunkt is null)
         {

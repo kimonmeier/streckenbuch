@@ -2,5 +2,6 @@
 
 public enum Flags
 {
-    AUSFALL
+    AUSFALL,
+    AO_HALT
 }

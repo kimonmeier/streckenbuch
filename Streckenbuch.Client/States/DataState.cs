@@ -8,23 +8,28 @@ namespace Streckenbuch.Client.States;
 
 public class DataState
 {
-    public IReadOnlyList<BetriebspunktProto> Betriebspunkte => _betriebspunkte.AsReadOnly();
-    
+    private readonly BetriebspunkteService.BetriebspunkteServiceClient _betriebspunkteService;
     
     private readonly List<BetriebspunktProto> _betriebspunkte = new();
 
     public DataState(BetriebspunkteService.BetriebspunkteServiceClient betriebspunkteService)
     {
-        FetchBetriebspunkte(betriebspunkteService);
+        _betriebspunkteService = betriebspunkteService;
     }
 
-    private void FetchBetriebspunkte(BetriebspunkteService.BetriebspunkteServiceClient betriebspunkteService)
+    public async Task<List<BetriebspunktProto>> FetchBetriebspunkte()
     {
-        var responseTask = betriebspunkteService.ListAllBetriebspunkteAsync(new Empty()).ResponseAsync;
+        if (_betriebspunkte.Count == 0)
+        {
+            _betriebspunkte.AddRange((await _betriebspunkteService.ListAllBetriebspunkteAsync(new Empty())).Betriebspunkte);
+        }
 
-        responseTask.ConfigureAwait(false);
-        responseTask.ContinueWith(x => _betriebspunkte.AddRange(x.Result.Betriebspunkte));
+        return _betriebspunkte;
     }
-    
-    
+
+    public async Task<BetriebspunktProto?> FetchBetriebspunkt(Guid id)
+    {
+        var list = await FetchBetriebspunkte();
+        return list.FirstOrDefault(x => x.Id == id);
+    }
 }
