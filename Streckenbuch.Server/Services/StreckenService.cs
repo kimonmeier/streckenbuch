@@ -34,7 +34,7 @@ public class StreckenService : Streckenbuch.Shared.Services.StreckenService.Stre
     {
         var answer = new ListStreckenAnswer();
         var list = await _streckenRepository.ListAllAsync();
-        answer.Strecken.Add(_mapper.Map<List<StreckenProto>>(list));
+        answer.Strecken.Add(_mapper.Map<List<StreckenProto>>(list).OrderBy(x => x.Nummer));
 
         return answer;
     }
