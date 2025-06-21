@@ -5,6 +5,7 @@ using Streckenbuch.Client.Extensions;
 using Streckenbuch.Client.Models.Fahren;
 using Streckenbuch.Client.Models.Fahren.Betriebspunkt;
 using Streckenbuch.Shared.Models;
+using System.Runtime.InteropServices;
 
 namespace Streckenbuch.Client.Services;
 
@@ -130,8 +131,13 @@ public sealed class FahrenPositionService
 
     private void CheckForStationAnnouncement(GeolocationPosition currentPosition)
     {
-        IBetriebspunktEntry nextStop = (IBetriebspunktEntry) _currentEntries.First(x => x is IBetriebspunktEntry bEntry && _stops.Contains(bEntry.Id));
+        IBetriebspunktEntry? nextStop = (IBetriebspunktEntry?) _currentEntries.FirstOrDefault(x => x is IBetriebspunktEntry bEntry && _stops.Contains(bEntry.Id));
 
+        if (nextStop is null)
+        {
+            return;
+        }
+        
         if (nextStop.Location.GetDistanzInMeters(currentPosition) > 1000)
         {
             return;
