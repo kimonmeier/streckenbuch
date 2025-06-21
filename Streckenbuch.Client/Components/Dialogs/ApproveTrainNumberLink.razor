@@ -57,8 +57,8 @@
     
     protected async override Task OnInitializedAsync()
     {
-        _linien = (await LinienService.GetAllLinienAsync(new Empty())).Linien.ToList();
         _betriebspunkte = (await BetriebspunkteService.ListAllBetriebspunkteAsync(new Empty())).Betriebspunkte.ToList();
+        _linien = (await LinienService.GetAllLinienAsync(new Empty())).Linien.ToList();
     }
 
     private string GetTyp(LinienTyp typ)
