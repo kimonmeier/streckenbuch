@@ -1,9 +1,10 @@
-﻿@using Streckenbuch.Client.Components.NavBar
+﻿@using Blazored.LocalStorage
 @using Streckenbuch.Client.States
 @inherits LayoutComponentBase
-@inject NavigationManager navManager
-@inject FahrenService.FahrenServiceClient fahrenService
-@inject ContinuousConnectionState continuousConnectionState
+@inject NavigationManager NavManager
+@inject FahrenService.FahrenServiceClient FahrenService
+@inject ContinuousConnectionState ContinuousConnectionState
+@inject ISyncLocalStorageService LocalStorage
 @implements IDisposable
 
 <MudThemeProvider @ref="@_mudThemeProvider"
@@ -39,10 +40,10 @@
     <MudAppBar>
         <MudGrid Justify="Justify.SpaceEvenly">
             <MudItem>
-                <MudButton OnClick="() => _isDarkMode = !_isDarkMode">
+                <MudButton OnClick="DarkModeChanged">
                     <MudIcon Icon="@Icons.Material.Outlined.DarkMode"></MudIcon>
                 </MudButton>
-                <MudButton OnClick="@(() => navManager.NavigateTo("/"))">
+                <MudButton OnClick="@(() => NavManager.NavigateTo("/"))">
                     <MudIcon Icon="@Icons.Material.Outlined.Backpack"></MudIcon>
                 </MudButton>
                 <MudButton OnClick="@(() => SelectRoute?.Invoke(this, EventArgs.Empty))">
@@ -75,14 +76,21 @@
 
     protected override void OnInitialized()
     {
-        continuousConnectionState.StartBackgroundTask(_cancellationToken.Token);
-        base.OnInitialized();
+        _isDarkMode = LocalStorage.GetItem<bool>("Layout.DarkMode");
+        ContinuousConnectionState.StartBackgroundTask(_cancellationToken.Token);
     }
 
 
     public void Dispose()
     {
         _cancellationToken.Cancel();
+    }
+
+    private void DarkModeChanged()
+    {
+        _isDarkMode = !_isDarkMode;
+        
+        LocalStorage.SetItem("Layout.DarkMode", _isDarkMode);
     }
 
 }

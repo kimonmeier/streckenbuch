@@ -1,3 +1,4 @@
+using Blazored.LocalStorage;
 using GoogleMapsComponents;
 using Howler.Blazor.Components;
 using Microsoft.AspNetCore.Components.Authorization;
@@ -12,6 +13,7 @@ var builder = WebAssemblyHostBuilder.CreateDefault(args);
 
 builder.Services.AddBeforeUnload();
 builder.Services.AddSpeechSynthesisServices();
+builder.Services.AddBlazoredLocalStorage();
 builder.Services.AddAuthorizationCore();
 builder.Services.AddCascadingAuthenticationState();
 builder.Services.AddScoped<IHowl, Howl>();
