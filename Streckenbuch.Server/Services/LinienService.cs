@@ -79,8 +79,6 @@ public class LinienService : Streckenbuch.Shared.Services.LinienService.LinienSe
             await dbTransaction.Commit(context.CancellationToken);
         }
 
-        ;
-
         return new Empty();
     }
 
@@ -140,5 +138,43 @@ public class LinienService : Streckenbuch.Shared.Services.LinienService.LinienSe
                 LinieId = request.LinieId, TrainNumber = request.TrainNumber, LinieTrainId = linieTrain.Id
             };
         }
+    }
+
+    public override async Task<Empty> EditLinie(EditLinieRequest request, ServerCallContext context)
+    {
+        await context.GetAuthenticatedUser(_userManager);
+
+        using (var dbTransaction = _dbTransactionFactory.CreateTransaction())
+        {
+            var linie = await _linienRepository.FindByEntityAsync(request.LinieId);
+            
+            if (linie is null)
+            {
+                throw new Exception();
+            }
+            
+            linie.Nummer = request.Nummer;
+            linie.Typ = (LinienTyp)request.Typ;
+            linie.VonBetriebspunktId = request.VonBetriebspunktId;
+            linie.BisBetriebspunktId = request.BisBetriebspunktId;
+            
+            await _linienRepository.UpdateAsync(linie);
+            await dbTransaction.Commit(context.CancellationToken);
+        }
+        
+        return new Empty();
+    }
+
+    public override async Task<Empty> DeleteLinie(DeleteLinieRequest request, ServerCallContext context)
+    {
+        await context.GetAuthenticatedUser(_userManager);
+
+        using (var dbTransaction = _dbTransactionFactory.CreateTransaction())
+        {
+            await _linienRepository.RemoveAsync(request.LinieId);
+            await dbTransaction.Commit(context.CancellationToken);
+        }
+
+        return new Empty();
     }
 }

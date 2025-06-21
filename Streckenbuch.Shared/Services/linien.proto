@@ -8,9 +8,23 @@ import "Types/guid.proto";
 service LinienService {
 	rpc GetAllLinien(google.protobuf.Empty) returns (GetAllLinienResponse);
 	rpc CreateLinie(CreateLinieRequest) returns (google.protobuf.Empty);
+	rpc EditLinie(EditLinieRequest) returns (google.protobuf.Empty);
+	rpc DeleteLinie(DeleteLinieRequest) returns (google.protobuf.Empty);
 	rpc EditStreckenZuordnung(EditStreckenZuordnungRequest) returns (google.protobuf.Empty);
 	rpc GetTrainNumberLinked(GetTrainNumberLinkRequest) returns (GetTrainNumberLinkResponse);
 	rpc ChangeTrainNumberLink(ChangeTrainNumberLinkRequest) returns (GetTrainNumberLinkResponse);
+}
+
+message EditLinieRequest {
+	Types.GuidProto linieId = 1;
+	int32 typ = 2;
+	optional int32 nummer = 3;
+	Types.GuidProto vonBetriebspunktId = 4;
+	Types.GuidProto bisBetriebspunktId = 5;
+}
+
+message DeleteLinieRequest {
+	Types.GuidProto linieId = 1;
 }
 
 message GetTrainNumberLinkRequest {

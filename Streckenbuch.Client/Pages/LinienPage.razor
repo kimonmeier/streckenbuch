@@ -1,9 +1,9 @@
 ﻿@attribute [Authorize(Roles = Permissions.Admin)]
 @page "/linien"
 
-@inject LinienService.LinienServiceClient linienService
-@inject BetriebspunkteService.BetriebspunkteServiceClient betriebspunkteService
-@inject IDialogService dialogService
+@inject LinienService.LinienServiceClient LinienService
+@inject BetriebspunkteService.BetriebspunkteServiceClient BetriebspunkteService
+@inject IDialogService DialogService
 
 <PageTitle>Linien</PageTitle>
 
@@ -16,65 +16,96 @@
         <MudTh></MudTh>
     </HeaderContent>
     <RowTemplate>
-        <MudTd>@getTypText(context.Typ)</MudTd>
+        <MudTd>@GetTypText(context.Typ)</MudTd>
         <MudTd>@context.Nummer</MudTd>
         <MudTd>@Betriebspunkte.Single(x => ((Guid)x.Id).Equals((Guid)context.VonBetriebspunktId)).Name</MudTd>
         <MudTd>@Betriebspunkte.Single(x => ((Guid)x.Id).Equals((Guid)context.BisBetriebspunktId)).Name</MudTd>
         <MudTd>
-            <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="@(() => editStrecken(context))">
-                Strecken anschauen
-            </MudButton>
+            <MudButtonGroup Variant="Variant.Filled">
+                <MudButton Color="Color.Primary" OnClick="@(() => EditStrecken(context))">
+                    Strecken anschauen
+                </MudButton>
+                <MudButton Color="Color.Secondary" OnClick="@(() => EditLinie(context))">
+                    Linie editieren
+                </MudButton>
+                <MudButton Color="Color.Error" OnClick="@(() => DeleteLinie(context))">
+                    Linie löschen
+                </MudButton>
+            </MudButtonGroup>
         </MudTd>
     </RowTemplate>
 </MudTable>
 
 <MudButtonGroup>
-    <MudButton Color="@Color.Primary" OnClick="createLinie">Linie erstellen</MudButton>
+    <MudButton Color="@Color.Primary" OnClick="CreateLinie">Linie erstellen</MudButton>
 </MudButtonGroup>
 
 @code {
     private List<LinienProto> Linien { get; set; }
     private List<BetriebspunktProto> Betriebspunkte { get; set; }
     private bool _isLoading = false;
-
-    protected override async Task OnInitializedAsync()
+    protected async override Task OnInitializedAsync()
     {
         _isLoading = true;
+        
+        Betriebspunkte = (await BetriebspunkteService.ListAllBetriebspunkteAsync(new Empty())).Betriebspunkte.ToList();
 
-        Betriebspunkte = (await betriebspunkteService.ListAllBetriebspunkteAsync(new Empty())).Betriebspunkte.ToList();
-
-        await loadData();
+        await LoadData();
     }
 
-    private async Task loadData()
+    private async Task LoadData()
     {
         _isLoading = true;
-        var list = await linienService.GetAllLinienAsync(new Empty());
+        var list = await LinienService.GetAllLinienAsync(new Empty());
 
         Linien = list.Linien.ToList();
 
         _isLoading = false;
     }
 
-    private async Task editStrecken(LinienProto proto)
+    private async Task EditStrecken(LinienProto proto)
     {
         var param = new DialogParameters<EditLinienStrecken>()
         {
             { x => x.Linie, proto },
         };
-        await dialogService.Show<EditLinienStrecken>("Strecken zuordnen", param).Result;
+        await DialogService.Show<EditLinienStrecken>("Strecken zuordnen", param).Result;
 
-        await loadData();
+        await LoadData();
     }
 
-    private async Task createLinie()
+    private async Task CreateLinie()
     {
-        dialogService.Show<CreateLinie>();
+        await DialogService.Show<CreateOrEditLinie>().Result;
 
-        await loadData();
+        await LoadData();
+    }
+    
+    private async Task EditLinie(LinienProto linienProto)
+    {
+        var parameters = new DialogParameters<CreateOrEditLinie>()
+        {
+            {
+                x => x.LinieToEdit, linienProto
+            }
+        };
+        
+        await DialogService.Show<CreateOrEditLinie>("Linie bearbeiten", parameters).Result;
+
+        await LoadData();
     }
 
-    private string getTypText(int typNummer) {
+    private async Task DeleteLinie(LinienProto linienProto)
+    {
+        await LinienService.DeleteLinieAsync(new DeleteLinieRequest()
+        {
+            LinieId = linienProto.Id
+        });
+        
+        await LoadData();
+    }
+
+    private string GetTypText(int typNummer) {
         LinienTyp typ = (LinienTyp)typNummer;
 
         return typ switch
@@ -86,7 +117,8 @@
             LinienTyp.EuroCity => "EC",
             LinienTyp.NightJet => "NJ",
             LinienTyp.ICE => "ICE",
-            LinienTyp.TGV => "TGV"
+            LinienTyp.TGV => "TGV",
+            _ => throw new ArgumentOutOfRangeException()
         };
     }
 }

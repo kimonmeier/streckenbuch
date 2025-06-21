@@ -54,6 +54,9 @@
     [CascadingParameter]
     private MudDialogInstance MudDialog { get; set; } = null!;
 
+    [Parameter]
+    public LinienProto? LinieToEdit { get; set; }
+    
     private CreateStreckeForm model = new CreateStreckeForm();
     private List<BetriebspunktProto> betriebspunkte;
 
@@ -74,24 +77,48 @@
     protected async override Task OnInitializedAsync()
     {
         betriebspunkte = (await betriebspunktService.ListAllBetriebspunkteAsync(new Empty())).Betriebspunkte.ToList();
+
+        if (LinieToEdit is not null)
+        {
+            model.Nummer = LinieToEdit.Nummer;
+            model.LinienTyp = (LinienTyp)LinieToEdit.Typ;
+            model.VonBetriebspunkt = betriebspunkte.Single(x => ((Guid)x.Id).Equals(LinieToEdit.VonBetriebspunktId));
+            model.BisBetriebspunkt = betriebspunkte.Single(x => ((Guid)x.Id).Equals(LinieToEdit.BisBetriebspunktId));
+        }
     }
 
     private async Task Submit()
     {
-        CreateLinieRequest request = new CreateLinieRequest()
+        if (LinieToEdit is null)
+        {
+
+            CreateLinieRequest request = new CreateLinieRequest()
             {
-                Typ = (int)model.LinienTyp,
-                VonBetriebspunktId = model.VonBetriebspunkt.Id,
-                BisBetriebspunktId = model.BisBetriebspunkt.Id
+                Typ = (int)model.LinienTyp, VonBetriebspunktId = model.VonBetriebspunkt.Id, BisBetriebspunktId = model.BisBetriebspunkt.Id
             };
 
-        if (model.Nummer.HasValue)
-        {
-            request.Nummer = model.Nummer.Value;
+            if (model.Nummer.HasValue)
+            {
+                request.Nummer = model.Nummer.Value;
+            }
+
+
+            await linienService.CreateLinieAsync(request);
         }
-
-
-        await linienService.CreateLinieAsync(request);
+        else
+        {
+            EditLinieRequest request = new EditLinieRequest()
+            {
+                LinieId = LinieToEdit.Id, Typ = (int)model.LinienTyp, VonBetriebspunktId = model.VonBetriebspunkt.Id, BisBetriebspunktId = model.BisBetriebspunkt.Id
+            };
+            
+            if (model.Nummer.HasValue)
+            {
+                request.Nummer = model.Nummer.Value;
+            }
+            
+            await linienService.EditLinieAsync(request);
+        }
 
         MudDialog.Close();
     }
