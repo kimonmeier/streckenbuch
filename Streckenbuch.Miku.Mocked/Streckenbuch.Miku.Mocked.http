@@ -1,0 +1,6 @@
+@Streckenbuch.Miku.Mocked_HostAddress = http://localhost:5171
+
+GET {{Streckenbuch.Miku.Mocked_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
