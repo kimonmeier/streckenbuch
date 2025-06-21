@@ -86,7 +86,7 @@ public class LinienService : Streckenbuch.Shared.Services.LinienService.LinienSe
     {
         GetAllLinienResponse response = new GetAllLinienResponse();
         var list = await _linienRepository.ListAllAsync();
-        response.Linien.Add(_mapper.Map<List<LinienProto>>(list));
+        response.Linien.Add(_mapper.Map<List<LinienProto>>(list).OrderBy(x => x.Typ).ThenBy(x => x.Nummer));
 
         return response;
     }
