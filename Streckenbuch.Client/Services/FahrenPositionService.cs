@@ -275,8 +275,8 @@ public sealed class FahrenPositionService
         }
 
         // Check if any distances are increasing and decreasing. This way we can be sure that it has passed the entry
-        bool isApproaching = distances.Count(d => d < 0) > 2;
-        bool isMovingAway = distances.Count(d => d > 0) > 2;
+        bool isApproaching = distances.Count(d => d < 0) >= 2;
+        bool isMovingAway = distances.Count(d => d > 0) >= 2;
 
         if (isApproaching && isMovingAway)
         {
