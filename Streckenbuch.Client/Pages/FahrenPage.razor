@@ -3,7 +3,6 @@
 @using Streckenbuch.Client.Components.Fahren
 @using Streckenbuch.Client.Services
 @using Streckenbuch.Client.States
-@inject FahrenService.FahrenServiceClient FahrenService
 @inject IDialogService DialogService
 @inject ScreenWakeLockService ScreenWakeLockService
 @inject ContinuousConnectionState ConnectionState
@@ -28,10 +27,19 @@
         BeforeUnload.BeforeUnloadHandler += BeforeUnloadOnBeforeUnloadHandler;
         
         Layout.SelectRoute += SelectRoute;
-
-        _lockSentinel = await ScreenWakeLockService.RequestWakeLockAsync();
+        Layout.OpenSettings += LayoutOnOpenSettings;
         
         await AudioState.SayText("Audio-System initialisiert!");
+    }
+
+    protected async override Task OnAfterRenderAsync(bool firstRender)
+    {
+        _lockSentinel ??= await ScreenWakeLockService.RequestWakeLockAsync();
+    }
+
+    private void LayoutOnOpenSettings(object? sender, EventArgs e)
+    {
+        DialogService.Show<SettingsDialog>();
     }
 
     private void BeforeUnloadOnBeforeUnloadHandler(object? sender, BeforeUnloadArgs e)
@@ -48,7 +56,7 @@
     {
         Task.Run(async () =>
         {
-            var dialog = DialogService.Show<LoadFahrordnung>();
+            var dialog = await DialogService.ShowAsync<LoadFahrordnung>();
             var result = await dialog.Result;
 
             if (result?.Data is not List<IBaseEntry> list)

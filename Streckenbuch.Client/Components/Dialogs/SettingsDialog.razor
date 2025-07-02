@@ -1,0 +1,32 @@
+﻿@using Streckenbuch.Client.Services
+@inject SettingsProvider SettingsProvider
+
+<MudStack>
+    <MudCheckBox T="bool" ValueChanged="IsVoiceActivatedChanged" Value="SettingsProvider.IsVoiceActivated" Label="Stimme aktivieren?" />
+    <MudCheckBox T="bool" ValueChanged="DarkModeChanged" Value="SettingsProvider.IsDarkMode" Label="Dark Mode?"></MudCheckBox>
+
+    <MudButton OnClick="Close">Close</MudButton>
+</MudStack>
+
+@code {
+    [CascadingParameter]
+    private IMudDialogInstance MudDialog { get; set; } = null!;
+    
+    private void IsVoiceActivatedChanged(bool obj)
+    {
+        SettingsProvider.IsVoiceActivated = obj;
+        SettingsProvider.SaveAsync().ConfigureAwait(false);
+    }
+
+    private void DarkModeChanged(bool obj)
+    {
+        SettingsProvider.IsDarkMode = obj;
+        SettingsProvider.SaveAsync().ConfigureAwait(false);
+    }
+
+    private void Close()
+    {
+        MudDialog.Close();
+    }
+
+}

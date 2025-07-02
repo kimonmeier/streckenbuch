@@ -23,6 +23,7 @@ builder.Services.AddSingleton<FahrenPositionService>();
 builder.Services.AddSingleton<AudioState>();
 builder.Services.AddSingleton<ScreenWakeLockService>();
 builder.Services.AddSingleton<DataState>();
+builder.Services.AddSingleton<SettingsProvider>();
 builder.Services.AddMudServices();
 builder.Services.AddMudPopoverService();
 builder.Services.AddClientMapping();

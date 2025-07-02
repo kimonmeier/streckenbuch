@@ -1,6 +1,7 @@
 ﻿using Howler.Blazor.Components;
 using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
+using Streckenbuch.Client.Services;
 using System.Text.Json;
 
 namespace Streckenbuch.Client.States;
@@ -8,14 +9,21 @@ namespace Streckenbuch.Client.States;
 public class AudioState
 {
     private readonly IServiceProvider _serviceProvider;
+    private readonly SettingsProvider _settingsProvider;
 
-    public AudioState(IServiceProvider serviceProvider)
+    public AudioState(IServiceProvider serviceProvider, SettingsProvider settingsProvider)
     {
         _serviceProvider = serviceProvider;
+        _settingsProvider = settingsProvider;
     }
     
     public async Task SayText(string text)
     {
+        if (!_settingsProvider.IsVoiceActivated)
+        {
+            return;
+        }
+        
         await using var scope = _serviceProvider.CreateAsyncScope();
         var howl = scope.ServiceProvider.GetRequiredService<IHowl>();
         var speechSynthesis = scope.ServiceProvider.GetRequiredService<ISpeechSynthesisService>();

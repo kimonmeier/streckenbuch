@@ -1,10 +1,10 @@
 ﻿@using Blazored.LocalStorage
+@using Streckenbuch.Client.Services
 @using Streckenbuch.Client.States
 @inherits LayoutComponentBase
 @inject NavigationManager NavManager
-@inject FahrenService.FahrenServiceClient FahrenService
 @inject ContinuousConnectionState ContinuousConnectionState
-@inject ISyncLocalStorageService LocalStorage
+@inject SettingsProvider SettingsProvider
 @implements IDisposable
 
 <MudThemeProvider @ref="@_mudThemeProvider"
@@ -40,14 +40,14 @@
     <MudAppBar>
         <MudGrid Justify="Justify.SpaceEvenly">
             <MudItem>
-                <MudButton OnClick="DarkModeChanged">
-                    <MudIcon Icon="@Icons.Material.Outlined.DarkMode"></MudIcon>
-                </MudButton>
                 <MudButton OnClick="@(() => NavManager.NavigateTo("/"))">
                     <MudIcon Icon="@Icons.Material.Outlined.Backpack"></MudIcon>
                 </MudButton>
                 <MudButton OnClick="@(() => SelectRoute?.Invoke(this, EventArgs.Empty))">
                     <MudIcon Icon="@Icons.Material.Outlined.Download"></MudIcon>
+                </MudButton>
+                <MudButton OnClick="@(() => OpenSettings?.Invoke(this, EventArgs.Empty))">
+                    <MudIcon Icon="@Icons.Material.Outlined.Settings"></MudIcon>
                 </MudButton>
             </MudItem>
         </MudGrid>
@@ -66,6 +66,8 @@
     
     public event EventHandler? SelectRoute;
 
+    public event EventHandler? OpenSettings;
+
     private readonly MudTheme _baseTheme = new MudTheme()
         {
             LayoutProperties = new LayoutProperties()
@@ -76,21 +78,23 @@
 
     protected override void OnInitialized()
     {
-        _isDarkMode = LocalStorage.GetItem<bool>("Layout.DarkMode");
         ContinuousConnectionState.StartBackgroundTask(_cancellationToken.Token);
+        
+        _isDarkMode = SettingsProvider.IsDarkMode;
+        
+        SettingsProvider.SettingsChanged += SettingsChanged;
+    }
+
+    private void SettingsChanged(object? sender, EventArgs e)
+    {
+        _isDarkMode = SettingsProvider.IsDarkMode;
+        InvokeAsync(StateHasChanged);
     }
 
 
     public void Dispose()
     {
         _cancellationToken.Cancel();
+        SettingsProvider.SettingsChanged -= SettingsChanged;
     }
-
-    private void DarkModeChanged()
-    {
-        _isDarkMode = !_isDarkMode;
-        
-        LocalStorage.SetItem("Layout.DarkMode", _isDarkMode);
-    }
-
 }

@@ -1,4 +1,6 @@
 ﻿@using Streckenbuch.Client.Components.NavBar
+@using Streckenbuch.Client.Services
+@inject SettingsProvider SettingsProvider
 @inherits LayoutComponentBase
 
 <MudThemeProvider @ref="@_mudThemeProvider"
@@ -46,7 +48,12 @@
             }
         };
 
-    protected override async Task OnAfterRenderAsync(bool firstRender)
+    protected async override Task OnInitializedAsync()
+    {
+        await SettingsProvider.LoadAsync();
+    }
+
+    protected async override Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
         {
