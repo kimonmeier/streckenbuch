@@ -13,7 +13,7 @@ public sealed class FahrenPositionService
 {
     public event EventHandler? DataChanged;
 
-    private const double AccuracyFactor = 1.50;
+    private const double AccuracyFactor = 2;
 
     private List<IBaseEntry> _currentEntries = default!;
     private List<GeolocationPosition> _lastPositions = default!;
@@ -275,8 +275,8 @@ public sealed class FahrenPositionService
         }
 
         // Check if any distances are increasing and decreasing. This way we can be sure that it has passed the entry
-        bool isApproaching = distances.Any(d => d < 0);
-        bool isMovingAway = distances.Any(d => d > 0);
+        bool isApproaching = distances.Count(d => d < 0) > 2;
+        bool isMovingAway = distances.Count(d => d > 0) > 2;
 
         if (isApproaching && isMovingAway)
         {
