@@ -16,14 +16,16 @@ public class RecordingService : Streckenbuch.Shared.Services.RecordingService.Re
     private readonly WorkShiftRepository _workShiftRepository;
     private readonly WorkTripRepository _workTripRepository;
     private readonly TripRecordingRepository _tripRecordingRepository;
+    private readonly ILogger _logger;
 
-    public RecordingService(DbTransactionFactory dbTransactionFactory, WorkDriverRepository workDriverRepository, WorkShiftRepository workShiftRepository, WorkTripRepository workTripRepository, TripRecordingRepository tripRecordingRepository)
+    public RecordingService(DbTransactionFactory dbTransactionFactory, WorkDriverRepository workDriverRepository, WorkShiftRepository workShiftRepository, WorkTripRepository workTripRepository, TripRecordingRepository tripRecordingRepository, ILogger logger)
     {
         _dbTransactionFactory = dbTransactionFactory;
         _workDriverRepository = workDriverRepository;
         _workShiftRepository = workShiftRepository;
         _workTripRepository = workTripRepository;
         _tripRecordingRepository = tripRecordingRepository;
+        _logger = logger;
     }
 
     public override async Task<StartRecordingSessionResponse> StartRecordingSession(StartRecordingSessionRequest request, ServerCallContext context)
@@ -70,9 +72,10 @@ public class RecordingService : Streckenbuch.Shared.Services.RecordingService.Re
 
         foreach (RecordPosition requestPosition in request.Positions)
         {
+            _logger.LogInformation($"SendRecordedLocations: {requestPosition.Location.Latitude} {requestPosition.Location.Longitude} {requestPosition.DateTime}");
             await _tripRecordingRepository.AddAsync(new TripRecording()
             {
-                WorkTripId = request.WorkTripId, Location = requestPosition.Location, Time = TimeOnly.FromTimeSpan(TimeSpan.FromTicks(requestPosition.DateTime))
+                WorkTripId = request.WorkTripId, Location = requestPosition.Location, Time = TimeOnly.FromDateTime(new DateTime(requestPosition.DateTime))
             });
         }
         
