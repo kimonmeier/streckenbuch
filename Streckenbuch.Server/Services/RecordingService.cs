@@ -72,7 +72,6 @@ public class RecordingService : Streckenbuch.Shared.Services.RecordingService.Re
 
         foreach (RecordPosition requestPosition in request.Positions)
         {
-            _logger.LogInformation($"SendRecordedLocations: {requestPosition.Location.Latitude} {requestPosition.Location.Longitude} {requestPosition.DateTime}");
             await _tripRecordingRepository.AddAsync(new TripRecording()
             {
                 WorkTripId = request.WorkTripId, Location = requestPosition.Location, Time = TimeOnly.FromDateTime(new DateTime(requestPosition.DateTime))
