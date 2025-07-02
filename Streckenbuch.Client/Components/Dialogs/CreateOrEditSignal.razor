@@ -1,4 +1,6 @@
-﻿@using Streckenbuch.Client.Components.Maps
+﻿@using GoogleMapsComponents.Maps
+@using Streckenbuch.Client.Components.Maps
+@using Size = MudBlazor.Size
 @inject BetriebspunkteService.BetriebspunkteServiceClient betriebspunktService
 @inject SignaleService.SignaleServiceClient signalService
 @inject IJSRuntime JSRuntime
@@ -129,13 +131,21 @@
 
     private void OnAfterMapInit(object? source, EventArgs eventArgs)
     {
-        if (Vorschlag is null)
+        LatLngLiteral location;
+
+        if (SignalToEdit is not null)
+        {
+            location = new LatLngLiteral(SignalToEdit.Location.Latitude, SignalToEdit.Location.Longitude);
+        } else if (Vorschlag is not null)
+        {
+            location = new LatLngLiteral(Vorschlag.Location.Latitude, Vorschlag.Location.Longitude);
+        }
+        else
         {
             return;
         }
 
-        locationPicker.SetCenter(Vorschlag.Location.Latitude, Vorschlag.Location.Longitude).ConfigureAwait(false);
-        locationPicker.OnAfterInit -= OnAfterMapInit;
+        locationPicker.SetCenter(location).ConfigureAwait(false);
     }
 
     private async Task changeSearch(string search)
@@ -147,7 +157,7 @@
     {
         model.Betriebspunkt = betriebspunkt;
 
-        await locationPicker.SetCenter(betriebspunkt.Location.Latitude, betriebspunkt.Location.Longitude);
+        await locationPicker.SetCenter(new LatLngLiteral(betriebspunkt.Location.Latitude, betriebspunkt.Location.Longitude));
     }
 
     private async Task Submit()

@@ -53,9 +53,9 @@
         StateHasChanged();
     }
 
-    public async Task SetCenter(double latitude, double longitude)
+    public async Task SetCenter(LatLngLiteral latLngLiteral)
     {
-        await _map.InteropObject.SetCenter(new LatLngLiteral(latitude, longitude));
+        await _map.InteropObject.SetCenter(latLngLiteral);
     }
 
     public Task<LatLngLiteral> GetCenter()
