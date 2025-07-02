@@ -16,9 +16,9 @@ public class RecordingService : Streckenbuch.Shared.Services.RecordingService.Re
     private readonly WorkShiftRepository _workShiftRepository;
     private readonly WorkTripRepository _workTripRepository;
     private readonly TripRecordingRepository _tripRecordingRepository;
-    private readonly ILogger _logger;
+    private readonly ILogger<RecordingService> _logger;
 
-    public RecordingService(DbTransactionFactory dbTransactionFactory, WorkDriverRepository workDriverRepository, WorkShiftRepository workShiftRepository, WorkTripRepository workTripRepository, TripRecordingRepository tripRecordingRepository, ILogger logger)
+    public RecordingService(DbTransactionFactory dbTransactionFactory, WorkDriverRepository workDriverRepository, WorkShiftRepository workShiftRepository, WorkTripRepository workTripRepository, TripRecordingRepository tripRecordingRepository, ILogger<RecordingService> logger)
     {
         _dbTransactionFactory = dbTransactionFactory;
         _workDriverRepository = workDriverRepository;
