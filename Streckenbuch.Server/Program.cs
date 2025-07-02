@@ -113,6 +113,7 @@ app.MapGrpcService<BetriebspunkteService>().EnableGrpcWeb();
 app.MapGrpcService<SignaleService>().EnableGrpcWeb();
 app.MapGrpcService<FahrenService>().EnableGrpcWeb();
 app.MapGrpcService<LinienService>().EnableGrpcWeb();
+app.MapGrpcService<RecordingService>().EnableGrpcWeb();
 
 app.UseHttpsRedirection();
 

@@ -24,6 +24,7 @@ builder.Services.AddSingleton<AudioState>();
 builder.Services.AddSingleton<ScreenWakeLockService>();
 builder.Services.AddSingleton<DataState>();
 builder.Services.AddSingleton<SettingsProvider>();
+builder.Services.AddSingleton<RecordingServices>();
 builder.Services.AddMudServices();
 builder.Services.AddMudPopoverService();
 builder.Services.AddClientMapping();
@@ -36,5 +37,6 @@ builder.Services.AddGrpcService<BetriebspunkteService.BetriebspunkteServiceClien
 builder.Services.AddGrpcService<SignaleService.SignaleServiceClient>();
 builder.Services.AddGrpcService<FahrenService.FahrenServiceClient>();
 builder.Services.AddGrpcService<LinienService.LinienServiceClient>();
+builder.Services.AddGrpcService<RecordingService.RecordingServiceClient>();
 
 await builder.Build().RunAsync();

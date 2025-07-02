@@ -28,8 +28,14 @@
         
         Layout.SelectRoute += SelectRoute;
         Layout.OpenSettings += LayoutOnOpenSettings;
+        Layout.RecordPositions += LayoutOnRecordPositions;
         
         await AudioState.SayText("Audio-System initialisiert!");
+    }
+
+    private void LayoutOnRecordPositions(object? sender, EventArgs e)
+    {
+        DialogService.Show<StartRecordingDialog>();
     }
 
     protected async override Task OnAfterRenderAsync(bool firstRender)

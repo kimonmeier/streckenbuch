@@ -1,0 +1,51 @@
+﻿@using Streckenbuch.Client.Services
+@inject RecordingServices RecordingService
+
+<EditForm Model="@model" OnValidSubmit="Submit">
+    <DataAnnotationsValidator />
+    <MudGrid>
+        <MudItem>
+            <MudCard>
+                <MudCardContent>
+                    <MudTextField Label="Lokführer-ID" HelperText="Die Nummer des Lokführer"
+                                  @bind-Value="model.TrainDriverNumber" For="@(() => model.TrainDriverNumber)" />
+                    <MudTextField Label="Zugnummer" HelperText="Die Zugnummer"
+                                  @bind-Value="model.TrainNumber" For="@(() => model.TrainNumber)" />
+                </MudCardContent>
+                <MudCardActions>
+                    <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary">Create</MudButton>
+                    <MudButton ButtonType="ButtonType.Button" Variant="Variant.Filled" Color="Color.Secondary" OnClick="Cancel">Cancel</MudButton>
+                </MudCardActions>
+            </MudCard>
+        </MudItem>
+    </MudGrid>
+</EditForm>
+
+@code {
+    [CascadingParameter]
+    private IMudDialogInstance MudDialog { get; set; } = null!;
+
+    private StartRecordingSession model = new StartRecordingSession();
+
+    public class StartRecordingSession
+    {
+        [Required]
+        public int TrainDriverNumber { get; set; }
+        
+        [Required]
+        public int TrainNumber { get; set; }
+    }
+    
+    private async Task Submit()
+    {
+        await RecordingService.StartWorkTrip(model.TrainNumber, model.TrainDriverNumber);
+        
+        MudDialog.Close();
+    }
+
+    private void Cancel()
+    {
+        MudDialog.Cancel();
+    }
+
+}

@@ -1,0 +1,31 @@
+﻿syntax = "proto3";
+option csharp_namespace = "Streckenbuch.Shared.Services";
+package Recording;
+
+import "google/protobuf/empty.proto";
+import "Types/guid.proto";
+import "Types/location.proto";
+
+service RecordingService {
+  rpc StartRecordingSession(StartRecordingSessionRequest) returns (StartRecordingSessionResponse);
+  rpc SendRecordedLocations(SendRecordedLocationsRequest) returns (google.protobuf.Empty);
+}
+
+message StartRecordingSessionRequest {
+  int32 trainNumber = 1;
+  int32 trainDriverNumber = 2;
+}
+
+message StartRecordingSessionResponse {
+  Types.GuidProto workTrip = 1;
+}
+
+message SendRecordedLocationsRequest {
+  Types.GuidProto workTripId = 1;
+  repeated RecordPosition positions = 2;
+}
+
+message RecordPosition {
+  Types.LocationProto location = 1;
+  int64 dateTime = 2;
+}

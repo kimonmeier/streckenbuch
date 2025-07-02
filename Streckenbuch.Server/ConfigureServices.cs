@@ -39,6 +39,10 @@ public static class ConfigureServices
         services.AddTransient<LinienRepository>();
         services.AddTransient<LinienKonfigurationRepository>();
         services.AddTransient<LinieTrainRepository>();
+        services.AddTransient<WorkShiftRepository>();
+        services.AddTransient<WorkTripRepository>();
+        services.AddTransient<TripRecordingRepository>();
+        services.AddTransient<WorkDriverRepository>();
     }
 
     public static async Task CreateRoles(this IServiceProvider provider)

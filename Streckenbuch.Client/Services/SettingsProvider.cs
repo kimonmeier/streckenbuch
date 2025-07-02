@@ -10,6 +10,8 @@ public class SettingsProvider
     
     public bool IsDarkMode { get; set; }
     
+    public bool IsRecordingActive { get; set; }
+    
     private readonly IServiceProvider _serviceProvider;
 
     public SettingsProvider(IServiceProvider serviceProvider)
@@ -25,6 +27,7 @@ public class SettingsProvider
         
         await localStorageService.SetItemAsync(Konst.DarkMode, IsDarkMode);
         await localStorageService.SetItemAsync(Konst.VoiceActivated, IsVoiceActivated);
+        await localStorageService.SetItemAsync(Konst.RecordingActive, IsRecordingActive);
         
         SettingsChanged?.Invoke(this, EventArgs.Empty);
     }
@@ -34,8 +37,9 @@ public class SettingsProvider
         using var scope = _serviceProvider.CreateScope();
         var localStorageService = scope.ServiceProvider.GetRequiredService<ILocalStorageService>();
         
-        this.IsVoiceActivated = await localStorageService.GetItemAsync<bool>(Konst.VoiceActivated);
-        this.IsDarkMode = await localStorageService.GetItemAsync<bool>(Konst.DarkMode);
+        this.IsVoiceActivated = await localStorageService.GetItemAsync<bool?>(Konst.VoiceActivated) ?? false;
+        this.IsDarkMode = await localStorageService.GetItemAsync<bool?>(Konst.DarkMode) ?? true;
+        this.IsRecordingActive = await localStorageService.GetItemAsync<bool?>(Konst.RecordingActive) ?? false;
         
         SettingsChanged?.Invoke(this, EventArgs.Empty);
     }
@@ -44,5 +48,6 @@ public class SettingsProvider
     {
         public const string VoiceActivated = "voiceActivated";
         public const string DarkMode = "darkMode";  
+        public const string RecordingActive = "recordingActive"; 
     }
 }

@@ -5,6 +5,7 @@
 @inject NavigationManager NavManager
 @inject ContinuousConnectionState ContinuousConnectionState
 @inject SettingsProvider SettingsProvider
+@inject RecordingServices RecordingService
 @implements IDisposable
 
 <MudThemeProvider @ref="@_mudThemeProvider"
@@ -49,6 +50,9 @@
                 <MudButton OnClick="@(() => OpenSettings?.Invoke(this, EventArgs.Empty))">
                     <MudIcon Icon="@Icons.Material.Outlined.Settings"></MudIcon>
                 </MudButton>
+                <MudButton OnClick="@(() => RecordPositions?.Invoke(this, EventArgs.Empty))">
+                    <MudIcon Icon="@Icons.Material.Outlined.History"></MudIcon>
+                </MudButton>
             </MudItem>
         </MudGrid>
     </MudAppBar>
@@ -67,6 +71,8 @@
     public event EventHandler? SelectRoute;
 
     public event EventHandler? OpenSettings;
+    
+    public event EventHandler? RecordPositions;
 
     private readonly MudTheme _baseTheme = new MudTheme()
         {
@@ -79,6 +85,7 @@
     protected override void OnInitialized()
     {
         ContinuousConnectionState.StartBackgroundTask(_cancellationToken.Token);
+        RecordingService.StartBackgroundTask(_cancellationToken.Token);
         
         _isDarkMode = SettingsProvider.IsDarkMode;
         

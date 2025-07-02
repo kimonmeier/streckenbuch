@@ -4,6 +4,7 @@
 <MudStack>
     <MudCheckBox T="bool" ValueChanged="IsVoiceActivatedChanged" Value="SettingsProvider.IsVoiceActivated" Label="Stimme aktivieren?" />
     <MudCheckBox T="bool" ValueChanged="DarkModeChanged" Value="SettingsProvider.IsDarkMode" Label="Dark Mode?"></MudCheckBox>
+    <MudCheckBox T="bool" ValueChanged="RecordingChanged" Value="SettingsProvider.IsRecordingActive" Label="Position aufnehmen?"></MudCheckBox>
 
     <MudButton OnClick="Close">Close</MudButton>
 </MudStack>
@@ -21,6 +22,12 @@
     private void DarkModeChanged(bool obj)
     {
         SettingsProvider.IsDarkMode = obj;
+        SettingsProvider.SaveAsync().ConfigureAwait(false);
+    }
+    
+    private void RecordingChanged(bool obj)
+    {
+        SettingsProvider.IsRecordingActive = obj;
         SettingsProvider.SaveAsync().ConfigureAwait(false);
     }
 

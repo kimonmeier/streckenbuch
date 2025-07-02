@@ -1,6 +1,7 @@
 ﻿using MediatR;
 using Microsoft.JSInterop;
 using Streckenbuch.Client.Events.ApproachingStop;
+using Streckenbuch.Client.Events.PositionRecieved;
 using Streckenbuch.Client.Extensions;
 using Streckenbuch.Client.Models.Fahren;
 using Streckenbuch.Client.Models.Fahren.Betriebspunkt;
@@ -75,6 +76,11 @@ public sealed class FahrenPositionService
 
                 return;
             }
+
+            await _sender.Send(new PositionRecievedEvent()
+            {
+                Position = newPosition
+            });
             
             CheckForStationAnnouncement(newPosition);
 
