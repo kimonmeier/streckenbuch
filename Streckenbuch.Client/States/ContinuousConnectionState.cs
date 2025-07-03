@@ -14,19 +14,11 @@ public class ContinuousConnectionState
     private readonly ISender _sender;
     private int? _registeredTrainNumber;
 
-    public ContinuousConnectionState(FahrenService.FahrenServiceClient fahrenServiceClient, ISender sender, BeforeUnload beforeUnload)
+    public ContinuousConnectionState(FahrenService.FahrenServiceClient fahrenServiceClient, ISender sender)
     {
         _fahrenServiceClient = fahrenServiceClient;
         _sender = sender;
         _id = Guid.NewGuid();
-        
-        beforeUnload.BeforeUnloadHandler += BeforeUnloadOnBeforeUnloadHandler;
-    }
-
-    private void BeforeUnloadOnBeforeUnloadHandler(object? sender, BeforeUnloadArgs e)
-    {
-        UnregisterTrain().ConfigureAwait(false);
-        _fahrenServiceClient.DisconnectClientAsync(new DisconnectClientRequest() { ClientId = _id }).ConfigureAwait(false);
     }
 
     public void StartBackgroundTask(CancellationToken cancellationToken)

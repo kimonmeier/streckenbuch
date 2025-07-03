@@ -201,6 +201,7 @@
 
         var response = await FahrenService.FahrenByTrainNumberAsync(requestByTrainNumber);
 
+        await ConnectionState.UnregisterTrain();
         await ConnectionState.RegisterTrain(selectedTrainNumber);
         
         return Mapper.Map<List<IBaseEntry>>(response.Entries);

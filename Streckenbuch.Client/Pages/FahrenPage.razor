@@ -6,10 +6,9 @@
 @inject IDialogService DialogService
 @inject ScreenWakeLockService ScreenWakeLockService
 @inject ContinuousConnectionState ConnectionState
-@inject BeforeUnload BeforeUnload
 @inject AudioState AudioState
 @layout FahrenLayout
-@implements IDisposable
+@implements IAsyncDisposable
 
 <PageTitle>Fahren</PageTitle>
 
@@ -24,8 +23,6 @@
 
     protected async override Task OnInitializedAsync()
     {
-        BeforeUnload.BeforeUnloadHandler += BeforeUnloadOnBeforeUnloadHandler;
-        
         Layout.SelectRoute += SelectRoute;
         Layout.OpenSettings += LayoutOnOpenSettings;
         Layout.RecordPositions += LayoutOnRecordPositions;
@@ -48,16 +45,6 @@
         DialogService.Show<SettingsDialog>();
     }
 
-    private void BeforeUnloadOnBeforeUnloadHandler(object? sender, BeforeUnloadArgs e)
-    {
-        Layout.SelectRoute -= SelectRoute;
-
-        if (_lockSentinel is not null)
-        {
-            ScreenWakeLockService.ReleaseWakeLockAsync(_lockSentinel).ConfigureAwait(false);
-        }
-    }
-
     private void SelectRoute(object? source, EventArgs eventArgs)
     {
         Task.Run(async () =>
@@ -75,11 +62,14 @@
         });
     }
     
-    public void Dispose()
-    {        
-        BeforeUnload.BeforeUnloadHandler -= BeforeUnloadOnBeforeUnloadHandler;
+    public async ValueTask DisposeAsync()
+    {
+        Layout.SelectRoute -= SelectRoute;
 
-        BeforeUnloadOnBeforeUnloadHandler(null, null!);
-        ConnectionState.UnregisterTrain().ConfigureAwait(false);
+        if (_lockSentinel is not null)
+        {
+            await ScreenWakeLockService.ReleaseWakeLockAsync(_lockSentinel);
+        }
+        await ConnectionState.UnregisterTrain();
     }
 }
