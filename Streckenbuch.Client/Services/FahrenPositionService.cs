@@ -53,7 +53,15 @@ public sealed class FahrenPositionService
         try
         {
             await _semaphoreSlim.WaitAsync();
-
+            
+            if (newPosition.Coords.Accuracy <= 100)
+            {
+                await _sender.Send(new PositionRecievedEvent()
+                {
+                    Position = newPosition
+                });
+            }
+            
             if (!HasValidEntries())
             {
                 _semaphoreSlim.Release();
@@ -68,14 +76,6 @@ public sealed class FahrenPositionService
                 _semaphoreSlim.Release();
 
                 return;
-            }
-
-            if (newPosition.Coords.Accuracy <= 100)
-            {
-                await _sender.Send(new PositionRecievedEvent()
-                {
-                    Position = newPosition
-                });
             }
 
             if (IsWithinAccuracyThreshold(newPosition))
