@@ -1,6 +1,7 @@
 ﻿using blazejewicz.Blazor.BeforeUnload;
 using Grpc.Core;
 using MediatR;
+using Streckenbuch.Client.Services;
 using Streckenbuch.Shared;
 using Streckenbuch.Shared.Services;
 using System.Text.Json;
@@ -10,14 +11,18 @@ namespace Streckenbuch.Client.States;
 public class ContinuousConnectionState
 {
     private readonly FahrenService.FahrenServiceClient _fahrenServiceClient;
+    private readonly SettingsProvider _settingsProvider;
+    private readonly RecordingServices _recordingServices;
     private readonly Guid _id;
     private readonly ISender _sender;
     private int? _registeredTrainNumber;
 
-    public ContinuousConnectionState(FahrenService.FahrenServiceClient fahrenServiceClient, ISender sender)
+    public ContinuousConnectionState(FahrenService.FahrenServiceClient fahrenServiceClient, ISender sender, RecordingServices recordingServices, SettingsProvider settingsProvider)
     {
         _fahrenServiceClient = fahrenServiceClient;
         _sender = sender;
+        _recordingServices = recordingServices;
+        _settingsProvider = settingsProvider;
         _id = Guid.NewGuid();
     }
 
@@ -55,6 +60,9 @@ public class ContinuousConnectionState
             ClientId = _id,
             TrainNumber = trainNumber
         });
+        
+        await _recordingServices.StartWorkTrip(trainNumber, _settingsProvider.TrainDriverNumber);
+        
         _registeredTrainNumber = trainNumber;
     }
 

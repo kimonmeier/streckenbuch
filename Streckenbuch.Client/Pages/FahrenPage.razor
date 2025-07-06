@@ -6,6 +6,7 @@
 @inject ScreenWakeLockService ScreenWakeLockService
 @inject ContinuousConnectionState ConnectionState
 @inject AudioState AudioState
+@inject SettingsProvider SettingsProvider
 @layout FahrenLayout
 @implements IAsyncDisposable
 
@@ -14,6 +15,7 @@
 <FahrenTimeLine FahrplanEntries="_list"></FahrenTimeLine>
 
 @code {
+
     [CascadingParameter]
     public FahrenLayout Layout { get; set; } = null!;
 
@@ -22,15 +24,27 @@
 
     protected async override Task OnInitializedAsync()
     {
+        await SettingsProvider.LoadIfNotLoadedAsync();
+
         Layout.SelectRoute += SelectRoute;
         Layout.OpenSettings += LayoutOnOpenSettings;
         Layout.RecordPositions += LayoutOnRecordPositions;
-        
+
         await AudioState.SayText("Audio-System initialisiert!");
     }
 
     private void LayoutOnRecordPositions(object? sender, EventArgs e)
     {
+        if (SettingsProvider.IsRecordingActive != RecordingOption.Manual)
+        {
+            DialogService.ShowMessageBox(
+                "Falscher Aufnahme-Modus",
+                "Der Modus für das Aufnehmen ist nicht auf Manuel gestellt!"
+            );
+
+            return;
+        }
+
         DialogService.Show<StartRecordingDialog>();
     }
 
@@ -60,7 +74,7 @@
             await InvokeAsync(StateHasChanged);
         });
     }
-    
+
     public async ValueTask DisposeAsync()
     {
         Layout.SelectRoute -= SelectRoute;
@@ -69,6 +83,8 @@
         {
             await ScreenWakeLockService.ReleaseWakeLockAsync(_lockSentinel);
         }
+
         await ConnectionState.UnregisterTrain();
     }
+
 }

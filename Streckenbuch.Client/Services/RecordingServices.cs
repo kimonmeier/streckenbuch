@@ -1,4 +1,5 @@
 ﻿using Microsoft.JSInterop;
+using Streckenbuch.Client.Models;
 using Streckenbuch.Shared.Services;
 using Streckenbuch.Shared.Types;
 
@@ -21,7 +22,7 @@ public class RecordingServices
 
     public void AddRecording(GeolocationPosition coordinate)
     {
-        if (!_settingsProvider.IsRecordingActive)
+        if (_settingsProvider.IsRecordingActive == RecordingOption.None)
         {
             return;
         }
@@ -34,6 +35,16 @@ public class RecordingServices
 
     public async Task StartWorkTrip(int trainNumber, int trainDriverNumber)
     {
+        if (trainDriverNumber == 0)
+        {
+            throw new Exception("Train driver number must not be 0");
+        }
+
+        if (trainNumber == 0)
+        {
+            throw new Exception("Train number must not be 0");
+        }
+        
         StartRecordingSessionResponse startRecordingSessionResponse = await _recordingServiceClient.StartRecordingSessionAsync(new StartRecordingSessionRequest()
         {
             TrainNumber = trainNumber, TrainDriverNumber = trainDriverNumber,

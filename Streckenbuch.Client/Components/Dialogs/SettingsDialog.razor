@@ -1,10 +1,15 @@
 ﻿@using Streckenbuch.Client.Services
 @inject SettingsProvider SettingsProvider
 
-<MudStack>
+<MudStack Class="p-5">
     <MudCheckBox T="bool" ValueChanged="IsVoiceActivatedChanged" Value="SettingsProvider.IsVoiceActivated" Label="Stimme aktivieren?" />
     <MudCheckBox T="bool" ValueChanged="DarkModeChanged" Value="SettingsProvider.IsDarkMode" Label="Dark Mode?"></MudCheckBox>
-    <MudCheckBox T="bool" ValueChanged="RecordingChanged" Value="SettingsProvider.IsRecordingActive" Label="Position aufnehmen?"></MudCheckBox>
+    <MudTextField T="int" ValueChanged="TrainDriverNumberChanged" Value="SettingsProvider.TrainDriverNumber" Label="Lokführer-ID"></MudTextField>
+    <MudSelect T="RecordingOption" ValueChanged="RecordingChanged" Value="SettingsProvider.IsRecordingActive" Label="Position aufnehmen?">
+        <MudSelectItem Value="RecordingOption.None">Nicht aufnehmen</MudSelectItem>
+        <MudSelectItem Value="RecordingOption.Manual">Manuell aufnehmen</MudSelectItem>
+        <MudSelectItem Value="RecordingOption.Auto">Automatisch aufnehmen</MudSelectItem>
+    </MudSelect>
 
     <MudButton OnClick="Close">Close</MudButton>
 </MudStack>
@@ -25,9 +30,15 @@
         SettingsProvider.SaveAsync().ConfigureAwait(false);
     }
     
-    private void RecordingChanged(bool obj)
+    private void RecordingChanged(RecordingOption option)
     {
-        SettingsProvider.IsRecordingActive = obj;
+        SettingsProvider.IsRecordingActive = option;
+        SettingsProvider.SaveAsync().ConfigureAwait(false);
+    }
+
+    private void TrainDriverNumberChanged(int obj)
+    {
+        SettingsProvider.TrainDriverNumber = obj;
         SettingsProvider.SaveAsync().ConfigureAwait(false);
     }
 
@@ -35,5 +46,4 @@
     {
         MudDialog.Close();
     }
-
 }
