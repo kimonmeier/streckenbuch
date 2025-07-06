@@ -69,11 +69,14 @@ public sealed class FahrenPositionService
 
                 return;
             }
-            
-            await _sender.Send(new PositionRecievedEvent()
+
+            if (newPosition.Coords.Accuracy <= 100)
             {
-                Position = newPosition
-            });
+                await _sender.Send(new PositionRecievedEvent()
+                {
+                    Position = newPosition
+                });
+            }
 
             if (IsWithinAccuracyThreshold(newPosition))
             {
