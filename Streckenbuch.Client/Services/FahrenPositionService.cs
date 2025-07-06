@@ -69,6 +69,11 @@ public sealed class FahrenPositionService
 
                 return;
             }
+            
+            await _sender.Send(new PositionRecievedEvent()
+            {
+                Position = newPosition
+            });
 
             if (IsWithinAccuracyThreshold(newPosition))
             {
@@ -76,11 +81,6 @@ public sealed class FahrenPositionService
 
                 return;
             }
-
-            await _sender.Send(new PositionRecievedEvent()
-            {
-                Position = newPosition
-            });
             
             CheckForStationAnnouncement(newPosition);
 
