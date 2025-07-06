@@ -44,6 +44,8 @@ public class RecordingServices
         {
             throw new Exception("Train number must not be 0");
         }
+
+        _recordings.Clear();
         
         StartRecordingSessionResponse startRecordingSessionResponse = await _recordingServiceClient.StartRecordingSessionAsync(new StartRecordingSessionRequest()
         {
