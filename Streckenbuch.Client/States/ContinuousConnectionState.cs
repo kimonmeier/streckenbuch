@@ -67,6 +67,11 @@ public class ContinuousConnectionState
 
         await UnregisterTrain(_registeredTrainNumber.Value);
     }
+
+    public int? GetRegisteredTrainNumber()
+    {
+        return _registeredTrainNumber;
+    }
     
     private async Task UnregisterTrain(int trainNumber)
     {

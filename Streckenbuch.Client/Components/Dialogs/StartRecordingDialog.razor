@@ -1,5 +1,8 @@
 ﻿@using Streckenbuch.Client.Services
+@using Streckenbuch.Client.States
 @inject RecordingServices RecordingService
+@inject SettingsProvider SettingsProvider
+@inject ContinuousConnectionState ConnectionState
 
 <EditForm Model="@model" OnValidSubmit="Submit">
     <DataAnnotationsValidator />
@@ -7,13 +10,13 @@
         <MudItem>
             <MudCard>
                 <MudCardContent>
-                    <MudTextField Label="Lokführer-ID" HelperText="Die Nummer des Lokführer"
+                    <MudTextField Label="Lokführer-ID" HelperText="Die Nummer des Lokführer" T="int" Clearable="true"
                                   @bind-Value="model.TrainDriverNumber" For="@(() => model.TrainDriverNumber)" />
-                    <MudTextField Label="Zugnummer" HelperText="Die Zugnummer"
+                    <MudTextField Label="Zugnummer" HelperText="Die Zugnummer" T="int" Clearable="true"
                                   @bind-Value="model.TrainNumber" For="@(() => model.TrainNumber)" />
                 </MudCardContent>
                 <MudCardActions>
-                    <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary">Create</MudButton>
+                    <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary">Start Recording</MudButton>
                     <MudButton ButtonType="ButtonType.Button" Variant="Variant.Filled" Color="Color.Secondary" OnClick="Cancel">Cancel</MudButton>
                 </MudCardActions>
             </MudCard>
@@ -35,9 +38,20 @@
         [Required]
         public int TrainNumber { get; set; }
     }
-    
+
+    protected async override Task OnInitializedAsync()
+    {
+        await SettingsProvider.LoadIfNotLoadedAsync();
+
+        model.TrainDriverNumber = SettingsProvider.TrainDriverNumber;
+        model.TrainNumber = ConnectionState.GetRegisteredTrainNumber() ?? 0;
+    }
+
     private async Task Submit()
     {
+        SettingsProvider.TrainDriverNumber = model.TrainDriverNumber;
+        await SettingsProvider.SaveAsync();
+        
         await RecordingService.StartWorkTrip(model.TrainNumber, model.TrainDriverNumber);
         
         MudDialog.Close();
