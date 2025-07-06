@@ -14,4 +14,9 @@ public class WorkShiftRepository : GenericRepository<WorkShift>
     {
         return Entities.SingleOrDefaultAsync(x => x.Datum == date);
     }
+
+    public Task<List<WorkShift>> FindByDriverWithTrips(Guid driverId)
+    {
+        return Entities.Include(x => x.WorkTrips).Where(x => x.WorkDriverId.Equals(driverId)).OrderBy(x => x.Datum).ToListAsync();
+    }
 }

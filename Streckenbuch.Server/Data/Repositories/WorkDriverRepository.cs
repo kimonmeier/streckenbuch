@@ -14,4 +14,9 @@ public class WorkDriverRepository : GenericRepository<WorkDriver>
     {
         return Entities.SingleOrDefaultAsync(x => x.TrainDriverNumber == trainDriverNumber);
     }
+    
+    public Task<WorkDriver?> FindByApplicationUserAsync(string applicationUserId)
+    {
+        return Entities.SingleOrDefaultAsync(x => x.ApplicationUserId == applicationUserId);
+    }
 }

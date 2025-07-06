@@ -20,7 +20,7 @@ public class WorkTripConfiguration : IEntityTypeConfiguration<WorkTrip>
 
         builder
             .HasOne(x => x.WorkShift)
-            .WithMany()
+            .WithMany(x => x.WorkTrips)
             .HasForeignKey(x => x.WorkShiftId);
     }
 }

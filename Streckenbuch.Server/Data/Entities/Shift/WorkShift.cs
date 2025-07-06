@@ -11,4 +11,6 @@ public class WorkShift : IEntity
     public WorkDriver WorkDriver { get; set; }
     
     public DateOnly Datum { get; set; }
+
+    public List<WorkTrip> WorkTrips { get; set; } = new();
 }

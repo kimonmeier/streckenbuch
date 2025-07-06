@@ -5,10 +5,45 @@ package Recording;
 import "google/protobuf/empty.proto";
 import "Types/guid.proto";
 import "Types/location.proto";
+import "Types/dateOnly.proto";
+import "Types/timeOnly.proto";
 
 service RecordingService {
   rpc StartRecordingSession(StartRecordingSessionRequest) returns (StartRecordingSessionResponse);
   rpc SendRecordedLocations(SendRecordedLocationsRequest) returns (google.protobuf.Empty);
+  rpc GetHistoryHeads(GetHistoryHeadsRequest) returns (GetHistoryHeadsResponse);
+  rpc GetHistoryData(GetHistoryDataRequest) returns (GetHistoryDataResponse);
+}
+
+message GetHistoryDataRequest {
+  Types.GuidProto tripId = 1;
+}
+
+message GetHistoryDataResponse {
+  repeated HistoryPositionData positionData = 1;
+}
+
+message HistoryPositionData {
+  Types.TimeOnlyProto time = 1;
+  Types.LocationProto location = 2;
+}
+
+message GetHistoryHeadsRequest {
+  int32 trainDriverNumber = 1;
+}
+
+message GetHistoryHeadsResponse {
+  repeated HistoryDays days = 1;
+}
+
+message HistoryDays {
+  Types.DateOnlyProto date = 1;
+  repeated HistoryEntries entries = 2;
+}
+
+message HistoryEntries {
+  Types.GuidProto entryId = 1;
+  int32 trainNumber = 2;
 }
 
 message StartRecordingSessionRequest {

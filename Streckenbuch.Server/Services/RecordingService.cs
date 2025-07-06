@@ -1,9 +1,11 @@
-﻿using Google.Protobuf.WellKnownTypes;
+﻿using AutoMapper;
+using Google.Protobuf.WellKnownTypes;
 using Grpc.Core;
 using Microsoft.AspNetCore.Identity;
 using Streckenbuch.Server.Data.Entities;
 using Streckenbuch.Server.Data.Entities.Shift;
 using Streckenbuch.Server.Data.Repositories;
+using Streckenbuch.Server.Helper;
 using Streckenbuch.Shared.Data;
 using Streckenbuch.Shared.Services;
 
@@ -16,16 +18,18 @@ public class RecordingService : Streckenbuch.Shared.Services.RecordingService.Re
     private readonly WorkShiftRepository _workShiftRepository;
     private readonly WorkTripRepository _workTripRepository;
     private readonly TripRecordingRepository _tripRecordingRepository;
-    private readonly ILogger<RecordingService> _logger;
+    private readonly UserManager<ApplicationUser> _userManager;
+    private readonly IMapper _mapper;
 
-    public RecordingService(DbTransactionFactory dbTransactionFactory, WorkDriverRepository workDriverRepository, WorkShiftRepository workShiftRepository, WorkTripRepository workTripRepository, TripRecordingRepository tripRecordingRepository, ILogger<RecordingService> logger)
+    public RecordingService(DbTransactionFactory dbTransactionFactory, WorkDriverRepository workDriverRepository, WorkShiftRepository workShiftRepository, WorkTripRepository workTripRepository, TripRecordingRepository tripRecordingRepository, UserManager<ApplicationUser> userManager, IMapper mapper)
     {
         _dbTransactionFactory = dbTransactionFactory;
         _workDriverRepository = workDriverRepository;
         _workShiftRepository = workShiftRepository;
         _workTripRepository = workTripRepository;
         _tripRecordingRepository = tripRecordingRepository;
-        _logger = logger;
+        _userManager = userManager;
+        _mapper = mapper;
     }
 
     public override async Task<StartRecordingSessionResponse> StartRecordingSession(StartRecordingSessionRequest request, ServerCallContext context)
@@ -81,5 +85,48 @@ public class RecordingService : Streckenbuch.Shared.Services.RecordingService.Re
         await transaction.Commit(context.CancellationToken);
 
         return new Empty();
+    }
+
+    public override async Task<GetHistoryHeadsResponse> GetHistoryHeads(GetHistoryHeadsRequest request, ServerCallContext context)
+    {
+        ApplicationUser applicationUser = await context.GetAuthenticatedUser(_userManager);
+
+        WorkDriver? driver = await _workDriverRepository.FindByApplicationUserAsync(applicationUser.Id);
+
+        if (driver is null)
+        {
+            throw new RpcException(new Status(StatusCode.NotFound, "The user is not a driver. Please contact the administrator."));
+        }
+
+        List<WorkShift> workShifts = await _workShiftRepository.FindByDriverWithTrips(driver.Id);
+        GetHistoryHeadsResponse response = new GetHistoryHeadsResponse();
+        response.Days.Add(_mapper.Map<List<HistoryDays>>(workShifts));
+        
+        return response;
+    }
+
+    public override async Task<GetHistoryDataResponse> GetHistoryData(GetHistoryDataRequest request, ServerCallContext context)
+    {
+        ApplicationUser applicationUser = await context.GetAuthenticatedUser(_userManager);
+
+        WorkDriver? driver = await _workDriverRepository.FindByApplicationUserAsync(applicationUser.Id);
+
+        if (driver is null)
+        {
+            throw new RpcException(new Status(StatusCode.NotFound, "The user is not a driver. Please contact the administrator."));
+        }
+
+        WorkTrip? workTrip = await _workTripRepository.FindByEntityAsync(request.TripId);
+        if (workTrip is null)
+        {
+            throw new RpcException(new Status(StatusCode.NotFound, "Trip not found"));
+        }
+
+        var list = await _tripRecordingRepository.FindByTrip(workTrip.Id);
+        
+        GetHistoryDataResponse response = new GetHistoryDataResponse();
+        response.PositionData.Add(_mapper.Map<List<HistoryPositionData>>(list));
+
+        return response;
     }
 }

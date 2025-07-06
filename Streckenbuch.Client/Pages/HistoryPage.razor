@@ -1,0 +1,173 @@
+﻿@page "/history"
+@using System.Reflection.Metadata.Ecma335
+@using Streckenbuch.Client.Services
+@using Streckenbuch.Shared.Types
+@attribute [Authorize]
+@inject RecordingService.RecordingServiceClient RecordingService
+@inject SettingsProvider SettingsProvider
+
+<PageTitle>Linien</PageTitle>
+
+@if (_entries is null)
+{
+    <MudProgressLinear Indeterminate="true"/>
+
+    return;
+}
+
+<MudContainer>
+    <MudStack>
+        <MudSelect T="HistoryDays" Label="Datum" Value="_selectedDay" ValueChanged="SelectedDayChanged" Clearable="true"
+                   Placeholder="Tag">
+            @foreach (var item in _entries)
+            {
+                <MudSelectItem Value="item">
+                    @(((DateOnly)item.Date!).ToString("dd.MM.yyyy"))
+                </MudSelectItem>
+            }
+        </MudSelect>
+        <MudSelect T="HistoryEntries" Label="Zugnummer" Value="_selctedEntry" ValueChanged="SelectedEntryChanged"
+                   Clearable="true" Disabled="@(_selectedDay is null)" Placeholder="Zug">
+            @if (_selectedDay is not null)
+            {
+                @foreach (var item in _selectedDay.Entries)
+                {
+                    <MudSelectItem Value="item">
+                        @item.TrainNumber
+                    </MudSelectItem>
+                }
+            }
+        </MudSelect>
+    </MudStack>
+</MudContainer>
+
+@if (_chartSeries is null)
+{
+    <MudSkeleton SkeletonType="SkeletonType.Rectangle" Animation="Animation.False"/>
+}
+else
+{
+    <MudTimeSeriesChart
+        ChartSeries="[_chartSeries]">
+
+    </MudTimeSeriesChart>
+}
+
+@code {
+
+    private class PositionData
+    {
+        public TimeOnly Time { get; set; }
+
+        public int Speed { get; set; }
+    }
+
+    private List<HistoryDays>? _entries;
+    private HistoryDays? _selectedDay;
+    private HistoryEntries? _selctedEntry;
+
+    private TimeSeriesChartSeries? _chartSeries;
+
+    protected async override Task OnInitializedAsync()
+    {
+        GetHistoryHeadsResponse response = await RecordingService.GetHistoryHeadsAsync(new GetHistoryHeadsRequest()
+        {
+            TrainDriverNumber = SettingsProvider.TrainDriverNumber
+        });
+
+        _entries = response.Days.OrderBy(x => x.Date.DaySinceUnix).ToList();
+    }
+
+    private void SelectedDayChanged(HistoryDays day)
+    {
+        _selectedDay = day;
+        _selctedEntry = null;
+    }
+
+    private async Task SelectedEntryChanged(HistoryEntries obj)
+    {
+        _selctedEntry = obj;
+
+        _chartSeries = null;
+        GetHistoryDataResponse response = await RecordingService.GetHistoryDataAsync(new GetHistoryDataRequest()
+        {
+            TripId = obj.EntryId
+        });
+
+        var positions = new List<PositionData>();
+        int? lastSpeed = null;
+        for (int i = 2; i < response.PositionData.Count; i++)
+        {
+            var current = response.PositionData[i];
+            var previous = response.PositionData[i - 2];
+
+            var calculateSpeed = CalculateSpeed(previous.Location, current.Location, (TimeOnly)current.Time! - (TimeOnly)previous.Time!);
+
+            if (calculateSpeed is null)
+            {
+                continue;
+            }
+
+            if (lastSpeed is null)
+            {
+                lastSpeed = calculateSpeed;
+            }
+
+            if (calculateSpeed.Value >= lastSpeed * 1.5 || calculateSpeed.Value <= lastSpeed * 0.5)
+            {
+                continue;
+            }
+
+            PositionData positionData = new PositionData
+            {
+                Time = (TimeOnly)current.Time!, Speed = calculateSpeed.Value
+            };
+            positions.Add(positionData);
+
+            lastSpeed = calculateSpeed.Value;
+        }
+
+        _chartSeries = new TimeSeriesChartSeries()
+        {
+            Name = "Geschwindigkeit", Data = positions.Select(x => new TimeSeriesChartSeries.TimeValue(new DateTime((DateOnly)_selectedDay!.Date!, x.Time), x.Speed)).ToList()
+        };
+    }
+
+    private int? CalculateSpeed(LocationProto from, LocationProto to, TimeSpan duration)
+    {
+        var distance = DistanceBetweenInMeters(from, to);
+
+        if (distance <= 0)
+        {
+            return null;
+        }
+
+        if (duration <= TimeSpan.FromMilliseconds(200))
+        {
+            return null;
+        }
+
+        return (int)(distance / duration.TotalSeconds * 3.6);
+    }
+
+    private static double DistanceBetweenInMeters(LocationProto from, LocationProto to)
+    {
+        var baseRad = Math.PI * from.Latitude / 180;
+        var targetRad = Math.PI * to.Latitude / 180;
+        var theta = from.Longitude - to.Longitude;
+        var thetaRad = Math.PI * theta / 180;
+
+        double dist =
+            Math.Sin(baseRad) * Math.Sin(targetRad) + Math.Cos(baseRad) *
+            Math.Cos(targetRad) * Math.Cos(thetaRad);
+        dist = Math.Acos(dist);
+
+        dist = dist * 180 / Math.PI;
+        dist = dist * 60 * 1.1515;
+
+        dist = dist * 1.609344 * 1000;
+
+        return dist;
+    }
+
+}

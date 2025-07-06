@@ -42,5 +42,7 @@
       <Protobuf Include="Types\dateOnly.proto" />
       <Protobuf Include="Types\guid.proto" />
       <Protobuf Include="Types\location.proto" />
+      <None Remove="Types\timeOnly.proto" />
+      <Protobuf Include="Types\timeOnly.proto" />
     </ItemGroup>
 </Project>

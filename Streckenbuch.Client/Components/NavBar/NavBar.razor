@@ -7,6 +7,13 @@
     <MudNavLink Href="/fahren" Match="NavLinkMatch.All">
         <MudIcon Icon="@Icons.Material.Filled.DirectionsRailway" Title="Fahren" /> Fahren
     </MudNavLink>
+    <AuthorizeView>
+        <Authorized>
+            <MudNavLink Href="/history" Match="NavLinkMatch.All">
+                <MudIcon Icon="@Icons.Material.Filled.History" Title="History" /> History
+            </MudNavLink>
+        </Authorized>
+    </AuthorizeView>
     <AuthorizeView Roles="@(Permissions.Admin)">
         <Authorized>
             <MudNavLink Href="/strecken" Match="NavLinkMatch.All">

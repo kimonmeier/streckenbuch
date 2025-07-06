@@ -19,6 +19,11 @@ public class WorkDriverConfiguration : IEntityTypeConfiguration<WorkDriver>
             .ValueGeneratedOnAdd();
 
         builder
+            .HasOne(x => x.ApplicationUser)
+            .WithOne()
+            .HasForeignKey<WorkDriver>(x => x.ApplicationUserId);
+        
+        builder
             .HasIndex(x => x.TrainDriverNumber)
             .IsUnique();
     }
