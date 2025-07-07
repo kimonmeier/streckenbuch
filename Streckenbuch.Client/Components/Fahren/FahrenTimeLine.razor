@@ -96,14 +96,14 @@ else
             return;
         }
 
-        FahrenPositionService.UpdatePosition(position).ConfigureAwait(false);
+        InvokeAsync(() => FahrenPositionService.UpdatePosition(position));
     }
 
     public void Dispose()
     {
         if (_watchTaskId is not null)
         {
-            GeolocationService.ClearWatchAsync(_watchTaskId.Value).ConfigureAwait(false);
+            InvokeAsync(() => GeolocationService.ClearWatchAsync(_watchTaskId.Value));
         }
     }
 
