@@ -59,12 +59,21 @@ public class RecordingServices
     {
         _ = Task.Run(async () =>
         {
+            #if DEBUG
+            using PeriodicTimer periodicTimer = new PeriodicTimer(TimeSpan.FromSeconds(5));
+            #else
             using PeriodicTimer periodicTimer = new PeriodicTimer(TimeSpan.FromSeconds(60));
+            #endif
             while (!cancellationToken.IsCancellationRequested)
             {
                 await periodicTimer.WaitForNextTickAsync(cancellationToken);
 
                 if (_workTripId is null)
+                {
+                    continue;
+                }
+
+                if (!_recordings.Any())
                 {
                     continue;
                 }
@@ -80,11 +89,12 @@ public class RecordingServices
                             DateTime = recording.DateTime.Ticks,
                             Location = new LocationProto()
                             {
-                                Latitude = recording.Coordinate.Coords.Latitude, Longitude = recording.Coordinate.Coords.Longitude,
+                                Latitude = recording.Coordinate.Coords.Latitude,
+                                Longitude = recording.Coordinate.Coords.Longitude,
                             }
                         });
                     }
-                    
+
                     _recordings.Clear();
                 }
 
