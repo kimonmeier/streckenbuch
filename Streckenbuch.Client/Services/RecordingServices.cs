@@ -26,11 +26,8 @@ public class RecordingServices
         {
             return;
         }
-        
-        lock (_recordings)
-        {
-            _recordings.Add(new Recording(coordinate, DateTime.Now));
-        }
+
+        _recordings.Add(new Recording(coordinate, DateTime.Now));
     }
 
     public async Task StartWorkTrip(int trainNumber, int trainDriverNumber)
