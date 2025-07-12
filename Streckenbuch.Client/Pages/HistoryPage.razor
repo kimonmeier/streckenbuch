@@ -96,10 +96,10 @@ else
 
         var positions = new List<PositionData>();
         int? lastSpeed = null;
-        for (int i = 2; i < response.PositionData.Count; i++)
+        for (int i = 1; i < response.PositionData.Count; i++)
         {
             var current = response.PositionData[i];
-            var previous = response.PositionData[i - 2];
+            var previous = response.PositionData[i - 1];
 
             var calculateSpeed = CalculateSpeed(previous.Location, current.Location, (TimeOnly)current.Time! - (TimeOnly)previous.Time!);
 
@@ -113,23 +113,33 @@ else
                 lastSpeed = calculateSpeed;
             }
 
-            if (calculateSpeed.Value >= lastSpeed * 1.5 || calculateSpeed.Value <= lastSpeed * 0.5)
+            // Unrealistische Werte filtern (z.B. plötzliche extreme Änderungen oder extrem hohe Werte)
+            if (calculateSpeed.Value > 205 ||
+                calculateSpeed.Value < 0 ||
+                (lastSpeed > 0 && Math.Abs(calculateSpeed.Value - lastSpeed.Value) > 40) || 
+                (lastSpeed > 0 && calculateSpeed.Value > lastSpeed.Value * 3) || // Zu schnelle Beschleunigung
+                (lastSpeed > 0 && calculateSpeed.Value < lastSpeed.Value * 0.1 && calculateSpeed.Value > 0)) // Zu schnelle Verzögerung
             {
                 continue;
             }
-
+            
             PositionData positionData = new PositionData
             {
-                Time = (TimeOnly)current.Time!, Speed = calculateSpeed.Value
+                Time = (TimeOnly)current.Time!, 
+                Speed = calculateSpeed.Value
             };
             positions.Add(positionData);
 
             lastSpeed = calculateSpeed.Value;
         }
 
+        // Daten glätten mit einem gleitenden Durchschnitt
+        var smoothedPositions = SmoothData(positions);
+        
         _chartSeries = new TimeSeriesChartSeries()
         {
-            Name = "Geschwindigkeit", Data = positions.Select(x => new TimeSeriesChartSeries.TimeValue(new DateTime((DateOnly)_selectedDay!.Date!, x.Time), x.Speed)).ToList()
+            Name = "Geschwindigkeit", 
+            Data = smoothedPositions.Select(x => new TimeSeriesChartSeries.TimeValue(new DateTime((DateOnly)_selectedDay!.Date!, x.Time), x.Speed)).ToList()
         };
     }
 
@@ -170,4 +180,46 @@ else
         return dist;
     }
 
+    /// <summary>
+    /// Glättet die Geschwindigkeitsdaten mit einem gleitenden Durchschnitt
+    /// </summary>
+    private List<PositionData> SmoothData(List<PositionData> positions)
+    {
+        if (positions.Count <= 2)
+            return positions;
+            
+        var result = new List<PositionData>();
+        int windowSize = 5; // Größe des Glättungsfensters
+        
+        // Vor dem Glättungsfenster liegende Elemente unverändert übernehmen
+        for (int i = 0; i < Math.Min(windowSize / 2, positions.Count); i++)
+        {
+            result.Add(positions[i]);
+        }
+        
+        // Glättung durchführen
+        for (int i = windowSize / 2; i < positions.Count - windowSize / 2; i++)
+        {
+            int sum = 0;
+            for (int j = i - windowSize / 2; j <= i + windowSize / 2; j++)
+            {
+                sum += positions[j].Speed;
+            }
+            
+            result.Add(new PositionData 
+            { 
+                Time = positions[i].Time, 
+                Speed = sum / windowSize 
+            });
+        }
+        
+        // Nach dem Glättungsfenster liegende Elemente unverändert übernehmen
+        for (int i = positions.Count - windowSize / 2; i < positions.Count; i++)
+        {
+            result.Add(positions[i]);
+        }
+        
+        return result;
+    }
+    
 }
