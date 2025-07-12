@@ -136,7 +136,7 @@ public class FahrenRepository
             var lastSignal = entries.LastOrDefault(x =>
                 x.SignalZuordnung is not null &&
                 x.SignalZuordnung.Signal.BetriebspunktId == betriebspunktZuordnung.Betriebspunkt.Id &&
-                x.SignalZuordnung.Signal.Typ is SignalTyp.Hauptsignal or SignalTyp.Kombiniert or SignalTyp.Streckengeschwindigkeit &&
+                x.SignalZuordnung.Signal.Typ is SignalTyp.Hauptsignal or SignalTyp.Kombiniert &&
                 x.DisplaySeite == DisplaySeite.Ausfahrt_Abschnitt);
 
             if (lastSignal is not null)
