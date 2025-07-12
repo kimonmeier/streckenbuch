@@ -58,7 +58,6 @@ builder.Services.AddSingleton(services => new MikuApi(services.GetRequiredServic
 
 builder.Services.AddSingleton<ContinuousConnectionState>();
 builder.Services.AddHostedService<UpdateBackgroundInformation>();
-builder.Services.AddHostedService<ShutdownService>();
 
 builder.Services.AddAuthorization();
 builder.Services.AddAuthentication(options =>
