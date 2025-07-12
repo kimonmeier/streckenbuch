@@ -103,6 +103,7 @@ public class SignaleService : Streckenbuch.Shared.Services.SignaleService.Signal
                 StreckeId = request.StreckeBetriebspunktZuordnungId,
                 NonStandard = request.HasIsSpecialCase && request.IsSpecialCase,
                 NonStandardKommentar = request.HasSpecialCase ? request.SpecialCase : null,
+                OverrideIndex = request.HasOverrideIndex ? request.OverrideIndex : null,
             });
             await dbTransaction.Commit(context.CancellationToken);
         }

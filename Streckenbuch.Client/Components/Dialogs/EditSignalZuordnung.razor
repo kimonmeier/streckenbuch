@@ -134,6 +134,11 @@ else
         {
             request.SpecialCase = zuordnungDetails.SpecialCase;
         }
+
+        if (zuordnungDetails.OverrideIndex.HasValue)
+        {
+            request.OverrideIndex = zuordnungDetails.OverrideIndex.Value;
+        }
         var empty = await signalService.CreateSignalZuordnungAsync(request);
 
 

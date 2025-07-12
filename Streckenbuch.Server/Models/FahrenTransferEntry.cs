@@ -10,4 +10,6 @@ public class FahrenTransferEntry
     public SignalStreckenZuordnung? SignalZuordnung { get; set; }
     
     public DisplaySeite? DisplaySeite { get; set; }
+    
+    public int? OverrideIndex { get; set; }
 }

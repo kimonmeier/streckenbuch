@@ -123,6 +123,7 @@ message CreateSignalZuordnungRequest {
   Types.GuidProto streckeBetriebspunktZuordnungId = 2;
   optional bool isSpecialCase = 5;
   optional string specialCase = 6;
+  optional int32 overrideIndex = 7;
 }
 
 message DeleteSignalZuordnungRequest {

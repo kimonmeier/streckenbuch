@@ -8,6 +8,7 @@
                 {
                     <MudTextField Label="Spezialität" @bind-Value="model.SpecialCase" For="@(() => model.SpecialCase)"></MudTextField>
                 }
+                <MudTextField T="int?" Clearable="true" @bind-Value="model.OverrideIndex" For="@(() => model.OverrideIndex)"></MudTextField>
             </MudCardContent>
             <MudCardActions>
                 <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary">Erstellen</MudButton>
@@ -39,6 +40,8 @@
 
         public string? SpecialCase { get; set; }
 
+        public int? OverrideIndex { get; set; }
+        
         public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
         {
             if (IsSpecialCase.HasValue && IsSpecialCase.Value && string.IsNullOrEmpty(SpecialCase))

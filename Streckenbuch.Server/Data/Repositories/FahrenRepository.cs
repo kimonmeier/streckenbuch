@@ -108,7 +108,7 @@ public class FahrenRepository
             {
                 entries.Add(new FahrenTransferEntry()
                 {
-                    SignalZuordnung = einfahrSignal.Signal, DisplaySeite = index == 0 ? DisplaySeite.Einfahrt : DisplaySeite.Einfahrt_Abschnitt
+                    SignalZuordnung = einfahrSignal.Signal, DisplaySeite = index == 0 ? DisplaySeite.Einfahrt : DisplaySeite.Einfahrt_Abschnitt, OverrideIndex = einfahrSignal.Signal.OverrideIndex
                 });
 
                 if (einfahrSignal.Signal.Signal.Typ is SignalTyp.Hauptsignal or SignalTyp.Kombiniert)
@@ -129,7 +129,7 @@ public class FahrenRepository
             {
                 entries.Add(new FahrenTransferEntry()
                 {
-                    SignalZuordnung = ausfahrSignal.Signal, DisplaySeite = DisplaySeite.Ausfahrt_Abschnitt
+                    SignalZuordnung = ausfahrSignal.Signal, DisplaySeite = DisplaySeite.Ausfahrt_Abschnitt, OverrideIndex = ausfahrSignal.Signal.OverrideIndex
                 });
             }
 

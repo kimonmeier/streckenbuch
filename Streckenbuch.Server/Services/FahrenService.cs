@@ -31,6 +31,7 @@ public class FahrenService : Streckenbuch.Shared.Services.FahrenService.FahrenSe
         List<FahrenTransferEntry> entries = _fahrenRepository.ListEntriesByLinieTrain(request.LinieTrainId).ToList();
         
         RemoveDuplicates(entries);
+        CorrectIndices(entries);
         
         FahrenResponse response = new();
         response.Entries.AddRange(_mapper.Map<List<FahrenEntry>>(entries));
@@ -42,6 +43,7 @@ public class FahrenService : Streckenbuch.Shared.Services.FahrenService.FahrenSe
         List<FahrenTransferEntry> entries = _fahrenRepository.ListEntriesByLinie(request.LinieId).ToList();
         
         RemoveDuplicates(entries);
+        CorrectIndices(entries);
         
         FahrenResponse response = new();
         response.Entries.AddRange(_mapper.Map<List<FahrenEntry>>(entries));
@@ -53,6 +55,7 @@ public class FahrenService : Streckenbuch.Shared.Services.FahrenService.FahrenSe
         List<FahrenTransferEntry> entries = request.Strecken.SelectMany(GetTrimmedEntries).ToList();
 
         RemoveDuplicates(entries);
+        CorrectIndices(entries);
 
         FahrenResponse response = new();
         response.Entries.AddRange(_mapper.Map<List<FahrenEntry>>(entries));
@@ -81,6 +84,37 @@ public class FahrenService : Streckenbuch.Shared.Services.FahrenService.FahrenSe
             {
                 entries.RemoveAt(currentIndex);
                 secondIndex--;
+            }
+        }
+    }
+
+    private void CorrectIndices(List<FahrenTransferEntry> entries)
+    {
+        for (int i = 0; i < entries.Count; i++)
+        {
+            var currentEntry = entries[i];
+
+            if (currentEntry.OverrideIndex is null)
+            {
+                continue;
+            }
+
+            int currentEntryOverrideIndex = currentEntry.OverrideIndex.Value;
+            var newIndex = i + currentEntryOverrideIndex;
+
+            if (newIndex > i)
+            {
+                entries.Insert(newIndex, currentEntry);
+                entries.RemoveAt(i);
+
+                // Da ein Element eingefügt wurde, muss der Index für das nächste Element erhöht werden.
+                i++;
+            }
+            else
+            {
+                entries.Insert(newIndex, currentEntry);
+                entries.RemoveAt(i + 1);
+                i--;
             }
         }
     }

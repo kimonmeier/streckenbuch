@@ -20,4 +20,6 @@ public class SignalStreckenZuordnung : IEntity
     public bool NonStandard { get; set; }
 
     public string? NonStandardKommentar { get; set; }
+    
+    public int? OverrideIndex { get; set; }
 }
