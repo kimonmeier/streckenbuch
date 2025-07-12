@@ -29,24 +29,26 @@ public class FahrenService : Streckenbuch.Shared.Services.FahrenService.FahrenSe
     public override Task<FahrenResponse> FahrenByTrainNumber(FahrenRequestByTrainNumber request, ServerCallContext context)
     {
         List<FahrenTransferEntry> entries = _fahrenRepository.ListEntriesByLinieTrain(request.LinieTrainId).ToList();
-        
+
         RemoveDuplicates(entries);
         CorrectIndices(entries);
-        
+
         FahrenResponse response = new();
         response.Entries.AddRange(_mapper.Map<List<FahrenEntry>>(entries));
+
         return Task.FromResult(response);
     }
 
     public override Task<FahrenResponse> FahrenByLinie(FahrenRequestByLinie request, ServerCallContext context)
     {
         List<FahrenTransferEntry> entries = _fahrenRepository.ListEntriesByLinie(request.LinieId).ToList();
-        
+
         RemoveDuplicates(entries);
         CorrectIndices(entries);
-        
+
         FahrenResponse response = new();
         response.Entries.AddRange(_mapper.Map<List<FahrenEntry>>(entries));
+
         return Task.FromResult(response);
     }
 
@@ -59,10 +61,12 @@ public class FahrenService : Streckenbuch.Shared.Services.FahrenService.FahrenSe
 
         FahrenResponse response = new();
         response.Entries.AddRange(_mapper.Map<List<FahrenEntry>>(entries));
+
         return Task.FromResult(response);
     }
 
-    private void RemoveDuplicates(List<FahrenTransferEntry> entries) {
+    private void RemoveDuplicates(List<FahrenTransferEntry> entries)
+    {
         var duplicateEntries = entries.Where(x => x.Betriebspunkt is not null).GroupBy(x => x.Betriebspunkt.Id).Where(x => x.Count() > 1).ToList();
 
         foreach (var item in duplicateEntries)
@@ -90,6 +94,44 @@ public class FahrenService : Streckenbuch.Shared.Services.FahrenService.FahrenSe
 
     private void CorrectIndices(List<FahrenTransferEntry> entries)
     {
+        List<Guid> alreadyHandledIds = new();
+        var originalIndices = entries.Where(x => x.OverrideIndex.HasValue).Select(x =>
+            new
+            {
+                Index = entries.IndexOf(x), Id = x.SignalZuordnung!.SignalId
+            }
+        ).ToDictionary(x => x.Id, x => x.Index);
+
+        for (int i = entries.Count - 1; i >= 0; i--)
+        {
+            var currentEntry = entries[i];
+
+            if (currentEntry.OverrideIndex is null)
+            {
+                continue;
+            }
+
+            if (currentEntry.OverrideIndex.Value <= 0)
+            {
+                continue;
+            }
+
+            if (alreadyHandledIds.Contains(currentEntry.SignalZuordnung!.SignalId))
+            {
+                continue;
+            }
+
+            alreadyHandledIds.Add(currentEntry.SignalZuordnung!.SignalId);
+
+            int currentEntryOverrideIndex = currentEntry.OverrideIndex.Value;
+            int newIndex = originalIndices[currentEntry.SignalZuordnung!.SignalId] + currentEntryOverrideIndex;
+
+            entries.Insert(newIndex + 1, currentEntry);
+            entries.RemoveAt(i);
+
+            i++;
+        }
+        
         for (int i = 0; i < entries.Count; i++)
         {
             var currentEntry = entries[i];
@@ -99,23 +141,25 @@ public class FahrenService : Streckenbuch.Shared.Services.FahrenService.FahrenSe
                 continue;
             }
 
+            if (currentEntry.OverrideIndex.Value > 0)
+            {
+                continue;
+            }
+
+            if (alreadyHandledIds.Contains(currentEntry.SignalZuordnung!.SignalId))
+            {
+                continue;
+            }
+
+            alreadyHandledIds.Add(currentEntry.SignalZuordnung!.SignalId);
+
             int currentEntryOverrideIndex = currentEntry.OverrideIndex.Value;
-            var newIndex = i + currentEntryOverrideIndex;
+            int newIndex = originalIndices[currentEntry.SignalZuordnung!.SignalId] + currentEntryOverrideIndex;
 
-            if (newIndex > i)
-            {
-                entries.Insert(newIndex, currentEntry);
-                entries.RemoveAt(i);
+            entries.Insert(newIndex, currentEntry);
+            entries.RemoveAt(i + 1);
 
-                // Da ein Element eingefügt wurde, muss der Index für das nächste Element erhöht werden.
-                i++;
-            }
-            else
-            {
-                entries.Insert(newIndex, currentEntry);
-                entries.RemoveAt(i + 1);
-                i--;
-            }
+            i--;
         }
     }
 
@@ -123,27 +167,28 @@ public class FahrenService : Streckenbuch.Shared.Services.FahrenService.FahrenSe
     {
         CaptureMessageResponse response = new();
         response.Messages.AddRange(_continuousConnection.GetMessagesInQueue(request.ClientId));
+
         return Task.FromResult(response);
     }
 
     public override Task<Empty> RegisterOnTrain(RegisterOnTrainRequest request, ServerCallContext context)
     {
         _continuousConnection.RegisterTrain(request.ClientId, request.TrainNumber);
-        
+
         return Task.FromResult(new Empty());
     }
 
     public override Task<Empty> UnregisterOnTrain(UnregisterOnTrainRequest request, ServerCallContext context)
     {
         _continuousConnection.UnregisterTrain(request.ClientId);
-        
+
         return Task.FromResult(new Empty());
     }
 
     public override Task<Empty> DisconnectClient(DisconnectClientRequest request, ServerCallContext context)
     {
         _continuousConnection.DisconnectTrainOperator(request.ClientId);
-        
+
         return Task.FromResult(new Empty());
     }
 
