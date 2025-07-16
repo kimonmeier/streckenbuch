@@ -97,8 +97,8 @@ namespace Streckenbuch.Server.Services
             }
 
             _logger.LogInformation(response.Successful ?
-                $"Email to {toEmail} queued!" :
-                $"Email to {toEmail} couldn't be sended");
+                "Email queued successfully!" :
+                "Email couldn't be sent");
         }
     }
 }
