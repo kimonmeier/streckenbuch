@@ -19,13 +19,13 @@
     <PackageReference Include="Blazor.SpeechSynthesis.WebAssembly" Version="9.0.1" />
     <PackageReference Include="BlazorBeforeUnload" Version="1.0.4" />
     <PackageReference Include="Blazored.LocalStorage" Version="4.5.0" />
-    <PackageReference Include="BlazorGoogleMaps" Version="4.13.1" />
+    <PackageReference Include="BlazorGoogleMaps" Version="4.13.2" />
     <PackageReference Include="Grpc.Net.Client.Web" Version="2.71.0" />
     <PackageReference Include="Howler.Blazor" Version="0.9.8" />
     <PackageReference Include="MediatR" Version="12.5.0" />
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="9.0.7" />
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Authentication" Version="9.0.7" />
-    <PackageReference Include="MudBlazor" Version="8.9.0" />
+    <PackageReference Include="MudBlazor" Version="8.10.0" />
     <PackageReference Include="MudBlazor.ThemeManager" Version="3.0.0" />
   </ItemGroup>
 
