@@ -2,19 +2,15 @@
 using Microsoft.JSInterop;
 using Moq;
 using Newtonsoft.Json;
-using Streckenbuch.Client.Components.Fahren;
-using Streckenbuch.Client.Events.ApproachingStop;
-using Streckenbuch.Client.Events.PositionRecieved;
-using Streckenbuch.Client.Models.Fahren;
-using Streckenbuch.Client.Models.Fahren.Betriebspunkt;
-using Streckenbuch.Client.Models.Fahren.Signal;
-using Streckenbuch.Client.Services;
+using Streckenbuch.Components.Components.Fahren;
+using Streckenbuch.Components.Models.Fahren;
+using Streckenbuch.Components.Models.Fahren.Betriebspunkt;
+using Streckenbuch.Components.Models.Fahren.Signal;
 using Streckenbuch.Client.Test.Data;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Streckenbuch.Components.Events.PositionRecieved;
+using Streckenbuch.Components.Services;
+using Streckenbuch.Components.Events.ApproachingStop;
+using Streckenbuch.Client.Services;
 
 namespace Streckenbuch.Client.Test.Services;
 
@@ -86,7 +82,7 @@ public class FahrenPositionServiceTest
     }
 
     [Fact]
-    public void SouldNotMove()
+    public async Task SouldNotMove()
     {
         Mock<TestInterface> mock = new Mock<TestInterface>();
         Mock<ISender> sender = new Mock<ISender>();
@@ -102,10 +98,10 @@ public class FahrenPositionServiceTest
 
         var firstPosition = Positions.First();
 
-        positionService.UpdatePosition(firstPosition);
-        positionService.UpdatePosition(firstPosition);
-        positionService.UpdatePosition(firstPosition);
-        positionService.UpdatePosition(firstPosition);
+        await positionService.UpdatePosition(firstPosition);
+        await positionService.UpdatePosition(firstPosition);
+        await positionService.UpdatePosition(firstPosition);
+        await positionService.UpdatePosition(firstPosition);
 
         mock.Verify(s => s.DoSomething(), Times.Never());
     }
@@ -226,7 +222,7 @@ public class FahrenPositionServiceTest
     }
 
     [Fact]
-    public void ShouldNotMoveAwayFromLastTimelineEntry()
+    public async Task ShouldNotMoveAwayFromLastTimelineEntry()
     {
         var mock = new Mock<TestInterface>();
         Mock<ISender> sender = new Mock<ISender>();
@@ -281,7 +277,7 @@ public class FahrenPositionServiceTest
 
         foreach (var pos in positions)
         {
-            positionService.UpdatePosition(pos);
+            await positionService.UpdatePosition(pos);
         }
 
         // The service should NOT trigger DoSomething, because movement is away from the timeline

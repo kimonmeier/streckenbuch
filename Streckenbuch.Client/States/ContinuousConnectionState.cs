@@ -1,23 +1,22 @@
-﻿using blazejewicz.Blazor.BeforeUnload;
-using Grpc.Core;
-using MediatR;
-using Streckenbuch.Client.Services;
+﻿using MediatR;
+using Streckenbuch.Components.Services;
+using Streckenbuch.Components.States;
 using Streckenbuch.Shared;
 using Streckenbuch.Shared.Services;
 using System.Text.Json;
 
 namespace Streckenbuch.Client.States;
 
-public class ContinuousConnectionState
+public class ContinuousConnectionState : IContinuousConnectionState
 {
     private readonly FahrenService.FahrenServiceClient _fahrenServiceClient;
-    private readonly SettingsProvider _settingsProvider;
-    private readonly RecordingServices _recordingServices;
+    private readonly ISettingsProvider _settingsProvider;
+    private readonly IRecordingServices _recordingServices;
     private readonly Guid _id;
     private readonly ISender _sender;
     private int? _registeredTrainNumber;
 
-    public ContinuousConnectionState(FahrenService.FahrenServiceClient fahrenServiceClient, ISender sender, RecordingServices recordingServices, SettingsProvider settingsProvider)
+    public ContinuousConnectionState(FahrenService.FahrenServiceClient fahrenServiceClient, ISender sender, IRecordingServices recordingServices, ISettingsProvider settingsProvider)
     {
         _fahrenServiceClient = fahrenServiceClient;
         _sender = sender;
@@ -39,7 +38,7 @@ public class ContinuousConnectionState
                 {
                     ClientId = _id,
                 });
-                
+
                 _ = Task.Run(() =>
                 {
                     ProcessMessages(response.Messages.ToList());
@@ -54,15 +53,15 @@ public class ContinuousConnectionState
         {
             await UnregisterTrain(_registeredTrainNumber.Value);
         }
-        
+
         await _fahrenServiceClient.RegisterOnTrainAsync(new RegisterOnTrainRequest()
         {
             ClientId = _id,
             TrainNumber = trainNumber
         });
-        
+
         await _recordingServices.StartWorkTrip(trainNumber, _settingsProvider.TrainDriverNumber);
-        
+
         _registeredTrainNumber = trainNumber;
     }
 
@@ -80,7 +79,7 @@ public class ContinuousConnectionState
     {
         return _registeredTrainNumber;
     }
-    
+
     private async Task UnregisterTrain(int trainNumber)
     {
         await _fahrenServiceClient.UnregisterOnTrainAsync(new UnregisterOnTrainRequest()
@@ -90,7 +89,7 @@ public class ContinuousConnectionState
 
         _registeredTrainNumber = null;
     }
-    
+
     private void ProcessMessages(List<Message> messages)
     {
         foreach (Message message in messages)
@@ -106,7 +105,8 @@ public class ContinuousConnectionState
                 }
 
                 _sender.Send(deserializedEvent);
-            } catch (Exception e)
+            }
+            catch (Exception e)
             {
                 Console.WriteLine(e);
             }

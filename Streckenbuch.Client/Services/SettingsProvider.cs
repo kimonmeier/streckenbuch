@@ -1,11 +1,12 @@
 ﻿using Blazored.LocalStorage;
-using Streckenbuch.Client.Models;
+using Streckenbuch.Components.Models;
+using Streckenbuch.Components.Services;
 
 namespace Streckenbuch.Client.Services;
 
-public class SettingsProvider
+public class SettingsProvider : ISettingsProvider
 {
-    public EventHandler? SettingsChanged;
+    public event EventHandler? SettingsChanged;
 
     public bool IsVoiceActivated { get; set; }
 
@@ -75,9 +76,9 @@ public class SettingsProvider
         {
             return;
         }
-        
+
         IsRecordingActive = oldRecordingActive.Value ? RecordingOption.Manual : RecordingOption.None;
-        await storageService.SetItemAsync(Konst.RecordingActiveV2,  oldRecordingActive.Value ? RecordingOption.Manual : RecordingOption.None);
+        await storageService.SetItemAsync(Konst.RecordingActiveV2, oldRecordingActive.Value ? RecordingOption.Manual : RecordingOption.None);
     }
 
     public async Task LoadIfNotLoadedAsync()

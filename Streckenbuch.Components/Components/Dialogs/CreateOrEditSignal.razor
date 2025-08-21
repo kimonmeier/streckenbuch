@@ -1,0 +1,215 @@
+﻿@using GoogleMapsComponents.Maps
+@using Streckenbuch.Components.Components.Maps
+@using Size = MudBlazor.Size
+@inject BetriebspunkteService.BetriebspunkteServiceClient betriebspunktService
+@inject SignaleService.SignaleServiceClient signalService
+@inject IJSRuntime JSRuntime
+
+<EditForm Model="@model" OnValidSubmit="Submit">
+    <DataAnnotationsValidator/>
+    <MudGrid>
+        <MudItem>
+            <MudCard>
+                <MudCardContent>
+                    <MudAutocomplete Label="Betriebspunkt" T="BetriebspunktProto" For="@(() => model.Betriebspunkt)"
+                                     Value="model.Betriebspunkt" ValueChanged="changedBetriebspunkt"
+                                     SearchFunc="SearchBetriebspunkte"
+                                     ToStringFunc="@((e) => e.Name)"
+                                     Disabled="@(SignalToEdit is not null)"></MudAutocomplete>
+                    <MudSelect Label="Signal Typ" For="@(() => model.Typ)" @bind-Value="model.Typ">
+                        <MudSelectItem Value="SignalTyp.Hauptsignal">
+                            reines Hauptsignal
+                        </MudSelectItem>
+                        <MudSelectItem Value="SignalTyp.Vorsignal">
+                            reines Vorsignal
+                        </MudSelectItem>
+                        <MudSelectItem Value="SignalTyp.Kombiniert">
+                            Hauptsignal inkl. Vorsignal
+                        </MudSelectItem>
+                        <MudSelectItem Value="SignalTyp.Wiederholung">
+                            Wiederholungssignal
+                        </MudSelectItem>
+                        <MudSelectItem Value="SignalTyp.Streckengeschwindigkeit">
+                            Merktafel zur Streckengeschwindigkeit
+                        </MudSelectItem>
+                        <MudSelectItem Value="SignalTyp.Fahrstellungsmelder">
+                            Fahrtstellungsmelder
+                        </MudSelectItem>
+                    </MudSelect>
+                    <MudSelect Label="Signal Seite" For="@(() => model.Seite)" @bind-Value="model.Seite">
+                        <MudSelectItem Value="SignalSeite.Einfahrt">
+                            Einfahrt
+                        </MudSelectItem>
+                        <MudSelectItem Value="SignalSeite.Ausfahrt">
+                            Ausfahrt
+                        </MudSelectItem>
+                    </MudSelect>
+                    <MudTextField Label="Name" HelperText="Optional"
+                                  @bind-Value="model.Name" For="@(() => model.Name)"/>
+                    <MudCard>
+                        <MudCardHeader>
+                            <MudText Typo="Typo.h6">Ort auswählen</MudText>
+                            <MudTextField T="string" TextChanged="@((val) => changeSearch(val))" Placeholder="Suche"
+                                          Adornment="Adornment.Start"
+                                          AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium"
+                                          Class="mt-0"></MudTextField>
+                        </MudCardHeader>
+                        <MudCardContent>
+                            <Streckenbuch.Components.Components.Maps.LocationPicker ZoomLevel="17"
+                                                                                @ref="locationPicker"></Streckenbuch.Components.Components.Maps.LocationPicker>
+                        </MudCardContent>
+                    </MudCard>
+                </MudCardContent>
+                <MudCardActions>
+                    <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary">Submit
+                    </MudButton>
+                    <MudButton ButtonType="ButtonType.Button" Variant="Variant.Filled" Color="Color.Secondary"
+                               OnClick="Cancel">Cancel
+                    </MudButton>
+                </MudCardActions>
+            </MudCard>
+        </MudItem>
+    </MudGrid>
+</EditForm>
+
+
+@code {
+
+    [CascadingParameter]
+    private IMudDialogInstance MudDialog { get; set; } = null!;
+
+    [Parameter]
+    public BetriebspunktProto? Vorschlag { get; set; }
+    
+    [Parameter]
+    public SignalProto? SignalToEdit { get; set; }
+
+    private LocationPicker locationPicker = null!;
+    private CreateSignalForm model = new CreateSignalForm();
+    private List<BetriebspunktProto> betriebspunkte = new List<BetriebspunktProto>();
+
+    public class CreateSignalForm
+    {
+        [Required]
+        public BetriebspunktProto? Betriebspunkt { get; set; }
+
+        [Required]
+        public SignalTyp Typ { get; set; } = SignalTyp.Hauptsignal;
+
+        [Required]
+        public SignalSeite Seite { get; set; } = SignalSeite.Einfahrt;
+
+        [MaxLength(128)]
+        public string? Name { get; set; } = null!;
+    }
+
+    protected async override Task OnInitializedAsync()
+    {
+        betriebspunkte = (await betriebspunktService.ListAllBetriebspunkteAsync(new Empty())).Betriebspunkte.ToList();
+
+        if (Vorschlag is not null)
+        {
+            model.Betriebspunkt = Vorschlag;
+        } else if (SignalToEdit is not null)
+        {
+            model.Betriebspunkt = betriebspunkte.Single(x => x.Id.Equals(SignalToEdit.BetriebspunktId));
+            model.Name = SignalToEdit.Name;
+            model.Seite = (SignalSeite)SignalToEdit.SignalSeite;
+            model.Typ = (SignalTyp)SignalToEdit.SignalTyp;
+        }
+    }
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if (!firstRender)
+        {
+            return;
+        }
+
+        locationPicker.OnAfterInit += OnAfterMapInit;
+    }
+
+    private void OnAfterMapInit(object? source, EventArgs eventArgs)
+    {
+        LatLngLiteral location;
+
+        if (SignalToEdit is not null)
+        {
+            location = new LatLngLiteral(SignalToEdit.Location.Latitude, SignalToEdit.Location.Longitude);
+        } else if (Vorschlag is not null)
+        {
+            location = new LatLngLiteral(Vorschlag.Location.Latitude, Vorschlag.Location.Longitude);
+        }
+        else
+        {
+            return;
+        }
+
+        locationPicker.SetCenter(location).ConfigureAwait(false);
+    }
+
+    private async Task changeSearch(string search)
+    {
+        await locationPicker.SearchPlace(search);
+    }
+
+    private async Task changedBetriebspunkt(BetriebspunktProto betriebspunkt)
+    {
+        model.Betriebspunkt = betriebspunkt;
+
+        await locationPicker.SetCenter(new LatLngLiteral(betriebspunkt.Location.Latitude, betriebspunkt.Location.Longitude));
+    }
+
+    private async Task Submit()
+    {
+        var markerPosition = await locationPicker.GetCenter();
+
+        if (SignalToEdit is null)
+        {
+            await signalService.CreateSignalAsync(new CreateSignalRequest()
+            {
+                BetriebspunktId = model.Betriebspunkt!.Id,
+                Name = model.Name,
+                SignalSeite = (int)model.Seite,
+                SignalTyp = (int)model.Typ,
+                Location = new Shared.Types.LocationProto()
+                {
+                    Longitude = markerPosition.Lng, Latitude = markerPosition.Lat
+                }
+            });
+        }
+        else
+        {
+            await signalService.EditSignalAsync(new EditSignalRequest()
+            {
+                SignalId = SignalToEdit.SignalId,
+                Name = model.Name,
+                SignalSeite = (int)model.Seite,
+                SignalTyp = (int)model.Typ,
+                Location = new Shared.Types.LocationProto()
+                {
+                    Longitude = markerPosition.Lng, Latitude = markerPosition.Lat
+                }
+            });
+        }
+
+        MudDialog.Close();
+    }
+
+    private void Cancel()
+    {
+        MudDialog.Cancel();
+    }
+
+    private async Task<IEnumerable<BetriebspunktProto>> SearchBetriebspunkte(string value, CancellationToken token)
+    {
+        await Task.CompletedTask;
+        if (string.IsNullOrEmpty(value))
+        {
+            return betriebspunkte;
+        }
+
+        return betriebspunkte.Where(x => x.Name.ToLowerInvariant().Contains(value.ToLowerInvariant(), StringComparison.InvariantCultureIgnoreCase));
+    }
+
+}

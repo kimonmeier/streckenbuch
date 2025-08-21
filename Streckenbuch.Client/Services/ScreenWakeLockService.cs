@@ -1,10 +1,11 @@
 ﻿using Microsoft.JSInterop;
-using Streckenbuch.Client.Models;
+using Streckenbuch.Components.Models;
+using Streckenbuch.Components.Services;
 using System.Collections.Concurrent;
 
 namespace Streckenbuch.Client.Services;
 
-public class ScreenWakeLockService
+public class ScreenWakeLockService : IScreenWakeLockService
 {
     private readonly IJSRuntime _jsRuntime;
     private readonly ConcurrentDictionary<int, WakeLockSentinel> _wakeLocks;

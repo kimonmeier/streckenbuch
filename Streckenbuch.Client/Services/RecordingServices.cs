@@ -1,20 +1,21 @@
 ﻿using Microsoft.JSInterop;
-using Streckenbuch.Client.Models;
+using Streckenbuch.Components.Models;
+using Streckenbuch.Components.Services;
 using Streckenbuch.Shared.Services;
 using Streckenbuch.Shared.Types;
 
 namespace Streckenbuch.Client.Services;
 
-public class RecordingServices
+public class RecordingServices : IRecordingServices
 {
     private record Recording(GeolocationPosition Coordinate, DateTime DateTime);
 
     private readonly List<Recording> _recordings = new();
     private readonly RecordingService.RecordingServiceClient _recordingServiceClient;
-    private readonly SettingsProvider _settingsProvider;
+    private readonly ISettingsProvider _settingsProvider;
     private Guid? _workTripId;
-    
-    public RecordingServices(RecordingService.RecordingServiceClient recordingServiceClient, SettingsProvider settingsProvider)
+
+    public RecordingServices(RecordingService.RecordingServiceClient recordingServiceClient, ISettingsProvider settingsProvider)
     {
         _recordingServiceClient = recordingServiceClient;
         _settingsProvider = settingsProvider;
@@ -43,10 +44,11 @@ public class RecordingServices
         }
 
         _recordings.Clear();
-        
+
         StartRecordingSessionResponse startRecordingSessionResponse = await _recordingServiceClient.StartRecordingSessionAsync(new StartRecordingSessionRequest()
         {
-            TrainNumber = trainNumber, TrainDriverNumber = trainDriverNumber,
+            TrainNumber = trainNumber,
+            TrainDriverNumber = trainDriverNumber,
         });
 
         _workTripId = startRecordingSessionResponse.WorkTrip;
@@ -56,11 +58,11 @@ public class RecordingServices
     {
         _ = Task.Run(async () =>
         {
-            #if DEBUG
+#if DEBUG
             using PeriodicTimer periodicTimer = new PeriodicTimer(TimeSpan.FromSeconds(5));
-            #else
+#else
             using PeriodicTimer periodicTimer = new PeriodicTimer(TimeSpan.FromSeconds(60));
-            #endif
+#endif
             while (!cancellationToken.IsCancellationRequested)
             {
                 await periodicTimer.WaitForNextTickAsync(cancellationToken);

@@ -1,8 +1,9 @@
 ﻿using Microsoft.JSInterop;
+using Streckenbuch.Components.Services;
 
 namespace Streckenbuch.Client.Services;
 
-public class ClipboardService
+public class ClipboardService : IClipdboardService
 {
     private readonly IJSRuntime _jsRuntime;
 

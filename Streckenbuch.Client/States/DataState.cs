@@ -1,15 +1,16 @@
 ﻿using Google.Protobuf.WellKnownTypes;
 using Grpc.Core;
 using MudBlazor.Extensions;
+using Streckenbuch.Components.States;
 using Streckenbuch.Shared.Services;
 using System.Runtime.CompilerServices;
 
 namespace Streckenbuch.Client.States;
 
-public class DataState
+public class DataState : IDataState
 {
     private readonly BetriebspunkteService.BetriebspunkteServiceClient _betriebspunkteService;
-    
+
     private readonly List<BetriebspunktProto> _betriebspunkte = new();
 
     public DataState(BetriebspunkteService.BetriebspunkteServiceClient betriebspunkteService)

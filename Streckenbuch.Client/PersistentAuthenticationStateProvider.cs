@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
+using Streckenbuch.Components;
 using System.Security.Claims;
 
 namespace Streckenbuch.Client

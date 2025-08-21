@@ -1,16 +1,17 @@
 ﻿using MediatR;
 using Microsoft.JSInterop;
-using Streckenbuch.Client.Events.ApproachingStop;
-using Streckenbuch.Client.Events.PositionRecieved;
 using Streckenbuch.Client.Extensions;
-using Streckenbuch.Client.Models.Fahren;
-using Streckenbuch.Client.Models.Fahren.Betriebspunkt;
+using Streckenbuch.Components.Events.ApproachingStop;
+using Streckenbuch.Components.Events.PositionRecieved;
+using Streckenbuch.Components.Models.Fahren;
+using Streckenbuch.Components.Models.Fahren.Betriebspunkt;
+using Streckenbuch.Components.Services;
 using Streckenbuch.Shared.Models;
 using System.Runtime.InteropServices;
 
 namespace Streckenbuch.Client.Services;
 
-public sealed class FahrenPositionService
+public sealed class FahrenPositionService : IFahrenPositionService
 {
     public event EventHandler? DataChanged;
 
@@ -53,7 +54,7 @@ public sealed class FahrenPositionService
         try
         {
             await _semaphoreSlim.WaitAsync();
-            
+
             if (newPosition.Coords.Accuracy <= 100)
             {
                 await _sender.Send(new PositionRecievedEvent()
@@ -61,7 +62,7 @@ public sealed class FahrenPositionService
                     Position = newPosition
                 });
             }
-            
+
             if (!HasValidEntries())
             {
                 _semaphoreSlim.Release();
@@ -84,7 +85,7 @@ public sealed class FahrenPositionService
 
                 return;
             }
-            
+
             CheckForStationAnnouncement(newPosition);
 
             if (!HasPassedLastEntry(newPosition, _currentEntries.Last(), _lastPositions))
@@ -134,24 +135,24 @@ public sealed class FahrenPositionService
 
                 break;
         }
-        
+
         OnDataChanged();
     }
 
     private void CheckForStationAnnouncement(GeolocationPosition currentPosition)
     {
-        IBetriebspunktEntry? nextStop = (IBetriebspunktEntry?) _currentEntries.Where(x => x is IBetriebspunktEntry bEntry && _stops.Contains(bEntry.Id)).MinBy(x => x.Location.GetDistanzInMeters(currentPosition));
+        IBetriebspunktEntry? nextStop = (IBetriebspunktEntry?)_currentEntries.Where(x => x is IBetriebspunktEntry bEntry && _stops.Contains(bEntry.Id)).MinBy(x => x.Location.GetDistanzInMeters(currentPosition));
 
         if (nextStop is null)
         {
             return;
         }
-        
+
         if (nextStop.Location.GetDistanzInMeters(currentPosition) > 1000)
         {
             return;
         }
-        
+
         if (_stopsAnnounced.Contains(nextStop.Id))
         {
             return;
@@ -233,13 +234,13 @@ public sealed class FahrenPositionService
         RemoveEntriesUntilBetriebspunkt(closestBetriebspunkt);
 
         OnDataChanged();
-        
+
         return true;
     }
 
     private IBetriebspunktEntry? FindClosestBetriebspunkt(GeolocationPosition position)
     {
-        return (IBetriebspunktEntry?) _currentEntries
+        return (IBetriebspunktEntry?)_currentEntries
             .Where(x => x.Type == EntryType.Betriebspunkt)
             .MinBy(x => x.Location.GetDistanzInMeters(position));
     }

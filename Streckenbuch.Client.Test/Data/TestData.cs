@@ -1,8 +1,8 @@
 using Microsoft.JSInterop;
 using Newtonsoft.Json;
-using Streckenbuch.Client.Models.Fahren;
-using Streckenbuch.Client.Models.Fahren.Betriebspunkt;
-using Streckenbuch.Client.Models.Fahren.Signal;
+using Streckenbuch.Components.Models.Fahren;
+using Streckenbuch.Components.Models.Fahren.Betriebspunkt;
+using Streckenbuch.Components.Models.Fahren.Signal;
 using System;
 
 namespace Streckenbuch.Client.Test.Data;

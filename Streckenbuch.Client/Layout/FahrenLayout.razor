@@ -1,11 +1,11 @@
-﻿@using Blazored.LocalStorage
-@using Streckenbuch.Client.Services
-@using Streckenbuch.Client.States
+﻿@using Streckenbuch.Components.Services
+@using Streckenbuch.Components.States
+
 @inherits LayoutComponentBase
 @inject NavigationManager NavManager
-@inject ContinuousConnectionState ContinuousConnectionState
-@inject SettingsProvider SettingsProvider
-@inject RecordingServices RecordingService
+@inject IContinuousConnectionState ContinuousConnectionState
+@inject ISettingsProvider SettingsProvider
+@inject IRecordingServices RecordingService
 @implements IDisposable
 
 <MudThemeProvider @ref="@_mudThemeProvider"

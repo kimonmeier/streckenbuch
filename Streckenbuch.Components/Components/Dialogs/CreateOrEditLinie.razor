@@ -1,0 +1,143 @@
+﻿@using Streckenbuch.Shared.Models
+@using System.ComponentModel.DataAnnotations
+@using Streckenbuch.Shared.Services
+@inject LinienService.LinienServiceClient linienService
+@inject BetriebspunkteService.BetriebspunkteServiceClient betriebspunktService
+
+<EditForm Model="@model" OnValidSubmit="Submit">
+    <DataAnnotationsValidator />
+    <MudGrid>
+        <MudItem>
+            <MudCard>
+                <MudCardContent>
+                    <MudSelect Label="Kategorie" HelperText="Die Kategorie der Linie"
+                    @bind-Value="model.LinienTyp" For="@(() => model.LinienTyp)">
+                        <MudSelectItem Value="@LinienTyp.SBahn">S-Bahn</MudSelectItem>
+                        <MudSelectItem Value="@LinienTyp.InterRegio">InterRegio (IR)</MudSelectItem>
+                        <MudSelectItem Value="@LinienTyp.RegioExpress">RegioExpress (RE)</MudSelectItem>
+                        <MudSelectItem Value="@LinienTyp.InterCity">Intercity (IC)</MudSelectItem>
+                        <MudSelectItem Value="@LinienTyp.NightJet">Nightjet (NJ)</MudSelectItem>
+                        <MudSelectItem Value="@LinienTyp.ICE">Intercity Express (ICE)</MudSelectItem>
+                        <MudSelectItem Value="@LinienTyp.TGV" Disabled="true">train grande vitesse (TGV)</MudSelectItem>
+                    </MudSelect>
+                    <MudTextField Label="Nummer" HelperText="Die Nummer der Linie"
+                    @bind-Value="model.Nummer" For="@(() => model.Nummer)" />
+
+                    <MudAutocomplete Label="Von Betriebspunkt"
+                    @bind-Value="model.VonBetriebspunkt"
+                    For="@(() => model.VonBetriebspunkt)"
+                    Clearable="false"
+                    SearchFunc="Search"
+                    ToStringFunc="@((e) => e.Name)" />
+
+                    <MudAutocomplete Label="Von Betriebspunkt"
+                    @bind-Value="model.BisBetriebspunkt"
+                    For="@(() => model.BisBetriebspunkt)"
+                    Clearable="false"
+                    SearchFunc="Search"
+                    ToStringFunc="@((e) => e.Name)" />
+                </MudCardContent>
+                <MudCardActions>
+                    <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary">
+                        Create
+                    </MudButton>
+                    <MudButton ButtonType="ButtonType.Button" Variant="Variant.Filled" Color="Color.Secondary"
+                    OnClick="Cancel">
+                        Cancel
+                    </MudButton>
+                </MudCardActions>
+            </MudCard>
+        </MudItem>
+    </MudGrid>
+</EditForm>
+
+@code {
+
+    [CascadingParameter]
+    private IMudDialogInstance MudDialog { get; set; } = null!;
+
+    [Parameter]
+    public LinienProto? LinieToEdit { get; set; }
+    
+    private CreateStreckeForm model = new CreateStreckeForm();
+    private List<BetriebspunktProto> betriebspunkte;
+
+    public class CreateStreckeForm
+    {
+        [Required]
+        public LinienTyp LinienTyp { get; set; }
+
+        public int? Nummer { get; set; }
+
+        [Required]
+        public BetriebspunktProto VonBetriebspunkt { get; set; }
+
+        [Required]
+        public BetriebspunktProto BisBetriebspunkt { get; set; }
+    }
+
+    protected async override Task OnInitializedAsync()
+    {
+        betriebspunkte = (await betriebspunktService.ListAllBetriebspunkteAsync(new Empty())).Betriebspunkte.ToList();
+
+        if (LinieToEdit is not null)
+        {
+            model.Nummer = LinieToEdit.Nummer;
+            model.LinienTyp = (LinienTyp)LinieToEdit.Typ;
+            model.VonBetriebspunkt = betriebspunkte.Single(x => ((Guid)x.Id).Equals(LinieToEdit.VonBetriebspunktId));
+            model.BisBetriebspunkt = betriebspunkte.Single(x => ((Guid)x.Id).Equals(LinieToEdit.BisBetriebspunktId));
+        }
+    }
+
+    private async Task Submit()
+    {
+        if (LinieToEdit is null)
+        {
+
+            CreateLinieRequest request = new CreateLinieRequest()
+            {
+                Typ = (int)model.LinienTyp, VonBetriebspunktId = model.VonBetriebspunkt.Id, BisBetriebspunktId = model.BisBetriebspunkt.Id
+            };
+
+            if (model.Nummer.HasValue)
+            {
+                request.Nummer = model.Nummer.Value;
+            }
+
+
+            await linienService.CreateLinieAsync(request);
+        }
+        else
+        {
+            EditLinieRequest request = new EditLinieRequest()
+            {
+                LinieId = LinieToEdit.Id, Typ = (int)model.LinienTyp, VonBetriebspunktId = model.VonBetriebspunkt.Id, BisBetriebspunktId = model.BisBetriebspunkt.Id
+            };
+            
+            if (model.Nummer.HasValue)
+            {
+                request.Nummer = model.Nummer.Value;
+            }
+            
+            await linienService.EditLinieAsync(request);
+        }
+
+        MudDialog.Close();
+    }
+
+    private async Task<IEnumerable<BetriebspunktProto>> Search(string value, CancellationToken token)
+    {
+        await Task.CompletedTask;
+        // if text is null or empty, show complete list
+        if (string.IsNullOrEmpty(value))
+            return betriebspunkte;
+
+        return betriebspunkte.Where(x => x.Name.Contains(value, StringComparison.InvariantCultureIgnoreCase));
+    }
+
+    private void Cancel()
+    {
+        MudDialog.Cancel();
+    }
+
+}

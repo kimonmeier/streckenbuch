@@ -1,0 +1,29 @@
+﻿@using Streckenbuch.Components.Models.Fahren
+@using Streckenbuch.Components.Models.Fahren.Signal
+@using Streckenbuch.Components.Components.Fahren.Betriebspunkt
+@using Streckenbuch.Components.Components.Fahren.Signal
+
+@switch (Entry.Type)
+{
+    case EntryType.Signal:
+        <TimeLineEntrySignal OnClickAction="OnClickAction" Entry="@(Entry as ISignalEntry)" />
+
+        break;
+    case EntryType.Betriebspunkt:
+        <TimeLineEntryBetriebspunkt OnClickAction="OnClickAction" Entry="@(Entry as IBetriebspunktEntry)" />
+
+        break;
+    case EntryType.Spacer:
+        <FahrenTimeLineSpacerEntry />
+
+        break;
+}
+
+@code {
+
+    [Parameter]
+    public IBaseEntry Entry { get; set; } = null!;
+
+    [Parameter]
+    public Action<IBaseEntry> OnClickAction { get; set; } = null!;
+}

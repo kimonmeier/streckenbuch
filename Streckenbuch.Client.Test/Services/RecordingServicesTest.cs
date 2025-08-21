@@ -41,8 +41,8 @@ public class RecordingServicesTest
     }
 
     [Theory]
-    [InlineData(Models.RecordingOption.None)]
-    public async Task ShouldStartWorkTripAndNotSendRecordings(Models.RecordingOption option)
+    [InlineData(Streckenbuch.Components.Models.RecordingOption.None)]
+    public async Task ShouldStartWorkTripAndNotSendRecordings(Streckenbuch.Components.Models.RecordingOption option)
     {
         Mock<RecordingService.RecordingServiceClient> apiClient = this.BuildMockApiClient();
         Mock<SettingsProvider> settingsProvider = new Mock<SettingsProvider>(new Mock<IServiceProvider>().Object);
@@ -68,9 +68,9 @@ public class RecordingServicesTest
     }
 
     [Theory]
-    [InlineData(Models.RecordingOption.Manual)]
-    [InlineData(Models.RecordingOption.Auto)]
-    public async Task ShouldStartWorkTripAndSendRecordings(Models.RecordingOption option)
+    [InlineData(Streckenbuch.Components.Models.RecordingOption.Manual)]
+    [InlineData(Streckenbuch.Components.Models.RecordingOption.Auto)]
+    public async Task ShouldStartWorkTripAndSendRecordings(Streckenbuch.Components.Models.RecordingOption option)
     {
         Mock<RecordingService.RecordingServiceClient> apiClient = this.BuildMockApiClient();
 

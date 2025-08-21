@@ -1,5 +1,5 @@
 ﻿using AutoMapper;
-using Streckenbuch.Client.Models.Fahren.Betriebspunkt;
+using Streckenbuch.Components.Models.Fahren.Betriebspunkt;
 using Streckenbuch.Shared.Mapping;
 using Streckenbuch.Shared.Services;
 

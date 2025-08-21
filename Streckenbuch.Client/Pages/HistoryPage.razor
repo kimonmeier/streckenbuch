@@ -1,10 +1,9 @@
 ﻿@page "/history"
-@using System.Reflection.Metadata.Ecma335
-@using Streckenbuch.Client.Services
+@using Streckenbuch.Components.Services
 @using Streckenbuch.Shared.Types
 @attribute [Authorize]
 @inject RecordingService.RecordingServiceClient RecordingService
-@inject SettingsProvider SettingsProvider
+@inject ISettingsProvider SettingsProvider
 
 <PageTitle>Linien</PageTitle>
 

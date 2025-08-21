@@ -3,6 +3,7 @@ using Grpc.Net.Client.Web;
 using Microsoft.AspNetCore.Components;
 using Streckenbuch.Client.Mappings;
 using Streckenbuch.Client.States;
+using Streckenbuch.Components.States;
 using Streckenbuch.Shared.Mapping;
 
 namespace Streckenbuch.Client;
@@ -19,7 +20,7 @@ public static class ConfigureServices
     public static void AddMediator(this IServiceCollection services)
     {
         services.AddMediatR((x) => x.RegisterServicesFromAssembly(typeof(Program).Assembly));
-        services.AddSingleton<ContinuousConnectionState>();
+        services.AddSingleton<IContinuousConnectionState, ContinuousConnectionState>();
     }
 
     public static void AddGrpcService<TService>(this IServiceCollection services) where TService : Grpc.Core.ClientBase

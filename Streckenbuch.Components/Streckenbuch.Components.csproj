@@ -1,0 +1,37 @@
+<Project Sdk="Microsoft.NET.Sdk.Razor">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <AddRazorSupportForMvc>true</AddRazorSupportForMvc>
+    <Configurations>Debug;Release;DebugApp;ReleaseApp</Configurations>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="9.0.8" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Components\History\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Streckenbuch.Shared\Streckenbuch.Shared.csproj" />
+    <PackageReference Include="MudBlazor" Version="8.9.0" />
+    <PackageReference Include="MudBlazor.ThemeManager" Version="3.0.0" />
+    <PackageReference Include="Blazor.Geolocation" Version="9.0.1" />
+    <PackageReference Include="Blazor.SpeechSynthesis.WebAssembly" Version="9.0.1" />
+    <PackageReference Include="BlazorBeforeUnload" Version="1.0.4" />
+    <PackageReference Include="Blazored.LocalStorage" Version="4.5.0" />
+    <PackageReference Include="BlazorGoogleMaps" Version="4.13.1" />
+    <PackageReference Include="Grpc.Net.Client.Web" Version="2.71.0" />
+    <PackageReference Include="Howler.Blazor" Version="0.9.8" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="9.0.6" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Authentication" Version="9.0.6" />
+    <PackageReference Include="MediatR" Version="12.5.0" />
+  </ItemGroup>
+
+
+
+</Project>

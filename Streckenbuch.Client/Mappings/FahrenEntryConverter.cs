@@ -1,8 +1,8 @@
 ﻿using AutoMapper;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
-using Streckenbuch.Client.Models.Fahren;
-using Streckenbuch.Client.Models.Fahren.Betriebspunkt;
-using Streckenbuch.Client.Models.Fahren.Signal;
+using Streckenbuch.Components.Models.Fahren;
+using Streckenbuch.Components.Models.Fahren.Betriebspunkt;
+using Streckenbuch.Components.Models.Fahren.Signal;
 using Streckenbuch.Shared.Models;
 using Streckenbuch.Shared.Services;
 

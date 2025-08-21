@@ -2,42 +2,45 @@
 using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
 using Streckenbuch.Client.Services;
+using Streckenbuch.Components.Services;
+using Streckenbuch.Components.States;
 using System.Text.Json;
 
 namespace Streckenbuch.Client.States;
 
-public class AudioState
+public class AudioState : IAudioState
 {
     private readonly IServiceProvider _serviceProvider;
-    private readonly SettingsProvider _settingsProvider;
+    private readonly ISettingsProvider _settingsProvider;
 
-    public AudioState(IServiceProvider serviceProvider, SettingsProvider settingsProvider)
+    public AudioState(IServiceProvider serviceProvider, ISettingsProvider settingsProvider)
     {
         _serviceProvider = serviceProvider;
         _settingsProvider = settingsProvider;
     }
-    
+
     public async Task SayText(string text)
     {
         if (!_settingsProvider.IsVoiceActivated)
         {
             return;
         }
-        
+
         await using var scope = _serviceProvider.CreateAsyncScope();
         var howl = scope.ServiceProvider.GetRequiredService<IHowl>();
         var speechSynthesis = scope.ServiceProvider.GetRequiredService<ISpeechSynthesisService>();
         var navigationManager = scope.ServiceProvider.GetRequiredService<NavigationManager>();
 
-        var voices = await speechSynthesis.GetVoicesAsync();;
-        
-        await howl.Play(new HowlOptions() {
+        var voices = await speechSynthesis.GetVoicesAsync(); ;
+
+        await howl.Play(new HowlOptions()
+        {
             Sources = [new Uri(new Uri(navigationManager.BaseUri), "audio/beep.mp3").ToString()],
             Volume = 1.0,
         });
-        
+
         await Task.Delay(500);
-        
+
         speechSynthesis.Speak(new SpeechSynthesisUtterance()
         {
             Text = text,

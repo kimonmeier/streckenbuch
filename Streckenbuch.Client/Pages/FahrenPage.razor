@@ -1,12 +1,12 @@
 ﻿@page "/fahren"
-@using Streckenbuch.Client.Components.Fahren
-@using Streckenbuch.Client.Services
-@using Streckenbuch.Client.States
+@using Streckenbuch.Components.Components.Fahren
+@using Streckenbuch.Components.Services
+@using Streckenbuch.Components.States
 @inject IDialogService DialogService
-@inject ScreenWakeLockService ScreenWakeLockService
-@inject ContinuousConnectionState ConnectionState
-@inject AudioState AudioState
-@inject SettingsProvider SettingsProvider
+@inject IScreenWakeLockService ScreenWakeLockService
+@inject IContinuousConnectionState ConnectionState
+@inject IAudioState AudioState
+@inject ISettingsProvider SettingsProvider
 @layout FahrenLayout
 @implements IAsyncDisposable
 

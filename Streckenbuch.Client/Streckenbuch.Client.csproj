@@ -8,13 +8,27 @@
     <StaticWebAssetProjectMode>Default</StaticWebAssetProjectMode>
 	<ServiceWorkerAssetsManifest>service-worker-assets.js</ServiceWorkerAssetsManifest>
     <BlazorLinkOnBuild>false</BlazorLinkOnBuild>
+    <Configurations>Debug;Release</Configurations>
   </PropertyGroup>
 
+  <Target Name="AllowUsingAspNetCoreInBlazorWasm" AfterTargets="ProcessFrameworkReferences" >
+    <ItemGroup>
+      <UnavailableRuntimePack Remove="Microsoft.AspNetCore.App" />
+    </ItemGroup>
+  </Target>
+  
   <ItemGroup>
     <ServiceWorker Include="wwwroot\service-worker.js" PublishedContent="wwwroot\service-worker.published.js" />
   </ItemGroup>
-  
+
   <ItemGroup>
+    <ProjectReference Include="..\Streckenbuch.Components\Streckenbuch.Components.csproj" />
+    <ProjectReference Include="..\Streckenbuch.Shared\Streckenbuch.Shared.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="MudBlazor" Version="8.9.0" />
+    <PackageReference Include="MudBlazor.ThemeManager" Version="3.0.0" />
     <PackageReference Include="Blazor.Geolocation" Version="9.0.1" />
     <PackageReference Include="Blazor.SpeechSynthesis.WebAssembly" Version="9.0.1" />
     <PackageReference Include="BlazorBeforeUnload" Version="1.0.4" />
@@ -22,18 +36,8 @@
     <PackageReference Include="BlazorGoogleMaps" Version="4.13.1" />
     <PackageReference Include="Grpc.Net.Client.Web" Version="2.71.0" />
     <PackageReference Include="Howler.Blazor" Version="0.9.8" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="9.0.6" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Authentication" Version="9.0.6" />
     <PackageReference Include="MediatR" Version="12.5.0" />
-    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="9.0.7" />
-    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Authentication" Version="9.0.7" />
-    <PackageReference Include="MudBlazor" Version="8.9.0" />
-    <PackageReference Include="MudBlazor.ThemeManager" Version="3.0.0" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\Streckenbuch.Shared\Streckenbuch.Shared.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Components\History\" />
   </ItemGroup>
 </Project>
