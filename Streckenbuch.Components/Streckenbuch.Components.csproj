@@ -24,7 +24,7 @@
     <PackageReference Include="Blazor.SpeechSynthesis.WebAssembly" Version="9.0.1" />
     <PackageReference Include="BlazorBeforeUnload" Version="1.0.4" />
     <PackageReference Include="Blazored.LocalStorage" Version="4.5.0" />
-    <PackageReference Include="BlazorGoogleMaps" Version="4.13.1" />
+    <PackageReference Include="BlazorGoogleMaps" Version="4.13.6" />
     <PackageReference Include="Grpc.Net.Client.Web" Version="2.71.0" />
     <PackageReference Include="Howler.Blazor" Version="0.9.8" />
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="9.0.6" />
