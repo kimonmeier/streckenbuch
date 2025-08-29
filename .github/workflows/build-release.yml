@@ -88,7 +88,7 @@ jobs:
       uses: svenstaro/upload-release-action@v2
       with:
         repo_token: ${{ secrets.GITHUB_TOKEN }}
-        file: ./Streckenbuch.App/bin/ReleaseApp/net9.0-android/publish/ch.k-meier.streckenbuch.app-Signed.apk
+        file: ./Streckenbuch.App/bin/ReleaseApp/net9.0-android/publish/ch.k_meier.streckenbuch.app-Signed.apk
         asset_name: Streckenbuch.${{ steps.get-tag.outputs.tag }}.apk
         tag: ${{ github.ref }}
         overwrite: true
