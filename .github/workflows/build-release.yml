@@ -42,11 +42,14 @@ jobs:
     - name: Install MAUI workload
       run: dotnet workload install maui
 
-    - name: Restore dependencies
-      run: dotnet restore
+    - name: Restore dependencies Website
+      run: dotnet restore --configuration Release
 
     - name: Build Website
       run: dotnet build --configuration Release --no-restore
+
+    - name: Restore dependencies Website
+      run: dotnet restore --configuration ReleaseApp
       
     - name: Test-Build application
       run: dotnet build --configuration ReleaseApp --no-restore
