@@ -23,7 +23,7 @@ permissions:
 
   
 jobs:
-  build-and-push:
+  build-and-push-website:
     runs-on: windows-latest
 
     env:
@@ -44,12 +44,6 @@ jobs:
 
     - name: Build Website
       run: dotnet build --configuration Release
-      
-    - name: Test-Build application
-      run: dotnet build --configuration ReleaseApp
-
-    - name: Publish Application
-      run: dotnet publish -f net9.0-android --configuration ReleaseApp
 
     - name: Log in to Docker Registry
       uses: docker/login-action@v3
@@ -78,11 +72,34 @@ jobs:
         tags: |
           ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.get-tag.outputs.tag }}
 
-    - name: Upload binaries to release
-      uses: svenstaro/upload-release-action@v2
-      with:
-        repo_token: ${{ secrets.GITHUB_TOKEN }}
-        file: ./Streckenbuch.App/bin/ReleaseApp/net9.0-android/publish/ch.k_meier.streckenbuch.app-Signed.apk
-        asset_name: Streckenbuch.${{ steps.get-tag.outputs.tag }}.apk
-        tag: ${{ github.ref }}
-        overwrite: true
+  build-and-push-app:
+    runs-on: windows-latest
+
+    env:
+      REGISTRY: ghcr.io # or docker.io if you're using DockerHub
+      IMAGE_NAME: ${{ github.repository }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '9.0.x'
+
+      - name: Install MAUI workload
+        run: dotnet workload install maui
+
+      - name: Publish Application
+        run: dotnet publish -f net9.0-android --configuration ReleaseApp
+
+      - name: Upload binaries to release
+        if: github.event_name != 'push'
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: ./Streckenbuch.App/bin/ReleaseApp/net9.0-android/publish/ch.k_meier.streckenbuch.app-Signed.apk
+          asset_name: Streckenbuch.${{ steps.get-tag.outputs.tag }}.apk
+          tag: ${{ github.ref }}
+          overwrite: true
