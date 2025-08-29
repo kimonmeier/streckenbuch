@@ -54,14 +54,15 @@ jobs:
         
     - name: Set Docker tag
       id: get-tag
+      shell: pwsh
       run: |
-        if "%GITHUB_EVENT_NAME%"=="workflow_dispatch" (
-          echo tag=%GITHUB_EVENT_INPUTS_TAG_NAME%>> %GITHUB_OUTPUT%
-        ) else if "%GITHUB_EVENT_NAME%"=="release" (
-        echo tag=%GITHUB_EVENT_RELEASE_TAG_NAME%>> %GITHUB_OUTPUT%
-        ) else if "%GITHUB_REF%"=="refs/heads/main" (
-        echo tag=unstable>> %GITHUB_OUTPUT%
-        )
+        if ($env:GITHUB_EVENT_NAME -eq 'workflow_dispatch') {
+          "tag=${{ github.event.inputs.tag_name }}" >> $env:GITHUB_OUTPUT
+        } elseif ($env:GITHUB_EVENT_NAME -eq 'release') {
+          "tag=${{ github.event.release.tag_name }}" >> $env:GITHUB_OUTPUT
+        } elseif ($env:GITHUB_REF -eq 'refs/heads/main') {
+          "tag=unstable" >> $env:GITHUB_OUTPUT
+        }
         
     - name: Build and push Docker image
       uses: docker/build-push-action@v5
@@ -96,14 +97,15 @@ jobs:
 
       - name: Set Docker tag
         id: get-tag
+        shell: pwsh
         run: |
-          if "%GITHUB_EVENT_NAME%"=="workflow_dispatch" (
-            echo tag=%GITHUB_EVENT_INPUTS_TAG_NAME%>> %GITHUB_OUTPUT%
-          ) else if "%GITHUB_EVENT_NAME%"=="release" (
-            echo tag=%GITHUB_EVENT_RELEASE_TAG_NAME%>> %GITHUB_OUTPUT%
-          ) else if "%GITHUB_REF%"=="refs/heads/main" (
-            echo tag=unstable>> %GITHUB_OUTPUT%
-          )
+          if ($env:GITHUB_EVENT_NAME -eq 'workflow_dispatch') {
+            "tag=${{ github.event.inputs.tag_name }}" >> $env:GITHUB_OUTPUT
+          } elseif ($env:GITHUB_EVENT_NAME -eq 'release') {
+            "tag=${{ github.event.release.tag_name }}" >> $env:GITHUB_OUTPUT
+          } elseif ($env:GITHUB_REF -eq 'refs/heads/main') {
+            "tag=unstable" >> $env:GITHUB_OUTPUT
+          }
 
       - name: Upload binaries to release
         if: github.event_name != 'push'
