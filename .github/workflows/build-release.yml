@@ -55,13 +55,13 @@ jobs:
     - name: Set Docker tag
       id: get-tag
       run: |
-        if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
-          echo "tag=${{ github.event.inputs.tag_name }}" >> $GITHUB_OUTPUT
-        elif [ "${{ github.event_name }}" == "release" ]; then
-          echo "tag=${{ github.event.release.tag_name }}" >> $GITHUB_OUTPUT
-        elif [ "${{ github.ref }}" == "refs/heads/main" ]; then
-          echo "tag=unstable" >> $GITHUB_OUTPUT
-        fi
+        if "%GITHUB_EVENT_NAME%"=="workflow_dispatch" (
+          echo tag=%GITHUB_EVENT_INPUTS_TAG_NAME%>> %GITHUB_OUTPUT%
+        ) else if "%GITHUB_EVENT_NAME%"=="release" (
+        echo tag=%GITHUB_EVENT_RELEASE_TAG_NAME%>> %GITHUB_OUTPUT%
+        ) else if "%GITHUB_REF%"=="refs/heads/main" (
+        echo tag=unstable>> %GITHUB_OUTPUT%
+        )
         
     - name: Build and push Docker image
       uses: docker/build-push-action@v5
@@ -93,6 +93,17 @@ jobs:
 
       - name: Publish Application
         run: dotnet publish -f net9.0-android --configuration ReleaseApp
+
+      - name: Set Docker tag
+        id: get-tag
+        run: |
+          if "%GITHUB_EVENT_NAME%"=="workflow_dispatch" (
+            echo tag=%GITHUB_EVENT_INPUTS_TAG_NAME%>> %GITHUB_OUTPUT%
+          ) else if "%GITHUB_EVENT_NAME%"=="release" (
+            echo tag=%GITHUB_EVENT_RELEASE_TAG_NAME%>> %GITHUB_OUTPUT%
+          ) else if "%GITHUB_REF%"=="refs/heads/main" (
+            echo tag=unstable>> %GITHUB_OUTPUT%
+          )
 
       - name: Upload binaries to release
         if: github.event_name != 'push'
