@@ -42,20 +42,14 @@ jobs:
     - name: Install MAUI workload
       run: dotnet workload install maui
 
-    - name: Restore dependencies Website
-      run: dotnet restore --configuration Release
-
     - name: Build Website
-      run: dotnet build --configuration Release --no-restore
-
-    - name: Restore dependencies Website
-      run: dotnet restore --configuration ReleaseApp
+      run: dotnet build --configuration Release
       
     - name: Test-Build application
-      run: dotnet build --configuration ReleaseApp --no-restore
+      run: dotnet build --configuration ReleaseApp
 
     - name: Publish Application
-      run: dotnet publish -f net9.0-android --configuration ReleaseApp --no-restore
+      run: dotnet publish -f net9.0-android --configuration ReleaseApp
 
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v3
