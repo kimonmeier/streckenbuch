@@ -11,8 +11,7 @@ on:
 
 jobs:
   build:
-
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
 
     steps:
     - uses: actions/checkout@v4
@@ -20,9 +19,15 @@ jobs:
       uses: actions/setup-dotnet@v4
       with:
         dotnet-version: 9.0.x
+    - name: Install MAUI workload
+      run: dotnet workload install maui
+
     - name: Restore dependencies
       run: dotnet restore
-    - name: Build
-      run: dotnet build --no-restore
-    - name: Test
-      run: dotnet test --no-build --verbosity normal
+
+    - name: Build Website
+      run: dotnet build --configuration Debug --no-restore
+    - name: Build App
+      run: dotnet build --configuration DebugApp --no-restore
+    - name: Test Website
+      run: dotnet test --configuration Debug --no-build --verbosity normal
