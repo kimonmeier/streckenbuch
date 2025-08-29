@@ -22,10 +22,10 @@
         <Nullable>enable</Nullable>
 
         <!-- Display name -->
-        <ApplicationTitle>Streckenbuch.App</ApplicationTitle>
+        <ApplicationTitle>Streckenbuch</ApplicationTitle>
 
         <!-- App Identifier -->
-        <ApplicationId>com.companyname.streckenbuch.app</ApplicationId>
+        <ApplicationId>ch.k-meier.streckenbuch.app</ApplicationId>
 
         <!-- Versions -->
         <ApplicationDisplayVersion>1.0</ApplicationDisplayVersion>
@@ -64,7 +64,7 @@
     <ItemGroup>
         <PackageReference Include="Microsoft.Maui.Controls" Version="$(MauiVersion)" />
         <PackageReference Include="Microsoft.AspNetCore.Components.WebView.Maui" Version="$(MauiVersion)" />
-        <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="9.0.0" />
+        <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="9.0.8" />
     </ItemGroup>
 
     <ItemGroup>

@@ -39,14 +39,20 @@ jobs:
       with:
         dotnet-version: '9.0.x'
 
+    - name: Install MAUI workload
+      run: dotnet workload install maui
+
     - name: Restore dependencies
       run: dotnet restore
 
-    - name: Build application
+    - name: Build Website
       run: dotnet build --configuration Release --no-restore
+      
+    - name: Test-Build application
+      run: dotnet build --configuration ReleaseApp --no-restore
 
-    - name: Publish application
-      run: dotnet publish -c Release -o ./publish --no-build
+    - name: Publish Application
+      run: dotnet publish -f net9.0-android --configuration ReleaseApp --no-restore
 
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v3
@@ -77,3 +83,12 @@ jobs:
         push: true
         tags: |
           ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.get-tag.outputs.tag }}
+
+    - name: Upload binaries to release
+      uses: svenstaro/upload-release-action@v2
+      with:
+        repo_token: ${{ secrets.GITHUB_TOKEN }}
+        file: ./Streckenbuch.App/bin/ReleaseApp/net9.0-android/publish/ch.k-meier.streckenbuch.app-Signed.apk
+        asset_name: Streckenbuch.${{ steps.get-tag.outputs.tag }}.apk
+        tag: ${{ github.ref }}
+        overwrite: true

@@ -1,6 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
     <PropertyGroup>
-        <TargetFramework>net8.0</TargetFramework>
+        <TargetFrameworks>net9.0;net9.0-android</TargetFrameworks>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
         <Configurations>Debug;Release;DebugApp;ReleaseApp</Configurations>
@@ -8,6 +8,7 @@
     <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
       <Optimize>False</Optimize>
     </PropertyGroup>
+    
     <ItemGroup>
       <None Remove="Services\betriebspunkte.proto" />
       <None Remove="Services\fahren.proto" />
@@ -18,6 +19,7 @@
       <None Remove="Types\dateOnly.proto" />
       <None Remove="Types\guid.proto" />
       <None Remove="Types\location.proto" />
+      <None Include="Types\timeOnly.proto" />
     </ItemGroup>
 
     <ItemGroup>
@@ -43,7 +45,6 @@
       <Protobuf Include="Types\dateOnly.proto" />
       <Protobuf Include="Types\guid.proto" />
       <Protobuf Include="Types\location.proto" />
-      <None Remove="Types\timeOnly.proto" />
       <Protobuf Include="Types\timeOnly.proto" />
     </ItemGroup>
 </Project>
