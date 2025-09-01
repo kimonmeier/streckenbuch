@@ -57,15 +57,14 @@ jobs:
         
     - name: Set Docker tag
       id: get-tag
-      shell: pwsh
       run: |
-        if ($env:GITHUB_EVENT_NAME -eq 'workflow_dispatch') {
-          "tag=${{ github.event.inputs.tag_name }}" >> $env:GITHUB_OUTPUT
-        } elseif ($env:GITHUB_EVENT_NAME -eq 'release') {
-          "tag=${{ github.event.release.tag_name }}" >> $env:GITHUB_OUTPUT
-        } elseif ($env:GITHUB_REF -eq 'refs/heads/main') {
-          "tag=unstable" >> $env:GITHUB_OUTPUT
-        }
+        if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+          echo "tag=${{ github.event.inputs.tag_name }}" >> $GITHUB_OUTPUT
+        elif [ "${{ github.event_name }}" == "release" ]; then
+          echo "tag=${{ github.event.release.tag_name }}" >> $GITHUB_OUTPUT
+        elif [ "${{ github.ref }}" == "refs/heads/main" ]; then
+          echo "tag=unstable" >> $GITHUB_OUTPUT
+        fi
         
     - name: Build and push Docker image
       uses: docker/build-push-action@v5
