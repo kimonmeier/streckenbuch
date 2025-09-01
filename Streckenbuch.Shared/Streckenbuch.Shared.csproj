@@ -1,6 +1,18 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-    <PropertyGroup>
+    <PropertyGroup Condition="'$(Configuration)'=='Release'">
+        <TargetFramework>net9.0</TargetFramework>
+    </PropertyGroup>
+    <PropertyGroup Condition="'$(Configuration)'=='ReleaseApp'">
         <TargetFrameworks>net9.0;net9.0-android</TargetFrameworks>
+    </PropertyGroup>
+    <PropertyGroup Condition="'$(Configuration)'=='Debug'">
+        <TargetFramework>net9.0</TargetFramework>
+    </PropertyGroup>
+    <PropertyGroup Condition="'$(Configuration)'=='DebugApp'">
+        <TargetFrameworks>net9.0;net9.0-android</TargetFrameworks>
+    </PropertyGroup>
+    
+    <PropertyGroup>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
         <Configurations>Debug;Release;DebugApp;ReleaseApp</Configurations>
