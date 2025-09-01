@@ -12,6 +12,14 @@ using Streckenbuch.Components.States;
 using Streckenbuch.Shared.Services;
 
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
+builder
+    .UseSentry(options =>
+    {
+        options.Dsn = "https://04b29e72808d9df27171cd0381863ea5@o4504980466499584.ingest.us.sentry.io/4509945285902336";
+
+        options.TracesSampleRate = 1.0;
+        options.SendDefaultPii = true;
+    });
 
 builder.Services.AddBeforeUnload();
 builder.Services.AddSpeechSynthesisServices();

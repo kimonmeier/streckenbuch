@@ -9,6 +9,15 @@ namespace Streckenbuch.App
             var builder = MauiApp.CreateBuilder();
             builder
                 .UseMauiApp<App>()
+                .UseSentry(options =>
+                {
+                    options.Dsn = "https://e7eb475600aa3160b6b8002766c6c25c@o4504980466499584.ingest.us.sentry.io/4509945005604864";
+                    
+                    options.AttachScreenshot = true;
+                    
+                    options.SendDefaultPii = true;
+                    options.TracesSampleRate = 1.0;
+                })
                 .ConfigureFonts(fonts =>
                 {
                     fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
@@ -16,7 +25,7 @@ namespace Streckenbuch.App
 
             builder.Services.AddMauiBlazorWebView();
 
-#if DEBUG
+#if DEBUGAPP
     		builder.Services.AddBlazorWebViewDeveloperTools();
     		builder.Logging.AddDebug();
 #endif

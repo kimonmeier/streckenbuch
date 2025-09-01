@@ -23,6 +23,12 @@ using System.Text.Json;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.AddMail();
+builder.WebHost.UseSentry(options =>
+{
+    options.Dsn = "https://e7a862029218656aeefbb065800685fa@o4504980466499584.ingest.us.sentry.io/4509945008291840";
+
+    options.TracesSampleRate = 1.0;
+});
 
 builder.Configuration.AddCommandLine(args);
 builder.Configuration.AddEnvironmentVariables();
@@ -103,6 +109,7 @@ else
     app.UseHsts();
 }
 
+app.UseSentryTracing();
 app.UseGrpcWeb(new GrpcWebOptions
 {
     DefaultEnabled = true,
