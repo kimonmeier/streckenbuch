@@ -11,7 +11,7 @@ on:
 
 jobs:
   build-website:
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
 
     steps:
     - uses: actions/checkout@v4
@@ -19,9 +19,6 @@ jobs:
       uses: actions/setup-dotnet@v4
       with:
         dotnet-version: 9.0.x
-    - name: Install MAUI workload
-      run: dotnet workload install maui
-
     - name: Build Website
       run: dotnet build --configuration Debug
 
