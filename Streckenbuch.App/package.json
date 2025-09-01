@@ -1,0 +1,15 @@
+{
+	"name": "streckenbuch-web",
+	"version": "1.0.0",
+	"main": "index.js",
+	"scripts": {
+		"css:build": "npx tailwindcss -i ./Styles/source.css -o ./wwwroot/css/tailwind.generated.css --minify"
+	},
+	"keywords": [],
+	"author": "",
+	"license": "ISC",
+	"description": "",
+	"devDependencies": {
+		"tailwindcss": "^3.4.17"
+	}
+}

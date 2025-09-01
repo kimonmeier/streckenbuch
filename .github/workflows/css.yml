@@ -10,7 +10,7 @@ on:
       - main
 
 jobs:
-  build-css:
+  build-css-server:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
@@ -29,4 +29,25 @@ jobs:
         npm run css:build
     - uses: stefanzweifel/git-auto-commit-action@v5
       with:
-        commit_message: Build new Style-CSS
+        commit_message: Build new Style-CSS-Server
+        
+  build-css-app:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        ref: ${{ github.head_ref }}
+    - name: Use Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v4
+      with:
+        node-version: 22.x
+        cache: 'npm'
+        cache-dependency-path: './Streckenbuch.App'
+    - name: Install Node Libarys and build css
+      run: | 
+        cd ./Streckenbuch.App
+        npm ci
+        npm run css:build
+    - uses: stefanzweifel/git-auto-commit-action@v5
+      with:
+        commit_message: Build new Style-CSS-App
